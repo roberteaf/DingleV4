@@ -181,7 +181,6 @@
     }
     .small { font-size:12px; color: var(--muted); }
   </style>
-</head>
 <body>
   <div class="container">
     <div class="card left-col">
@@ -334,7 +333,7 @@
     while (minePos.size < mines) {
       minePos.add(Math.floor(Math.random() * total));
     }
-    game = { bet, mines, minePos, opened: new Set(), currentPayout:0 };
+    game = { bet, mines, minePos, opened: new Set(), currentPayout: 0 };
     if (!state.infinite) {
       state.balance -= bet;
     }
@@ -370,9 +369,11 @@
       inner.textContent = '';
       const safeCount = game.opened.size;
       statusLabel.textContent = `Opened ${safeCount} safe / ${game.mines} mines`;
-      const safeTotal = 25 - game.mines;
-      const multiplier = safeTotal / safeCount;
+
+      // Multiplier increases by 0.1 per safe tile
+      const multiplier = 1 + safeCount * 0.1;
       game.currentPayout = game.bet * multiplier;
+
       if (autoCashout.checked) {
         cashOut();
       }
