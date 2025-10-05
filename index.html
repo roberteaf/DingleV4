@@ -15,12 +15,14 @@
       --muted: #8fa3b3;
       --glass: rgba(255,255,255,0.02);
     }
+
     * { box-sizing: border-box; margin:0; padding:0; }
     html, body { height:100%; }
+
     body {
       background: linear-gradient(135deg, var(--bg1), var(--bg2));
       background-size: 400% 400%;
-      animation: bgShift 20s ease infinite;
+      animation: bgShift 10s ease infinite;
       color: #e6eef8;
       display:flex;
       align-items:flex-start;
@@ -28,11 +30,13 @@
       padding:40px 20px;
       font-family: Inter, system-ui, sans-serif;
     }
+
     @keyframes bgShift {
       0% { background-position: 0% 50%; }
       50% { background-position: 100% 50%; }
       100% { background-position: 0% 50%; }
     }
+
     .container {
       width:100%;
       max-width:1000px;
@@ -40,6 +44,7 @@
       grid-template-columns: 420px 1fr;
       gap:20px;
     }
+
     .card {
       background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)), var(--card-bg);
       border-radius:12px;
@@ -50,20 +55,24 @@
       flex-direction:column;
       gap:14px;
     }
+
     .balance {
       display:flex;
       justify-content:space-between;
       align-items:center;
     }
+
     .balance .amount {
       font-size:28px;
       font-weight:700;
       color: var(--accent);
     }
+
     .balance .label {
       color: var(--muted);
       font-size:13px;
     }
+
     input[type=number] {
       width:140px;
       padding:10px 12px;
@@ -74,10 +83,12 @@
       font-weight:600;
       transition: border-color 0.3s;
     }
+
     input[type=number]:focus {
       border-color: var(--accent);
       outline: none;
     }
+
     button {
       background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
       color:inherit;
@@ -88,16 +99,19 @@
       font-weight:700;
       transition: transform 0.15s, box-shadow 0.15s;
     }
-    button:hover {
+
+    button:hover:enabled {
       transform: translateY(-2px);
       box-shadow: 0 8px 22px rgba(0,0,0,0.7);
     }
+
     .btn-primary {
       background: linear-gradient(90deg, var(--accent), #a0f9d8);
       border:none;
       color:#0b0d18;
       box-shadow: 0 6px 18px rgba(122,240,194,0.2);
     }
+
     .toggle {
       display:inline-flex;
       align-items:center;
@@ -107,19 +121,23 @@
       background: var(--glass);
       border:1px solid rgba(255,255,255,0.02);
     }
+
     .toggle input {
       width:16px; height:16px;
     }
+
     .toggle span {
       color: var(--muted);
       font-size:13px;
     }
+
     .grid {
       display:grid;
       grid-template-columns: repeat(5,1fr);
       gap:6px;
       margin-top:12px;
     }
+
     .cell {
       position: relative;
       background: var(--glass);
@@ -134,29 +152,36 @@
       overflow:hidden;
       transition: background 0.3s;
     }
+
     .cell:hover {
       background: rgba(255,255,255,0.06);
     }
+
     .cell.revealed {
       cursor: default;
       background: rgba(255,255,255,0.08);
     }
+
     .cell.mine {
       background: linear-gradient(135deg, #001a33, #004f66);
       color: #ff6666;
     }
+
     .cell.safe {
       background: linear-gradient(135deg, #002244, #33cc88);
       color: #ccffee;
     }
+
     .cell .inner {
       transform: scale(0);
       transition: transform 0.3s ease-out;
       z-index:5;
     }
+
     .cell.revealed .inner {
       transform: scale(1);
     }
+
     .history {
       margin-top:12px;
       max-height:300px;
@@ -165,6 +190,7 @@
       border-radius:10px;
       padding:10px;
     }
+
     .history-item {
       display:flex;
       justify-content:space-between;
@@ -173,14 +199,18 @@
       margin-bottom:6px;
       transition: background 0.3s;
     }
+
     .history-item.win {
       background: linear-gradient(90deg, rgba(64,255,192,0.05), rgba(255,255,255,0.01));
     }
+
     .history-item.loss {
       background: linear-gradient(90deg, rgba(255,72,72,0.04), rgba(255,255,255,0.01));
     }
+
     .small { font-size:12px; color: var(--muted); }
   </style>
+</head>
 <body>
   <div class="container">
     <div class="card left-col">
@@ -271,6 +301,7 @@
       return {...defaultState};
     }
   }
+
   function saveState(){
     const to = {
       balance: state.balance,
@@ -279,6 +310,7 @@
     };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(to));
   }
+
   function fmt(n){
     if (n === Infinity) return '∞';
     return n >= 1000 ? n.toLocaleString() : '' + n;
@@ -287,6 +319,7 @@
   function renderBalance(){
     balanceDisplay.textContent = state.infinite ? '∞' : fmt(state.balance);
   }
+
   function renderHistory(){
     historyEl.innerHTML = '';
     const items = state.history.slice().reverse();
@@ -309,10 +342,16 @@
     game = null;
     gridEl.innerHTML = '';
     cashoutBtn.disabled = true;
+    startBtn.disabled = false;
     statusLabel.textContent = '';
   }
 
   function startGame(){
+    if (game) {
+      alert("Game already in progress. Cash out or lose before starting a new one.");
+      return;
+    }
+
     resetGame();
     const bet = Math.floor(Number(betInput.value));
     if (!Number.isFinite(bet) || bet < 1) {
@@ -328,15 +367,18 @@
       alert('Mines must be between 1 and 24');
       return;
     }
+
     const total = 25;
     const minePos = new Set();
     while (minePos.size < mines) {
       minePos.add(Math.floor(Math.random() * total));
     }
+
     game = { bet, mines, minePos, opened: new Set(), currentPayout: 0 };
     if (!state.infinite) {
       state.balance -= bet;
     }
+
     for (let i=0; i<25; i++){
       const c = document.createElement('div');
       c.className = 'cell';
@@ -347,7 +389,9 @@
       c.appendChild(inner);
       gridEl.appendChild(c);
     }
+
     cashoutBtn.disabled = false;
+    startBtn.disabled = true;
     statusLabel.textContent = `Opened 0 safe / ${mines} mines`;
     renderBalance();
     saveState();
@@ -370,7 +414,6 @@
       const safeCount = game.opened.size;
       statusLabel.textContent = `Opened ${safeCount} safe / ${game.mines} mines`;
 
-      // Multiplier increases by 0.1 per safe tile
       const multiplier = 1 + safeCount * 0.1;
       game.currentPayout = game.bet * multiplier;
 
@@ -389,13 +432,17 @@
       }
     }
     cashoutBtn.disabled = true;
+    startBtn.disabled = false;
+
     if (!win) {
       statusLabel.textContent = `💥 Boom! You lost -${fmt(game.bet)}`;
       state.history.push({ result: 'Loss', profit: -game.bet });
     }
+
     renderBalance();
     saveState();
     game = null;
+    renderHistory();
   }
 
   function cashOut(){
