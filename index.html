@@ -1,147 +1,310 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" >
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Slot Machine Casino</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Animated Slot Machine Casino Demo</title>
   <style>
+    /* Global and Reset */
     * {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
-      font-family: 'Segoe UI', sans-serif;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      user-select: none;
     }
-
     body {
       height: 100vh;
-      background: linear-gradient(-45deg, #1e3c72, #2a5298, #1e3c72, #0f2027);
+      background: linear-gradient(-45deg, #0f2027, #203a43, #2c5364, #0f2027);
       background-size: 400% 400%;
-      animation: gradientBG 15s ease infinite;
+      animation: gradientBG 20s ease infinite;
       display: flex;
       justify-content: center;
       align-items: center;
-      color: #fff;
+      color: #f3f3f3;
+      font-weight: 600;
+      -webkit-font-smoothing: antialiased;
     }
-
     @keyframes gradientBG {
       0% {background-position: 0% 50%;}
       50% {background-position: 100% 50%;}
       100% {background-position: 0% 50%;}
     }
 
+    /* Container */
     .casino {
-      background: rgba(0, 0, 0, 0.6);
-      padding: 30px;
-      border-radius: 20px;
-      box-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
+      background: rgba(10, 10, 10, 0.9);
+      padding: 40px 30px 50px 30px;
+      border-radius: 25px;
+      box-shadow: 0 0 35px rgba(255, 215, 0, 0.5);
+      width: 370px;
       text-align: center;
-      width: 90%;
-      max-width: 400px;
+      border: 3px solid gold;
     }
-
-    h1 {
-      font-size: 2em;
-      margin-bottom: 20px;
+    .casino h1 {
       color: gold;
+      margin-bottom: 25px;
+      text-shadow: 0 0 8px gold;
+      font-size: 2.5rem;
+      letter-spacing: 2px;
     }
 
+    /* Reels */
     .reels {
       display: flex;
       justify-content: center;
-      margin-bottom: 20px;
+      gap: 15px;
+      margin-bottom: 25px;
+      perspective: 1000px;
     }
-
     .reel {
       background: #111;
-      border: 3px solid gold;
-      border-radius: 10px;
-      width: 60px;
-      height: 60px;
-      margin: 0 10px;
-      font-size: 2em;
+      border: 4px solid gold;
+      border-radius: 12px;
+      width: 70px;
+      height: 70px;
+      font-size: 3.5rem;
       display: flex;
       justify-content: center;
       align-items: center;
-      animation: none;
+      color: #ffd700;
+      box-shadow: inset 0 0 12px 2px rgba(255, 215, 0, 0.6);
+      transform-style: preserve-3d;
+      backface-visibility: hidden;
+      user-select: none;
+    }
+    /* Spin animation */
+    @keyframes spinReel {
+      0% { transform: rotateX(0deg);}
+      100% { transform: rotateX(360deg);}
     }
 
-    @keyframes spin {
-      0% {transform: rotateX(0);}
-      100% {transform: rotateX(360deg);}
+    /* Buttons */
+    .buttons {
+      margin-top: 20px;
+      display: flex;
+      justify-content: center;
+      gap: 15px;
     }
-
     button {
-      padding: 10px 20px;
-      font-size: 1em;
-      border: none;
-      border-radius: 10px;
-      background: gold;
-      color: #000;
       cursor: pointer;
-      transition: background 0.3s;
+      padding: 10px 25px;
+      font-weight: 700;
+      font-size: 1rem;
+      border-radius: 10px;
+      border: none;
+      background: gold;
+      color: black;
+      box-shadow: 0 0 15px gold;
+      transition: background-color 0.3s ease;
+      user-select: none;
+    }
+    button:hover:not(:disabled) {
+      background: #ffdd33;
+    }
+    button:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+      box-shadow: none;
     }
 
-    button:hover {
-      background: #ffcc00;
+    /* Info & Messages */
+    .info {
+      margin: 15px 0 10px 0;
+      font-size: 1.1rem;
     }
-
-    .credits {
-      margin-top: 15px;
-      font-size: 1.2em;
-    }
-
     .message {
+      min-height: 28px;
       margin-top: 10px;
-      font-size: 1.1em;
-      color: #0f0;
-      height: 24px;
+      font-size: 1.15rem;
+      font-weight: 700;
+      text-shadow: 0 0 4px #00ff00;
+      color: #00ff00;
+      height: 30px;
+    }
+
+    /* Input bet */
+    input[type="number"] {
+      width: 80px;
+      font-size: 1rem;
+      font-weight: 600;
+      text-align: center;
+      border-radius: 10px;
+      border: 2px solid gold;
+      background: #222;
+      color: gold;
+      box-shadow: inset 0 0 10px #ffd700;
+      outline: none;
+      -moz-appearance: textfield;
+    }
+    input[type="number"]::-webkit-inner-spin-button, 
+    input[type="number"]::-webkit-outer-spin-button { 
+      -webkit-appearance: none; 
+      margin: 0; 
     }
   </style>
 </head>
 <body>
-  <div class="casino">
+  <div class="casino" role="main" aria-label="Online slot machine casino demo">
     <h1>💰 Lucky Slots 💰</h1>
-    <div class="reels">
-      <div class="reel" id="reel1">🍒</div>
-      <div class="reel" id="reel2">🍋</div>
-      <div class="reel" id="reel3">🍇</div>
+
+    <div class="reels" aria-live="polite" aria-atomic="true" aria-relevant="text">
+      <div class="reel" id="reel1" aria-label="Reel 1">🍒</div>
+      <div class="reel" id="reel2" aria-label="Reel 2">🍋</div>
+      <div class="reel" id="reel3" aria-label="Reel 3">🍇</div>
     </div>
-    <button onclick="spin()">🎰 Spin</button>
-    <div class="credits" id="credits">Credits: ∞</div>
-    <div class="message" id="message"></div>
+
+    <div class="info">
+      <label for="betInput">Bet: </label>
+      <input type="number" id="betInput" min="1" max="100" step="1" value="10" aria-describedby="creditsDesc" />
+      <span id="creditsDesc">Your current credits: <span id="credits" aria-live="polite" aria-atomic="true">1000</span></span>
+    </div>
+
+    <div class="buttons">
+      <button id="spinBtn" aria-label="Spin the reels">🎰 Spin</button>
+      <button id="resetBtn" aria-label="Reset credits to 1000">♻️ Reset</button>
+    </div>
+
+    <div class="message" id="message" role="alert" aria-live="assertive"></div>
   </div>
 
   <script>
-    const symbols = ["🍒", "🍋", "🍇", "🍊", "🔔", "⭐", "💎"];
-    const reels = [
-      document.getElementById("reel1"),
-      document.getElementById("reel2"),
-      document.getElementById("reel3")
-    ];
-    const message = document.getElementById("message");
+    (() => {
+      const symbols = ["🍒", "🍋", "🍇", "🍊", "🔔", "⭐", "💎"];
+      const reels = [
+        document.getElementById("reel1"),
+        document.getElementById("reel2"),
+        document.getElementById("reel3"),
+      ];
+      const spinBtn = document.getElementById("spinBtn");
+      const resetBtn = document.getElementById("resetBtn");
+      const message = document.getElementById("message");
+      const creditsEl = document.getElementById("credits");
+      const betInput = document.getElementById("betInput");
 
-    function spin() {
-      message.textContent = "";
-      reels.forEach((reel, i) => {
-        reel.style.animation = "spin 0.5s ease";
-        setTimeout(() => {
-          reel.style.animation = "none";
-          const randomSymbol = symbols[Math.floor(Math.random() * symbols.length)];
-          reel.textContent = randomSymbol;
-        }, 500 + i * 100);
+      // Initialize credits to 1000 for demo
+      let credits = 1000;
+
+      // Utility: update credits display
+      function updateCredits() {
+        creditsEl.textContent = credits;
+      }
+
+      // Utility: validate bet input
+      function getBet() {
+        let bet = parseInt(betInput.value, 10);
+        if (isNaN(bet) || bet < 1) bet = 1;
+        if (bet > credits) bet = credits;
+        betInput.value = bet;
+        return bet;
+      }
+
+      // Spin animation for each reel (returns Promise)
+      function animateReel(reel, finalSymbol, delay) {
+        return new Promise((resolve) => {
+          reel.style.animation = "spinReel 0.6s ease-in-out";
+          setTimeout(() => {
+            reel.style.animation = "none";
+            reel.textContent = finalSymbol;
+            resolve();
+          }, 600 + delay);
+        });
+      }
+
+      // Check results for wins:
+      // Jackpot = all 3 same symbols = pays 5x bet
+      // Small Win = any 2 same symbols = pays 2x bet
+      // Else lose bet
+      function checkWin(results, bet) {
+        const [s1, s2, s3] = results;
+        if (s1 === s2 && s2 === s3) {
+          return { win: true, amount: bet * 5, message: "🎉 JACKPOT! 5x your bet!" };
+        }
+        if (s1 === s2 || s2 === s3 || s1 === s3) {
+          return { win: true, amount: bet * 2, message: "😊 Small Win! 2x your bet!" };
+        }
+        return { win: false, amount: 0, message: "😢 No luck, try again!" };
+      }
+
+      // Main spin function
+      async function spin() {
+        message.textContent = "";
+        spinBtn.disabled = true;
+        resetBtn.disabled = true;
+        betInput.disabled = true;
+
+        let bet = getBet();
+
+        if (bet > credits) {
+          message.textContent = "❌ Not enough credits for that bet.";
+          spinBtn.disabled = false;
+          resetBtn.disabled = false;
+          betInput.disabled = false;
+          return;
+        }
+
+        credits -= bet;
+        updateCredits();
+
+        // Generate random symbols for final result
+        const finalSymbols = [
+          symbols[Math.floor(Math.random() * symbols.length)],
+          symbols[Math.floor(Math.random() * symbols.length)],
+          symbols[Math.floor(Math.random() * symbols.length)],
+        ];
+
+        // Animate each reel with staggered delay for smooth effect
+        await Promise.all([
+          animateReel(reels[0], finalSymbols[0], 0),
+          animateReel(reels[1], finalSymbols[1], 200),
+          animateReel(reels[2], finalSymbols[2], 400),
+        ]);
+
+        // Check win
+        const result = checkWin(finalSymbols, bet);
+
+        if (result.win) {
+          credits += result.amount;
+          updateCredits();
+          message.style.color = "#00ff00";
+          message.textContent = result.message;
+        } else {
+          message.style.color = "#ff4444";
+          message.textContent = result.message;
+        }
+
+        if (credits <= 0) {
+          message.textContent += " You ran out of credits! Please reset.";
+          spinBtn.disabled = true;
+          betInput.disabled = true;
+        } else {
+          spinBtn.disabled = false;
+          betInput.disabled = false;
+        }
+        resetBtn.disabled = false;
+      }
+
+      // Reset credits button
+      function reset() {
+        credits = 1000;
+        updateCredits();
+        message.textContent = "";
+        spinBtn.disabled = false;
+        betInput.disabled = false;
+      }
+
+      // Setup event listeners
+      spinBtn.addEventListener("click", spin);
+      resetBtn.addEventListener("click", reset);
+      betInput.addEventListener("change", () => {
+        let bet = getBet();
+        if (bet > credits) betInput.value = credits;
       });
 
-      setTimeout(() => {
-        const [s1, s2, s3] = reels.map(r => r.textContent);
-        if (s1 === s2 && s2 === s3) {
-          message.textContent = "🎉 JACKPOT!";
-        } else if (s1 === s2 || s2 === s3 || s1 === s3) {
-          message.textContent = "😊 Small Win!";
-        } else {
-          message.textContent = "😢 Try Again!";
-        }
-      }, 1200);
-    }
+      // Initial credits display
+      updateCredits();
+
+    })();
   </script>
 </body>
 </html>
