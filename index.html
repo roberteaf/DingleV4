@@ -1,310 +1,674 @@
 <!DOCTYPE html>
-<html lang="en" >
+<html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Animated Slot Machine Casino Demo</title>
-  <style>
-    /* Global and Reset */
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      user-select: none;
-    }
-    body {
-      height: 100vh;
-      background: linear-gradient(-45deg, #0f2027, #203a43, #2c5364, #0f2027);
-      background-size: 400% 400%;
-      animation: gradientBG 20s ease infinite;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      color: #f3f3f3;
-      font-weight: 600;
-      -webkit-font-smoothing: antialiased;
-    }
-    @keyframes gradientBG {
-      0% {background-position: 0% 50%;}
-      50% {background-position: 100% 50%;}
-      100% {background-position: 0% 50%;}
-    }
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Plinko & Mines Game</title>
+<style>
+  /* Gradient background */
+  body, html {
+    margin: 0; padding: 0; height: 100%;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #0047AB, #FF0000);
+    color: white;
+    overflow-x: hidden;
+    user-select: none;
+  }
 
-    /* Container */
-    .casino {
-      background: rgba(10, 10, 10, 0.9);
-      padding: 40px 30px 50px 30px;
-      border-radius: 25px;
-      box-shadow: 0 0 35px rgba(255, 215, 0, 0.5);
-      width: 370px;
-      text-align: center;
-      border: 3px solid gold;
-    }
-    .casino h1 {
-      color: gold;
-      margin-bottom: 25px;
-      text-shadow: 0 0 8px gold;
-      font-size: 2.5rem;
-      letter-spacing: 2px;
-    }
+  /* Container for all content */
+  #container {
+    max-width: 1200px;
+    margin: auto;
+    padding: 20px;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
 
-    /* Reels */
-    .reels {
-      display: flex;
-      justify-content: center;
-      gap: 15px;
-      margin-bottom: 25px;
-      perspective: 1000px;
-    }
-    .reel {
-      background: #111;
-      border: 4px solid gold;
-      border-radius: 12px;
-      width: 70px;
-      height: 70px;
-      font-size: 3.5rem;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      color: #ffd700;
-      box-shadow: inset 0 0 12px 2px rgba(255, 215, 0, 0.6);
-      transform-style: preserve-3d;
-      backface-visibility: hidden;
-      user-select: none;
-    }
-    /* Spin animation */
-    @keyframes spinReel {
-      0% { transform: rotateX(0deg);}
-      100% { transform: rotateX(360deg);}
-    }
+  /* Title */
+  h1 {
+    font-weight: 900;
+    font-size: 3rem;
+    margin-bottom: 10px;
+    text-shadow: 2px 2px 6px rgba(0,0,0,0.7);
+  }
 
-    /* Buttons */
-    .buttons {
-      margin-top: 20px;
-      display: flex;
-      justify-content: center;
-      gap: 15px;
+  /* Navigation buttons */
+  #nav-buttons {
+    margin-bottom: 20px;
+  }
+  button.nav-btn {
+    background: transparent;
+    border: 2px solid white;
+    color: white;
+    font-size: 1.2rem;
+    padding: 10px 20px;
+    margin: 0 10px;
+    border-radius: 30px;
+    cursor: pointer;
+    transition: 0.3s ease;
+    font-weight: 600;
+  }
+  button.nav-btn:hover, button.nav-btn.active {
+    background: white;
+    color: #0047AB;
+    font-weight: 700;
+  }
+
+  /* Game area */
+  .game-area {
+    width: 100%;
+    max-width: 1100px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 20px;
+    padding: 20px;
+    box-shadow: 0 0 20px rgba(255,255,255,0.15);
+  }
+
+  /* Common scoreboard */
+  #scoreboard {
+    font-size: 1.4rem;
+    margin-bottom: 15px;
+    text-align: center;
+    font-weight: 700;
+    letter-spacing: 1px;
+  }
+
+  /* -------- Plinko Styles --------- */
+
+  #plinko-canvas {
+    display: block;
+    margin: auto;
+    background: rgba(0,0,0,0.15);
+    border-radius: 10px;
+    box-shadow: inset 0 0 15px rgba(255,255,255,0.1);
+  }
+
+  #plinko-controls {
+    text-align: center;
+    margin-top: 15px;
+  }
+  #plinko-controls button {
+    background: #ff3b3b;
+    border: none;
+    color: white;
+    font-size: 1.1rem;
+    padding: 10px 25px;
+    border-radius: 30px;
+    cursor: pointer;
+    font-weight: 700;
+    box-shadow: 0 5px 15px rgba(255,59,59,0.7);
+    transition: background 0.3s ease;
+  }
+  #plinko-controls button:hover {
+    background: #cc2a2a;
+  }
+  #plinko-info {
+    margin-top: 10px;
+    font-size: 1.2rem;
+  }
+
+  /* Pegs style */
+  .peg {
+    fill: white;
+    filter: drop-shadow(0 0 2px #fff);
+  }
+
+  /* Ball style */
+  .ball {
+    fill: #ff4444;
+    filter: drop-shadow(0 0 8px #ff4444);
+  }
+
+  /* -------- Mines Styles --------- */
+
+  #mines-board {
+    display: grid;
+    margin: auto;
+    grid-template-columns: repeat(10, 50px);
+    grid-template-rows: repeat(10, 50px);
+    gap: 6px;
+    justify-content: center;
+  }
+
+  .mine-cell {
+    width: 50px;
+    height: 50px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 12px;
+    box-shadow: inset 0 0 5px rgba(255,255,255,0.2);
+    cursor: pointer;
+    position: relative;
+    transition: background 0.25s ease;
+    user-select: none;
+  }
+  .mine-cell.revealed {
+    background: rgba(255,255,255,0.3);
+    cursor: default;
+  }
+  .mine-cell.mine {
+    background: #ff3333;
+  }
+
+  /* Number styles */
+  .mine-cell span {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-weight: 900;
+    font-size: 1.3rem;
+    pointer-events: none;
+  }
+  .mine-cell.number-1 span { color: #0074D9; }
+  .mine-cell.number-2 span { color: #2ECC40; }
+  .mine-cell.number-3 span { color: #FF4136; }
+  .mine-cell.number-4 span { color: #B10DC9; }
+  .mine-cell.number-5 span { color: #FF851B; }
+  .mine-cell.number-6 span { color: #7FDBFF; }
+  .mine-cell.number-7 span { color: #39CCCC; }
+  .mine-cell.number-8 span { color: #01FF70; }
+
+  /* Explosion animation */
+  @keyframes explosion {
+    0% {
+      box-shadow: 0 0 0 0 rgba(255, 0, 0, 0.7);
     }
-    button {
-      cursor: pointer;
-      padding: 10px 25px;
-      font-weight: 700;
-      font-size: 1rem;
+    50% {
+      box-shadow: 0 0 20px 15px rgba(255, 0, 0, 0.9);
+    }
+    100% {
+      box-shadow: 0 0 0 0 rgba(255, 0, 0, 0);
+    }
+  }
+  .mine-cell.mine.exploded {
+    animation: explosion 0.6s ease forwards;
+  }
+
+  /* Mines controls */
+  #mines-controls {
+    margin: 20px auto 10px;
+    text-align: center;
+  }
+  #mines-controls button {
+    background: #0074D9;
+    border: none;
+    color: white;
+    font-size: 1.1rem;
+    padding: 10px 30px;
+    border-radius: 30px;
+    cursor: pointer;
+    font-weight: 700;
+    box-shadow: 0 5px 15px rgba(0,116,217,0.7);
+    transition: background 0.3s ease;
+  }
+  #mines-controls button:hover {
+    background: #005bb5;
+  }
+  #mines-info {
+    margin-top: 10px;
+    font-size: 1.2rem;
+    font-weight: 700;
+  }
+
+  /* Responsive adjustments */
+  @media (max-width: 650px) {
+    #mines-board {
+      grid-template-columns: repeat(8, 40px);
+      grid-template-rows: repeat(8, 40px);
+      gap: 5px;
+    }
+    .mine-cell {
+      width: 40px;
+      height: 40px;
       border-radius: 10px;
-      border: none;
-      background: gold;
-      color: black;
-      box-shadow: 0 0 15px gold;
-      transition: background-color 0.3s ease;
-      user-select: none;
     }
-    button:hover:not(:disabled) {
-      background: #ffdd33;
-    }
-    button:disabled {
-      opacity: 0.4;
-      cursor: not-allowed;
-      box-shadow: none;
-    }
+  }
 
-    /* Info & Messages */
-    .info {
-      margin: 15px 0 10px 0;
-      font-size: 1.1rem;
-    }
-    .message {
-      min-height: 28px;
-      margin-top: 10px;
-      font-size: 1.15rem;
-      font-weight: 700;
-      text-shadow: 0 0 4px #00ff00;
-      color: #00ff00;
-      height: 30px;
-    }
-
-    /* Input bet */
-    input[type="number"] {
-      width: 80px;
-      font-size: 1rem;
-      font-weight: 600;
-      text-align: center;
-      border-radius: 10px;
-      border: 2px solid gold;
-      background: #222;
-      color: gold;
-      box-shadow: inset 0 0 10px #ffd700;
-      outline: none;
-      -moz-appearance: textfield;
-    }
-    input[type="number"]::-webkit-inner-spin-button, 
-    input[type="number"]::-webkit-outer-spin-button { 
-      -webkit-appearance: none; 
-      margin: 0; 
-    }
-  </style>
+</style>
 </head>
 <body>
-  <div class="casino" role="main" aria-label="Online slot machine casino demo">
-    <h1>💰 Lucky Slots 💰</h1>
 
-    <div class="reels" aria-live="polite" aria-atomic="true" aria-relevant="text">
-      <div class="reel" id="reel1" aria-label="Reel 1">🍒</div>
-      <div class="reel" id="reel2" aria-label="Reel 2">🍋</div>
-      <div class="reel" id="reel3" aria-label="Reel 3">🍇</div>
-    </div>
-
-    <div class="info">
-      <label for="betInput">Bet: </label>
-      <input type="number" id="betInput" min="1" max="100" step="1" value="10" aria-describedby="creditsDesc" />
-      <span id="creditsDesc">Your current credits: <span id="credits" aria-live="polite" aria-atomic="true">1000</span></span>
-    </div>
-
-    <div class="buttons">
-      <button id="spinBtn" aria-label="Spin the reels">🎰 Spin</button>
-      <button id="resetBtn" aria-label="Reset credits to 1000">♻️ Reset</button>
-    </div>
-
-    <div class="message" id="message" role="alert" aria-live="assertive"></div>
+<div id="container">
+  <h1>Plinko & Mines Games</h1>
+  <div id="nav-buttons">
+    <button class="nav-btn active" id="btn-plinko">Plinko</button>
+    <button class="nav-btn" id="btn-mines">Mines</button>
   </div>
 
-  <script>
-    (() => {
-      const symbols = ["🍒", "🍋", "🍇", "🍊", "🔔", "⭐", "💎"];
-      const reels = [
-        document.getElementById("reel1"),
-        document.getElementById("reel2"),
-        document.getElementById("reel3"),
-      ];
-      const spinBtn = document.getElementById("spinBtn");
-      const resetBtn = document.getElementById("resetBtn");
-      const message = document.getElementById("message");
-      const creditsEl = document.getElementById("credits");
-      const betInput = document.getElementById("betInput");
+  <!-- Plinko Game -->
+  <div id="plinko-game" class="game-area">
+    <div id="scoreboard">Score: 0</div>
+    <canvas id="plinko-canvas" width="900" height="600"></canvas>
+    <div id="plinko-controls">
+      <button id="drop-ball-btn">Drop Ball</button>
+    </div>
+    <div id="plinko-info">Drop the ball and watch it bounce to your prize slot!</div>
+  </div>
 
-      // Initialize credits to 1000 for demo
-      let credits = 1000;
+  <!-- Mines Game -->
+  <div id="mines-game" class="game-area" style="display:none;">
+    <div id="scoreboard-mines">Safe Clicks: 0 / 10</div>
+    <div id="mines-board"></div>
+    <div id="mines-controls">
+      <button id="reset-mines-btn">Reset Game</button>
+    </div>
+    <div id="mines-info">Click on tiles, avoid the mines! You have 10 safe clicks.</div>
+  </div>
+</div>
 
-      // Utility: update credits display
-      function updateCredits() {
-        creditsEl.textContent = credits;
-      }
+<script>
+  // -------------- PLINKO GAME ----------------
+  (() => {
+    const canvas = document.getElementById('plinko-canvas');
+    const ctx = canvas.getContext('2d');
+    const width = canvas.width;
+    const height = canvas.height;
 
-      // Utility: validate bet input
-      function getBet() {
-        let bet = parseInt(betInput.value, 10);
-        if (isNaN(bet) || bet < 1) bet = 1;
-        if (bet > credits) bet = credits;
-        betInput.value = bet;
-        return bet;
-      }
+    const pegs = [];
+    const pegRadius = 8;
+    const rows = 10;
+    const cols = 13;
+    const spacingX = width / cols;
+    const spacingY = 50;
+    const ballRadius = 10;
 
-      // Spin animation for each reel (returns Promise)
-      function animateReel(reel, finalSymbol, delay) {
-        return new Promise((resolve) => {
-          reel.style.animation = "spinReel 0.6s ease-in-out";
-          setTimeout(() => {
-            reel.style.animation = "none";
-            reel.textContent = finalSymbol;
-            resolve();
-          }, 600 + delay);
-        });
-      }
+    let balls = [];
+    let score = 0;
 
-      // Check results for wins:
-      // Jackpot = all 3 same symbols = pays 5x bet
-      // Small Win = any 2 same symbols = pays 2x bet
-      // Else lose bet
-      function checkWin(results, bet) {
-        const [s1, s2, s3] = results;
-        if (s1 === s2 && s2 === s3) {
-          return { win: true, amount: bet * 5, message: "🎉 JACKPOT! 5x your bet!" };
+    // Prize slots at bottom with values
+    const slots = [
+      {x: spacingX * 0.5, value: 10},
+      {x: spacingX * 1.5, value: 50},
+      {x: spacingX * 2.5, value: 20},
+      {x: spacingX * 3.5, value: 100},
+      {x: spacingX * 4.5, value: 10},
+      {x: spacingX * 5.5, value: 500},
+      {x: spacingX * 6.5, value: 20},
+      {x: spacingX * 7.5, value: 100},
+      {x: spacingX * 8.5, value: 50},
+      {x: spacingX * 9.5, value: 10},
+      {x: spacingX * 10.5, value: 250},
+      {x: spacingX * 11.5, value: 30},
+      {x: spacingX * 12.5, value: 10}
+    ];
+
+    const gravity = 0.35;
+    const friction = 0.98;
+
+    // Build pegs coordinates
+    function buildPegs() {
+      pegs.length = 0;
+      for(let row = 0; row < rows; row++) {
+        for(let col = 0; col < cols; col++) {
+          // Stagger even rows
+          let x = col * spacingX + ((row % 2) * spacingX / 2) + spacingX/2;
+          let y = row * spacingY + 60;
+          if (x > pegRadius && x < width - pegRadius) {
+            pegs.push({x, y});
+          }
         }
-        if (s1 === s2 || s2 === s3 || s1 === s3) {
-          return { win: true, amount: bet * 2, message: "😊 Small Win! 2x your bet!" };
-        }
-        return { win: false, amount: 0, message: "😢 No luck, try again!" };
+      }
+    }
+
+    // Ball object
+    class Ball {
+      constructor() {
+        this.x = width / 2;
+        this.y = 30;
+        this.vx = (Math.random() - 0.5) * 2;
+        this.vy = 0;
+        this.radius = ballRadius;
+        this.stopped = false;
+        this.landedSlot = null;
       }
 
-      // Main spin function
-      async function spin() {
-        message.textContent = "";
-        spinBtn.disabled = true;
-        resetBtn.disabled = true;
-        betInput.disabled = true;
+      update() {
+        if (this.stopped) return;
 
-        let bet = getBet();
+        this.vy += gravity;
+        this.x += this.vx;
+        this.y += this.vy;
 
-        if (bet > credits) {
-          message.textContent = "❌ Not enough credits for that bet.";
-          spinBtn.disabled = false;
-          resetBtn.disabled = false;
-          betInput.disabled = false;
-          return;
+        // Bounce off walls
+        if(this.x < this.radius) {
+          this.x = this.radius;
+          this.vx *= -0.6;
+        }
+        if(this.x > width - this.radius) {
+          this.x = width - this.radius;
+          this.vx *= -0.6;
         }
 
-        credits -= bet;
-        updateCredits();
+        // Collision with pegs
+        for(let peg of pegs) {
+          let dx = this.x - peg.x;
+          let dy = this.y - peg.y;
+          let dist = Math.sqrt(dx*dx + dy*dy);
+          if(dist < this.radius + pegRadius) {
+            // Simple collision response: reflect velocity based on collision vector
+            let angle = Math.atan2(dy, dx);
+            let targetX = peg.x + Math.cos(angle) * (this.radius + pegRadius);
+            let targetY = peg.y + Math.sin(angle) * (this.radius + pegRadius);
+            let ax = (targetX - this.x) * 0.5;
+            let ay = (targetY - this.y) * 0.5;
 
-        // Generate random symbols for final result
-        const finalSymbols = [
-          symbols[Math.floor(Math.random() * symbols.length)],
-          symbols[Math.floor(Math.random() * symbols.length)],
-          symbols[Math.floor(Math.random() * symbols.length)],
-        ];
+            this.vx -= ax;
+            this.vy -= ay;
 
-        // Animate each reel with staggered delay for smooth effect
-        await Promise.all([
-          animateReel(reels[0], finalSymbols[0], 0),
-          animateReel(reels[1], finalSymbols[1], 200),
-          animateReel(reels[2], finalSymbols[2], 400),
-        ]);
+            // Add some randomness to horizontal velocity after collision for natural bounce
+            this.vx += (Math.random() - 0.5) * 0.6;
 
-        // Check win
-        const result = checkWin(finalSymbols, bet);
-
-        if (result.win) {
-          credits += result.amount;
-          updateCredits();
-          message.style.color = "#00ff00";
-          message.textContent = result.message;
-        } else {
-          message.style.color = "#ff4444";
-          message.textContent = result.message;
+            // Move ball outside the peg
+            this.x = targetX;
+            this.y = targetY;
+          }
         }
 
-        if (credits <= 0) {
-          message.textContent += " You ran out of credits! Please reset.";
-          spinBtn.disabled = true;
-          betInput.disabled = true;
-        } else {
-          spinBtn.disabled = false;
-          betInput.disabled = false;
+        // Stop ball if reached bottom
+        if(this.y > height - 40) {
+          this.y = height - 40;
+          this.vx = 0;
+          this.vy = 0;
+          this.stopped = true;
+
+          // Determine landing slot
+          for(let i=0; i < slots.length; i++) {
+            let slot = slots[i];
+            if(this.x >= slot.x - spacingX/2 && this.x < slot.x + spacingX/2) {
+              this.landedSlot = slot;
+              break;
+            }
+          }
+          if(this.landedSlot) {
+            score += this.landedSlot.value;
+            updateScoreboard();
+            setTimeout(() => {
+              balls.shift();
+              draw();
+            }, 1500);
+          }
         }
-        resetBtn.disabled = false;
       }
 
-      // Reset credits button
-      function reset() {
-        credits = 1000;
-        updateCredits();
-        message.textContent = "";
-        spinBtn.disabled = false;
-        betInput.disabled = false;
+      draw(ctx) {
+        ctx.beginPath();
+        ctx.fillStyle = '#ff4444';
+        ctx.shadowColor = 'rgba(255,68,68,0.9)';
+        ctx.shadowBlur = 15;
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+      }
+    }
+
+    function updateScoreboard() {
+      document.querySelector('#plinko-game #scoreboard').textContent = `Score: ${score}`;
+    }
+
+    function drawSlots() {
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.font = 'bold 16px Segoe UI';
+      ctx.fillStyle = 'white';
+      ctx.shadowColor = 'black';
+      ctx.shadowBlur = 4;
+
+      for(let slot of slots) {
+        // Slot divider lines
+        ctx.beginPath();
+        ctx.strokeStyle = 'rgba(255,255,255,0.3)';
+        ctx.lineWidth = 1;
+        ctx.moveTo(slot.x - spacingX/2, height - 40);
+        ctx.lineTo(slot.x - spacingX/2, height);
+        ctx.stroke();
+
+        // Slot values
+        ctx.fillText(slot.value, slot.x, height - 20);
       }
 
-      // Setup event listeners
-      spinBtn.addEventListener("click", spin);
-      resetBtn.addEventListener("click", reset);
-      betInput.addEventListener("change", () => {
-        let bet = getBet();
-        if (bet > credits) betInput.value = credits;
-      });
+      // Final right edge line
+      ctx.beginPath();
+      ctx.strokeStyle = 'rgba(255,255,255,0.3)';
+      ctx.moveTo(slots[slots.length-1].x + spacingX/2, height - 40);
+      ctx.lineTo(slots[slots.length-1].x + spacingX/2, height);
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+    }
 
-      // Initial credits display
-      updateCredits();
+    function drawPegs() {
+      ctx.fillStyle = 'white';
+      ctx.shadowColor = 'white';
+      ctx.shadowBlur = 5;
 
-    })();
-  </script>
+      for(let peg of pegs) {
+        ctx.beginPath();
+        ctx.arc(peg.x, peg.y, pegRadius, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.shadowBlur = 0;
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, width, height);
+      drawSlots();
+      drawPegs();
+      for(let ball of balls) {
+        ball.draw(ctx);
+      }
+    }
+
+    function animate() {
+      for(let ball of balls) {
+        ball.update();
+      }
+      draw();
+      requestAnimationFrame(animate);
+    }
+
+    function dropBall() {
+      if(balls.length > 0 && !balls[0].stopped) return;
+      let ball = new Ball();
+      balls.push(ball);
+    }
+
+    // Init
+    buildPegs();
+    updateScoreboard();
+    draw();
+    animate();
+
+    // Controls
+    document.getElementById('drop-ball-btn').onclick = dropBall;
+
+    // Expose for external control
+    window.plinko = {
+      reset: () => {
+        balls = [];
+        score = 0;
+        updateScoreboard();
+        draw();
+      }
+    }
+  })();
+
+  // -------------- MINES GAME ----------------
+  (() => {
+    const boardSize = 10;
+    const mineCount = 15;
+    const maxSafeClicks = 10;
+
+    const minesBoard = document.getElementById('mines-board');
+    const scoreboardMines = document.getElementById('scoreboard-mines');
+    const minesInfo = document.getElementById('mines-info');
+
+    let mines = [];
+    let revealed = [];
+    let safeClicks = 0;
+    let gameOver = false;
+
+    function createBoard() {
+      minesBoard.innerHTML = '';
+      minesBoard.style.gridTemplateColumns = `repeat(${boardSize}, 50px)`;
+      minesBoard.style.gridTemplateRows = `repeat(${boardSize}, 50px)`;
+
+      mines = new Array(boardSize * boardSize).fill(false);
+      revealed = new Array(boardSize * boardSize).fill(false);
+      safeClicks = 0;
+      gameOver = false;
+      updateScoreboard();
+
+      // Place mines randomly
+      let placed = 0;
+      while(placed < mineCount) {
+        let pos = Math.floor(Math.random() * mines.length);
+        if(!mines[pos]) {
+          mines[pos] = true;
+          placed++;
+        }
+      }
+
+      for(let i=0; i<boardSize*boardSize; i++) {
+        const cell = document.createElement('div');
+        cell.classList.add('mine-cell');
+        cell.dataset.index = i;
+        cell.onclick = () => onCellClick(i);
+        minesBoard.appendChild(cell);
+      }
+
+      minesInfo.textContent = `Click on tiles, avoid the mines! You have ${maxSafeClicks} safe clicks.`;
+    }
+
+    function getNeighbors(index) {
+      const neighbors = [];
+      const row = Math.floor(index / boardSize);
+      const col = index % boardSize;
+
+      for(let dr = -1; dr <= 1; dr++) {
+        for(let dc = -1; dc <= 1; dc++) {
+          if(dr === 0 && dc === 0) continue;
+          let r = row + dr;
+          let c = col + dc;
+          if(r >= 0 && r < boardSize && c >= 0 && c < boardSize) {
+            neighbors.push(r * boardSize + c);
+          }
+        }
+      }
+      return neighbors;
+    }
+
+    function countAdjacentMines(index) {
+      let count = 0;
+      let neighbors = getNeighbors(index);
+      for(let n of neighbors) {
+        if(mines[n]) count++;
+      }
+      return count;
+    }
+
+    function revealCell(index) {
+      if(revealed[index]) return;
+      revealed[index] = true;
+      const cell = minesBoard.children[index];
+      cell.classList.add('revealed');
+
+      if(mines[index]) {
+        cell.classList.add('mine');
+        explodeCell(cell);
+        gameOver = true;
+        revealAllMines();
+        minesInfo.textContent = 'BOOM! You hit a mine! Game Over.';
+        disableBoard();
+        return;
+      }
+
+      safeClicks++;
+      updateScoreboard();
+
+      let adjacent = countAdjacentMines(index);
+      if(adjacent > 0) {
+        cell.classList.add('number-' + adjacent);
+        cell.innerHTML = `<span>${adjacent}</span>`;
+      } else {
+        // If no adjacent mines, reveal neighbors recursively
+        let neighbors = getNeighbors(index);
+        for(let n of neighbors) {
+          if(!revealed[n]) revealCell(n);
+        }
+      }
+
+      if(safeClicks >= maxSafeClicks) {
+        minesInfo.textContent = 'Congratulations! You cleared all safe tiles!';
+        gameOver = true;
+        disableBoard();
+      }
+    }
+
+    function onCellClick(index) {
+      if(gameOver) return;
+      revealCell(index);
+    }
+
+    function updateScoreboard() {
+      scoreboardMines.textContent = `Safe Clicks: ${safeClicks} / ${maxSafeClicks}`;
+    }
+
+    function explodeCell(cell) {
+      cell.classList.add('exploded');
+    }
+
+    function revealAllMines() {
+      for(let i=0; i<mines.length; i++) {
+        if(mines[i] && !revealed[i]) {
+          const cell = minesBoard.children[i];
+          cell.classList.add('revealed', 'mine');
+        }
+      }
+    }
+
+    function disableBoard() {
+      for(let i=0; i<minesBoard.children.length; i++) {
+        minesBoard.children[i].onclick = null;
+        minesBoard.children[i].style.cursor = 'default';
+      }
+    }
+
+    // Reset button
+    document.getElementById('reset-mines-btn').onclick = () => {
+      createBoard();
+    };
+
+    // Initialize on page load
+    createBoard();
+
+    // Expose for external control
+    window.mines = {
+      reset: createBoard
+    }
+  })();
+
+  // ------------ Navigation -------------------
+
+  const btnPlinko = document.getElementById('btn-plinko');
+  const btnMines = document.getElementById('btn-mines');
+  const plinkoGame = document.getElementById('plinko-game');
+  const minesGame = document.getElementById('mines-game');
+
+  btnPlinko.onclick = () => {
+    btnPlinko.classList.add('active');
+    btnMines.classList.remove('active');
+    plinkoGame.style.display = 'block';
+    minesGame.style.display = 'none';
+  };
+
+  btnMines.onclick = () => {
+    btnMines.classList.add('active');
+    btnPlinko.classList.remove('active');
+    minesGame.style.display = 'block';
+    plinkoGame.style.display = 'none';
+  };
+</script>
+
 </body>
 </html>
