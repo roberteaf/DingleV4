@@ -8,7 +8,6 @@
     :root {
       --bg1: #a0eaff;
       --bg2: #ff9aa2;
-      --stars: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjQiIGhlaWdodD0iNjQiIHZpZXdCb3g9IjAgMCA2NCA2NCIgc3R5bGU9ImJhY2tncm91bmQ6bm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBvcGFjaXR5PSIwLjQ1Ij48Y2lyY2xlIGN4PSIyMiIgY3k9IjE4IiByPSIxIiBmaWxsPSJ3aGl0ZSIvPjxjaXJjbGUgY3g9IjQiIGN5PSI0IiByPSIxIiBmaWxsPSJ3aGl0ZSIvPjxjaXJjbGUgY3g9IjU4IiBjeT0iNCIgcj0iMSIgZmlsbD0id2hpdGUiLz48Y2lyY2xlIGN4PSI1MCIgY3k9IjIwIiByPSIxIiBmaWxsPSJ3aGl0ZSIvPjxjaXJjbGUgY3g9IjMwIiBjeT0iNDgiIHI9IjEiIGZpbGw9IndoaXRlIi8+PC9nPjwvc3ZnPg==');
       --card-bg: #0b0d18;
       --card-overlay: rgba(255,255,255,0.04);
       --accent: #7af0c2;
@@ -20,7 +19,7 @@
     body {
       background: linear-gradient(135deg, var(--bg1), var(--bg2));
       background-size: 400% 400%;
-      animation: bgShift 20s ease infinite;
+      animation: bgShift 10s ease infinite;
       color: #e6eef8;
       display:flex;
       align-items:flex-start;
@@ -88,7 +87,7 @@
       font-weight:700;
       transition: transform 0.15s, box-shadow 0.15s;
     }
-    button:hover {
+    button:hover:enabled {
       transform: translateY(-2px);
       box-shadow: 0 8px 22px rgba(0,0,0,0.7);
     }
@@ -181,19 +180,14 @@
     }
     .small { font-size:12px; color: var(--muted); }
   </style>
+</head>
 <body>
   <div class="container">
     <div class="card left-col">
       <div class="balance">
         <div>
           <div class="label">Balance</div>
-          <div class="amount" id="balanceDisplay">1,000,000</div>
-        </div>
-        <div>
-          <label class="toggle" title="Infinite money (fun mode)">
-            <input id="infiniteToggle" type="checkbox" />
-            <span class="small">Infinite</span>
-          </label>
+          <div class="amount" id="balanceDisplay">0</div>
         </div>
       </div>
       <div class="small muted" style="margin-top:8px;">
@@ -233,196 +227,254 @@
     </div>
   </div>
 
-<script>
-(() => {
-  const $ = (s, ctx=document) => ctx.querySelector(s);
-  const $$ = (s, ctx=document) => Array.from(ctx.querySelectorAll(s));
-
-  const balanceDisplay = $('#balanceDisplay');
-  const infiniteToggle = $('#infiniteToggle');
-  const betInput = $('#betInput');
-  const startBtn = $('#startBtn');
-  const mineCountInput = $('#mineCount');
-  const autoCashout = $('#autoCashout');
-  const gridEl = $('#grid');
-  const cashoutBtn = $('#cashoutBtn');
-  const statusLabel = $('#statusLabel');
-  const historyEl = $('#history');
-
-  const STORAGE_KEY = 'mines_space_gradient_v1';
-  const defaultState = {
-    balance: 1_000_000,
-    infinite: true,
-    history: []
-  };
-  let state = loadState();
-  let game = null;
-
-  function loadState(){
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (!raw) return {...defaultState};
-      const p = JSON.parse(raw);
-      p.balance = typeof p.balance === 'number' ? p.balance : defaultState.balance;
-      p.infinite = !!p.infinite;
-      p.history = Array.isArray(p.history) ? p.history : [];
-      return p;
-    } catch(e) {
-      return {...defaultState};
-    }
-  }
-  function saveState(){
-    const to = {
-      balance: state.balance,
-      infinite: state.infinite,
-      history: state.history.slice(-200)
-    };
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(to));
-  }
-  function fmt(n){
-    if (n === Infinity) return '∞';
-    return n >= 1000 ? n.toLocaleString() : '' + n;
-  }
-
-  function renderBalance(){
-    balanceDisplay.textContent = state.infinite ? '∞' : fmt(state.balance);
-  }
-  function renderHistory(){
-    historyEl.innerHTML = '';
-    const items = state.history.slice().reverse();
-    if (items.length === 0) {
-      historyEl.innerHTML = `<div class="small muted">No history yet.</div>`;
-      return;
-    }
-    for (const it of items) {
-      const el = document.createElement('div');
-      el.className = 'history-item ' + (it.profit >= 0 ? 'win' : 'loss');
-      el.innerHTML = `
-        <div>${it.result}</div>
-        <div>${it.profit >= 0 ? '+' : ''}${fmt(it.profit)}</div>
-      `;
-      historyEl.appendChild(el);
-    }
-  }
-
-  function resetGame(){
-    game = null;
-    gridEl.innerHTML = '';
-    cashoutBtn.disabled = true;
-    statusLabel.textContent = '';
-  }
-
-  function startGame(){
-    resetGame();
-    const bet = Math.floor(Number(betInput.value));
-    if (!Number.isFinite(bet) || bet < 1) {
-      alert('Enter a valid bet');
-      return;
-    }
-    if (!state.infinite && bet > state.balance) {
-      alert('Not enough balance');
-      return;
-    }
-    const mines = Math.floor(Number(mineCountInput.value));
-    if (!Number.isFinite(mines) || mines < 1 || mines >= 25) {
-      alert('Mines must be between 1 and 24');
-      return;
-    }
-    const total = 25;
-    const minePos = new Set();
-    while (minePos.size < mines) {
-      minePos.add(Math.floor(Math.random() * total));
-    }
-    game = { bet, mines, minePos, opened: new Set(), currentPayout: 0 };
-    if (!state.infinite) {
-      state.balance -= bet;
-    }
-    for (let i=0; i<25; i++){
-      const c = document.createElement('div');
-      c.className = 'cell';
-      c.dataset.idx = i;
-      c.addEventListener('click', cellClick);
-      const inner = document.createElement('div');
-      inner.className = 'inner';
-      c.appendChild(inner);
-      gridEl.appendChild(c);
-    }
-    cashoutBtn.disabled = false;
-    statusLabel.textContent = `Opened 0 safe / ${mines} mines`;
-    renderBalance();
-    saveState();
-  }
-
-  function cellClick(ev){
-    if (!game) return;
-    const idx = +ev.currentTarget.dataset.idx;
-    if (game.opened.has(idx)) return;
-    game.opened.add(idx);
-    const cell = ev.currentTarget;
-    const inner = cell.querySelector('.inner');
-    if (game.minePos.has(idx)) {
-      cell.classList.add('revealed', 'mine');
-      inner.textContent = '💣';
-      endGame(false);
-    } else {
-      cell.classList.add('revealed', 'safe');
-      inner.textContent = '';
-      const safeCount = game.opened.size;
-      statusLabel.textContent = `Opened ${safeCount} safe / ${game.mines} mines`;
-
-      // Multiplier increases by 0.1 per safe tile
-      const multiplier = 1 + safeCount * 0.1;
-      game.currentPayout = game.bet * multiplier;
-
-      if (autoCashout.checked) {
-        cashOut();
+  <script>
+    (function() {
+      // Helper functions
+      function $(selector, ctx) {
+        ctx = ctx || document;
+        return ctx.querySelector(selector);
       }
-    }
-  }
-
-  function endGame(win){
-    for (const idx of game.minePos) {
-      const c = gridEl.querySelector(`.cell[data-idx='${idx}']`);
-      if (c && !c.classList.contains('revealed')) {
-        c.classList.add('revealed','mine');
-        c.querySelector('.inner').textContent = '💣';
+      function $$(selector, ctx) {
+        ctx = ctx || document;
+        return Array.prototype.slice.call(ctx.querySelectorAll(selector));
       }
-    }
-    cashoutBtn.disabled = true;
-    if (!win) {
-      statusLabel.textContent = `💥 Boom! You lost -${fmt(game.bet)}`;
-      state.history.push({ result: 'Loss', profit: -game.bet });
-    }
-    renderBalance();
-    saveState();
-    game = null;
-  }
 
-  function cashOut(){
-    if (!game) return;
-    const profit = Math.floor(game.currentPayout) - game.bet;
-    if (!state.infinite) {
-      state.balance += Math.floor(game.currentPayout);
-    }
-    statusLabel.textContent = `Cashed out +${fmt(profit)}`;
-    state.history.push({ result: 'Win', profit });
-    saveState();
-    renderBalance();
-    endGame(true);
-  }
+      // DOM elements
+      var balanceDisplay = $('#balanceDisplay');
+      var betInput = $('#betInput');
+      var startBtn = $('#startBtn');
+      var mineCountInput = $('#mineCount');
+      var autoCashout = $('#autoCashout');
+      var gridEl = $('#grid');
+      var cashoutBtn = $('#cashoutBtn');
+      var statusLabel = $('#statusLabel');
+      var historyEl = $('#history');
 
-  startBtn.addEventListener('click', startGame);
-  cashoutBtn.addEventListener('click', cashOut);
-  infiniteToggle.addEventListener('change', () => {
-    state.infinite = infiniteToggle.checked;
-    renderBalance();
-    saveState();
-  });
+      // localStorage key & default
+      var STORAGE_KEY = 'mines_space_gradient_v1';
+      var defaultState = {
+        balance: 0,
+        history: []
+      };
 
-  renderBalance();
-  infiniteToggle.checked = state.infinite;
-  renderHistory();
-})();
-</script>
+      var state = loadState();
+      var game = null;
+
+      function loadState() {
+        try {
+          var raw = localStorage.getItem(STORAGE_KEY);
+          if (!raw) {
+            return { balance: defaultState.balance, history: [] };
+          }
+          var obj = JSON.parse(raw);
+          if (typeof obj.balance !== 'number') obj.balance = defaultState.balance;
+          if (!Array.isArray(obj.history)) obj.history = [];
+          return obj;
+        } catch (e) {
+          return { balance: defaultState.balance, history: [] };
+        }
+      }
+
+      function saveState() {
+        var obj = {
+          balance: state.balance,
+          history: state.history.slice(-200)
+        };
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(obj));
+        } catch (e) {
+          console.error('Error saving state:', e);
+        }
+      }
+
+      function formatNumber(n) {
+        if (!isFinite(n)) return '' + n;
+        if (n >= 1000) return n.toLocaleString();
+        return '' + n;
+      }
+
+      function renderBalance() {
+        balanceDisplay.textContent = formatNumber(state.balance);
+      }
+
+      function renderHistory() {
+        historyEl.innerHTML = '';
+        var items = state.history.slice().reverse();
+        if (items.length === 0) {
+          var nd = document.createElement('div');
+          nd.className = 'small muted';
+          nd.textContent = 'No history yet.';
+          historyEl.appendChild(nd);
+          return;
+        }
+        items.forEach(function(it) {
+          var row = document.createElement('div');
+          row.className = 'history-item ' + (it.profit >= 0 ? 'win' : 'loss');
+          var left = document.createElement('div');
+          left.textContent = it.result;
+          var right = document.createElement('div');
+          var sign = it.profit >= 0 ? '+' : '';
+          right.textContent = sign + formatNumber(it.profit);
+          row.appendChild(left);
+          row.appendChild(right);
+          historyEl.appendChild(row);
+        });
+      }
+
+      function resetGame() {
+        game = null;
+        gridEl.innerHTML = '';
+        cashoutBtn.disabled = true;
+        startBtn.disabled = false;
+        statusLabel.textContent = '';
+      }
+
+      function startGame() {
+        if (game !== null) {
+          alert('Game already in progress.');
+          return;
+        }
+        resetGame();
+
+        var bet = Math.floor(Number(betInput.value));
+        if (!isFinite(bet) || bet < 1) {
+          alert('Enter a valid bet.');
+          return;
+        }
+        if (bet > state.balance) {
+          alert('Not enough balance.');
+          return;
+        }
+        var mines = Math.floor(Number(mineCountInput.value));
+        if (!isFinite(mines) || mines < 1 || mines >= 25) {
+          alert('Mines must be between 1 and 24.');
+          return;
+        }
+
+        var total = 25;
+        var mineSet = new Set();
+        while (mineSet.size < mines) {
+          var r = Math.floor(Math.random() * total);
+          mineSet.add(r);
+        }
+
+        game = {
+          bet: bet,
+          mines: mines,
+          minePos: mineSet,
+          opened: new Set(),
+          currentPayout: 0
+        };
+
+        state.balance -= bet;
+
+        for (var i = 0; i < total; i++) {
+          var c = document.createElement('div');
+          c.className = 'cell';
+          c.dataset.idx = i;
+          c.addEventListener('click', cellClick);
+          var inner = document.createElement('div');
+          inner.className = 'inner';
+          c.appendChild(inner);
+          gridEl.appendChild(c);
+        }
+
+        cashoutBtn.disabled = false;
+        startBtn.disabled = true;
+        statusLabel.textContent = 'Opened 0 safe / ' + mines + ' mines';
+        renderBalance();
+        saveState();
+      }
+
+      function cellClick(ev) {
+        if (game === null) return;
+        var idx = Number(ev.currentTarget.dataset.idx);
+        if (game.opened.has(idx)) return;
+        game.opened.add(idx);
+
+        var cell = ev.currentTarget;
+        var inner = cell.querySelector('.inner');
+
+        if (game.minePos.has(idx)) {
+          cell.classList.add('revealed', 'mine');
+          inner.textContent = '💣';
+          endGame(false);
+        } else {
+          cell.classList.add('revealed', 'safe');
+          inner.textContent = '';
+          var safeCount = game.opened.size;
+          statusLabel.textContent = 'Opened ' + safeCount + ' safe / ' + game.mines + ' mines';
+
+          var multiplier = 1 + safeCount * 0.1;
+          game.currentPayout = game.bet * multiplier;
+
+          if (autoCashout.checked) {
+            cashOut();
+          }
+        }
+      }
+
+      function endGame(win) {
+        game.minePos.forEach(function(idx) {
+          var c = gridEl.querySelector(".cell[data-idx='" + idx + "']");
+          if (c && !c.classList.contains('revealed')) {
+            c.classList.add('revealed','mine');
+            var inner = c.querySelector('.inner');
+            if (inner) inner.textContent = '💣';
+          }
+        });
+
+        cashoutBtn.disabled = true;
+        startBtn.disabled = false;
+
+        if (!win) {
+          statusLabel.textContent = '💥 Boom! You lost -' + formatNumber(game.bet);
+          state.history.push({ result: 'Loss', profit: -game.bet });
+        }
+
+        renderBalance();
+        saveState();
+        game = null;
+        renderHistory();
+      }
+
+      function cashOut() {
+        if (game === null) return;
+        var profit = Math.floor(game.currentPayout) - game.bet;
+        state.balance += Math.floor(game.currentPayout);
+        statusLabel.textContent = 'Cashed out +' + formatNumber(profit);
+        state.history.push({ result: 'Win', profit: profit });
+        saveState();
+        renderBalance();
+        endGame(true);
+      }
+
+      startBtn.addEventListener('click', startGame);
+      cashoutBtn.addEventListener('click', cashOut);
+
+      // ----- NEW: update balance from URL query param -----
+      (function updateBalanceFromUrl() {
+        try {
+          var qs = window.location.search;
+          if (!qs) return;
+          var params = new URLSearchParams(qs);
+          if (!params.has('balance')) return;
+          var b = parseInt(params.get('balance'));
+          if (isNaN(b)) return;
+          state.balance = b;
+          saveState();
+          renderBalance();
+          console.log('Balance set from URL to', b);
+        } catch (err) {
+          console.error('Error reading balance param:', err);
+        }
+      })();
+
+      // initial render
+      renderBalance();
+      renderHistory();
+    })();
+  </script>
+
 </body>
 </html>
