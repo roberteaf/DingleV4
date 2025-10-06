@@ -1,91 +1,147 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mini Minecraft-like World</title>
-    <style>
-        body, html { margin: 0; overflow: hidden; height: 100%; }
-        canvas { display: block; }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Slot Machine Casino</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', sans-serif;
+    }
+
+    body {
+      height: 100vh;
+      background: linear-gradient(-45deg, #1e3c72, #2a5298, #1e3c72, #0f2027);
+      background-size: 400% 400%;
+      animation: gradientBG 15s ease infinite;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: #fff;
+    }
+
+    @keyframes gradientBG {
+      0% {background-position: 0% 50%;}
+      50% {background-position: 100% 50%;}
+      100% {background-position: 0% 50%;}
+    }
+
+    .casino {
+      background: rgba(0, 0, 0, 0.6);
+      padding: 30px;
+      border-radius: 20px;
+      box-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
+      text-align: center;
+      width: 90%;
+      max-width: 400px;
+    }
+
+    h1 {
+      font-size: 2em;
+      margin-bottom: 20px;
+      color: gold;
+    }
+
+    .reels {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
+
+    .reel {
+      background: #111;
+      border: 3px solid gold;
+      border-radius: 10px;
+      width: 60px;
+      height: 60px;
+      margin: 0 10px;
+      font-size: 2em;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      animation: none;
+    }
+
+    @keyframes spin {
+      0% {transform: rotateX(0);}
+      100% {transform: rotateX(360deg);}
+    }
+
+    button {
+      padding: 10px 20px;
+      font-size: 1em;
+      border: none;
+      border-radius: 10px;
+      background: gold;
+      color: #000;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    button:hover {
+      background: #ffcc00;
+    }
+
+    .credits {
+      margin-top: 15px;
+      font-size: 1.2em;
+    }
+
+    .message {
+      margin-top: 10px;
+      font-size: 1.1em;
+      color: #0f0;
+      height: 24px;
+    }
+  </style>
 </head>
 <body>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script>
-        // Scene Setup
-        var scene = new THREE.Scene();
-        var camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-        var renderer = new THREE.WebGLRenderer();
-        renderer.setSize(window.innerWidth, window.innerHeight);
-        document.body.appendChild(renderer.domElement);
+  <div class="casino">
+    <h1>💰 Lucky Slots 💰</h1>
+    <div class="reels">
+      <div class="reel" id="reel1">🍒</div>
+      <div class="reel" id="reel2">🍋</div>
+      <div class="reel" id="reel3">🍇</div>
+    </div>
+    <button onclick="spin()">🎰 Spin</button>
+    <div class="credits" id="credits">Credits: ∞</div>
+    <div class="message" id="message"></div>
+  </div>
 
-        // Create a simple block
-        function createBlock(x, y, z) {
-            var geometry = new THREE.BoxGeometry(1, 1, 1);
-            var material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
-            var cube = new THREE.Mesh(geometry, material);
-            cube.position.set(x, y, z);
-            scene.add(cube);
+  <script>
+    const symbols = ["🍒", "🍋", "🍇", "🍊", "🔔", "⭐", "💎"];
+    const reels = [
+      document.getElementById("reel1"),
+      document.getElementById("reel2"),
+      document.getElementById("reel3")
+    ];
+    const message = document.getElementById("message");
+
+    function spin() {
+      message.textContent = "";
+      reels.forEach((reel, i) => {
+        reel.style.animation = "spin 0.5s ease";
+        setTimeout(() => {
+          reel.style.animation = "none";
+          const randomSymbol = symbols[Math.floor(Math.random() * symbols.length)];
+          reel.textContent = randomSymbol;
+        }, 500 + i * 100);
+      });
+
+      setTimeout(() => {
+        const [s1, s2, s3] = reels.map(r => r.textContent);
+        if (s1 === s2 && s2 === s3) {
+          message.textContent = "🎉 JACKPOT!";
+        } else if (s1 === s2 || s2 === s3 || s1 === s3) {
+          message.textContent = "😊 Small Win!";
+        } else {
+          message.textContent = "😢 Try Again!";
         }
-
-        // Create a grid of blocks (like Minecraft world)
-        for (let i = -5; i < 5; i++) {
-            for (let j = -5; j < 5; j++) {
-                createBlock(i, 0, j);  // Position blocks in a grid
-            }
-        }
-
-        // Camera Controls
-        var speed = 0.1;
-        var direction = new THREE.Vector3();
-        var moveForward = false, moveBackward = false, moveLeft = false, moveRight = false;
-
-        // Event listeners for keyboard input
-        window.addEventListener('keydown', (event) => {
-            if (event.key === 'w') moveForward = true;
-            if (event.key === 's') moveBackward = true;
-            if (event.key === 'a') moveLeft = true;
-            if (event.key === 'd') moveRight = true;
-        });
-        window.addEventListener('keyup', (event) => {
-            if (event.key === 'w') moveForward = false;
-            if (event.key === 's') moveBackward = false;
-            if (event.key === 'a') moveLeft = false;
-            if (event.key === 'd') moveRight = false;
-        });
-
-        // Update movement based on keyboard input
-        function updateMovement() {
-            direction.set(0, 0, 0); // Reset direction each frame
-
-            if (moveForward) direction.z = -speed;
-            if (moveBackward) direction.z = speed;
-            if (moveLeft) direction.x = -speed;
-            if (moveRight) direction.x = speed;
-
-            camera.position.add(direction);  // Update camera position
-        }
-
-        // Adjust camera for smoother controls
-        camera.position.z = 10;
-
-        // Render loop
-        function animate() {
-            requestAnimationFrame(animate);
-
-            updateMovement();
-
-            renderer.render(scene, camera);  // Render the scene
-
-        }
-        animate();  // Start the animation loop
-
-        // Window resize handling
-        window.addEventListener('resize', () => {
-            renderer.setSize(window.innerWidth, window.innerHeight);
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-        });
-    </script>
+      }, 1200);
+    }
+  </script>
 </body>
 </html>
