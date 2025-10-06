@@ -1,191 +1,268 @@
-import React, { useState, useEffect, useRef } from "react";
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Casino Games</title>
+<style>
+  /* Rainbow Background Animation */
+  @keyframes rainbow {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+  @keyframes pulse {
+    0%, 100% { text-shadow: 0 0 8px white; color: #fff; }
+    50% { text-shadow: 0 0 25px #ffcc00; color: #ffcc00; }
+  }
 
-// Rainbow background styles and keyframes
-const rainbowBackgroundStyle = {
-  position: "fixed",
-  top: 0,
-  left: 0,
-  width: "100vw",
-  height: "100vh",
-  zIndex: -1,
-  background:
-    "linear-gradient(270deg, red, orange, yellow, green, blue, indigo, violet, red)",
-  backgroundSize: "1400% 1400%",
-  animation: "rainbow 60s ease infinite",
-};
+  body, html {
+    margin: 0; padding: 0; height: 100%;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: black;
+    color: white;
+    overflow-x: hidden;
+  }
 
-const rainbowKeyframes = `
-@keyframes rainbow {
-  0%{background-position:0% 50%}
-  50%{background-position:100% 50%}
-  100%{background-position:0% 50%}
-}
-`;
+  .rainbow-bg {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100vw; height: 100vh;
+    z-index: -1;
+    background: linear-gradient(270deg, red, orange, yellow, green, blue, indigo, violet, red);
+    background-size: 1400% 1400%;
+    animation: rainbow 60s ease infinite;
+  }
 
-const pulseKeyframes = `
-@keyframes pulse {
-  0%, 100% { text-shadow: 0 0 8px white; color: #fff; }
-  50% { text-shadow: 0 0 25px #ffcc00; color: #ffcc00; }
-}
-`;
+  nav {
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+    gap: 15px;
+    flex-wrap: wrap;
+  }
+  nav button {
+    background-color: rgba(255,255,255,0.8);
+    border: none;
+    padding: 10px 20px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.3s;
+  }
+  nav button.active {
+    background-color: rgba(255,255,255,1);
+    box-shadow: 0 0 15px 3px white;
+  }
 
-const navStyle = {
-  display: "flex",
-  justifyContent: "center",
-  marginTop: "20px",
-  gap: "15px",
-  flexWrap: "wrap",
-};
+  .container {
+    max-width: 900px;
+    margin: 40px auto;
+    background-color: rgba(0,0,0,0.65);
+    border-radius: 20px;
+    padding: 30px;
+    min-height: 70vh;
+    box-shadow: 0 0 20px rgba(255,255,255,0.4);
+  }
 
-const buttonStyle = {
-  backgroundColor: "rgba(255,255,255,0.8)",
-  border: "none",
-  padding: "10px 20px",
-  borderRadius: "10px",
-  cursor: "pointer",
-  fontWeight: "bold",
-  transition: "background-color 0.3s",
-};
+  .game-title {
+    font-size: 2.5rem;
+    margin-bottom: 20px;
+    animation: pulse 3s ease-in-out infinite;
+    text-align: center;
+    user-select: none;
+  }
 
-const buttonActiveStyle = {
-  ...buttonStyle,
-  backgroundColor: "rgba(255,255,255,1)",
-  boxShadow: "0 0 15px 3px white",
-};
+  /* Slots styles */
+  .slots-reels {
+    display: inline-flex;
+    font-size: 5rem;
+    gap: 15px;
+    margin-bottom: 20px;
+  }
+  .slot-reel {
+    width: 70px;
+    height: 70px;
+    border: 4px solid white;
+    border-radius: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.3s;
+    user-select: none;
+  }
+  .slot-reel.spinning {
+    color: yellow;
+    text-shadow: 0 0 15px gold;
+    background-color: rgba(255,255,0,0.3);
+  }
 
-const containerStyle = {
-  maxWidth: "900px",
-  margin: "40px auto",
-  backgroundColor: "rgba(0,0,0,0.65)",
-  borderRadius: "20px",
-  padding: "30px",
-  color: "white",
-  fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
-  minHeight: "70vh",
-  boxShadow: "0 0 20px rgba(255,255,255,0.4)",
-};
+  .button-large {
+    font-size: 1.2rem;
+    padding: 12px 30px;
+    margin-top: 10px;
+  }
 
-const gameTitleStyle = {
-  fontSize: "2.5rem",
-  marginBottom: "20px",
-  animation: "pulse 3s ease-in-out infinite",
-  textAlign: "center",
-  userSelect: "none",
-};
+  /* Roulette styles */
+  .roulette-wheel {
+    margin: 0 auto;
+    width: 220px;
+    height: 220px;
+    border-radius: 50%;
+    border: 12px solid #cc0000;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 0 25px #cc0000;
+    user-select: none;
+  }
+  .roulette-inner {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background:
+      conic-gradient(
+        red 0% 2.78%, black 2.78% 5.56%, red 5.56% 8.33%, black 8.33% 11.11%,
+        red 11.11% 13.89%, black 13.89% 16.67%, red 16.67% 19.44%, black 19.44% 22.22%,
+        red 22.22% 25%, black 25% 27.78%, red 27.78% 30.56%, black 30.56% 33.33%,
+        red 33.33% 36.11%, black 36.11% 38.89%, red 38.89% 41.67%, black 41.67% 44.44%,
+        red 44.44% 47.22%, black 47.22% 50%, red 50% 52.78%, black 52.78% 55.56%,
+        red 55.56% 58.33%, black 58.33% 61.11%, red 61.11% 63.89%, black 63.89% 66.67%,
+        red 66.67% 69.44%, black 69.44% 72.22%, red 72.22% 75%, black 75% 77.78%,
+        red 77.78% 80.56%, black 80.56% 83.33%, red 83.33% 86.11%, black 86.11% 88.89%,
+        red 88.89% 91.67%, black 91.67% 94.44%, red 94.44% 97.22%, black 97.22% 100%
+      );
+    transition: transform 5s cubic-bezier(0.33, 1, 0.68, 1);
+  }
+  .roulette-pointer {
+    position: absolute;
+    top: calc(50% - 10px);
+    left: 50%;
+    width: 0; height: 0;
+    border-left: 10px solid transparent;
+    border-right: 10px solid transparent;
+    border-bottom: 20px solid white;
+    transform: translateX(-50%);
+    z-index: 2;
+    user-select: none;
+  }
+</style>
+</head>
+<body>
 
-const games = [
-  { id: "slots", name: "Slots" },
-  { id: "roulette", name: "Roulette" },
-  { id: "blackjack", name: "Blackjack" },
-  { id: "poker", name: "Poker" },
-  { id: "baccarat", name: "Baccarat" },
-  { id: "craps", name: "Craps" },
-  { id: "keno", name: "Keno" },
-  { id: "scratchcards", name: "Scratch Cards" },
-  { id: "bingo", name: "Bingo" },
-  { id: "wheel", name: "Wheel of Fortune" },
-];
+<div class="rainbow-bg"></div>
 
-// --- Slots Game ---
-const slotSymbols = ["🍒", "🍋", "🔔", "🍉", "⭐", "7️⃣"];
-function Slots() {
-  const [reels, setReels] = useState(["🍒", "🍋", "🔔"]);
-  const [spinning, setSpinning] = useState(false);
-  const [result, setResult] = useState("");
+<nav id="game-nav">
+  <!-- Buttons injected by JS -->
+</nav>
 
-  const spinReels = () => {
-    if (spinning) return;
-    setResult("");
-    setSpinning(true);
-    let count = 0;
-    const interval = setInterval(() => {
-      setReels([
-        slotSymbols[Math.floor(Math.random() * slotSymbols.length)],
-        slotSymbols[Math.floor(Math.random() * slotSymbols.length)],
-        slotSymbols[Math.floor(Math.random() * slotSymbols.length)],
-      ]);
-      count++;
-      if (count > 20) {
-        clearInterval(interval);
-        setSpinning(false);
-        checkWin();
+<div class="container" id="game-container">
+  <!-- Game content injected by JS -->
+</div>
+
+<script>
+  const games = [
+    { id: "slots", name: "Slots" },
+    { id: "roulette", name: "Roulette" },
+    // Add more games here
+  ];
+
+  const nav = document.getElementById('game-nav');
+  const container = document.getElementById('game-container');
+  let currentGame = 'slots';
+
+  // Create navigation buttons
+  games.forEach(game => {
+    const btn = document.createElement('button');
+    btn.textContent = game.name;
+    btn.id = 'nav-' + game.id;
+    btn.className = game.id === currentGame ? 'active' : '';
+    btn.addEventListener('click', () => {
+      if (currentGame === game.id) return;
+      currentGame = game.id;
+      updateNav();
+      renderGame();
+    });
+    nav.appendChild(btn);
+  });
+
+  function updateNav() {
+    games.forEach(game => {
+      const btn = document.getElementById('nav-' + game.id);
+      if (game.id === currentGame) btn.classList.add('active');
+      else btn.classList.remove('active');
+    });
+  }
+
+  // ----- Slots Game -----
+  const slotSymbols = ["🍒", "🍋", "🔔", "🍉", "⭐", "7️⃣"];
+
+  function renderSlots() {
+    container.innerHTML = `
+      <h2 class="game-title">Slots</h2>
+      <div class="slots-reels" id="slots-reels">
+        <div class="slot-reel" id="slot-0">🍒</div>
+        <div class="slot-reel" id="slot-1">🍋</div>
+        <div class="slot-reel" id="slot-2">🔔</div>
+      </div>
+      <div style="text-align:center;">
+        <button class="button-large" id="spin-btn">Spin</button>
+      </div>
+      <p id="slot-result" style="margin-top: 15px; font-size: 1.3rem; min-height: 2rem; text-align:center;"></p>
+    `;
+
+    const reelsEls = [
+      document.getElementById('slot-0'),
+      document.getElementById('slot-1'),
+      document.getElementById('slot-2'),
+    ];
+    const spinBtn = document.getElementById('spin-btn');
+    const resultP = document.getElementById('slot-result');
+    let spinning = false;
+    let reels = ["🍒", "🍋", "🔔"];
+
+    function checkWin() {
+      if (reels.every(r => r === reels[0])) {
+        return "🎉 JACKPOT! You won! 🎉";
+      } else if (new Set(reels).size === 2) {
+        return "Good! Two matching symbols!";
+      } else {
+        return "Try again!";
       }
-    }, 100);
-  };
-
-  const checkWin = () => {
-    if (reels.every((r) => r === reels[0])) {
-      setResult("🎉 JACKPOT! You won! 🎉");
-    } else if (
-      new Set(reels).size === 2
-    ) {
-      setResult("Good! Two matching symbols!");
-    } else {
-      setResult("Try again!");
     }
-  };
 
-  return (
-    <div style={{ textAlign: "center", userSelect: "none" }}>
-      <h2 style={gameTitleStyle}>Slots</h2>
-      <div
-        style={{
-          display: "inline-flex",
-          fontSize: "5rem",
-          gap: "15px",
-          marginBottom: "20px",
-          color: spinning ? "yellow" : "white",
-          textShadow: spinning ? "0 0 15px gold" : "none",
-        }}
-      >
-        {reels.map((r, i) => (
-          <div
-            key={i}
-            style={{
-              width: "70px",
-              height: "70px",
-              border: "4px solid white",
-              borderRadius: "15px",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              backgroundColor: spinning ? "rgba(255,255,0,0.3)" : "rgba(0,0,0,0.4)",
-              transition: "background-color 0.3s",
-            }}
-          >
-            {r}
-          </div>
-        ))}
-      </div>
-      <div>
-        <button
-          onClick={spinReels}
-          disabled={spinning}
-          style={{
-            ...buttonStyle,
-            opacity: spinning ? 0.5 : 1,
-            fontSize: "1.2rem",
-            padding: "12px 30px",
-            marginTop: "10px",
-          }}
-        >
-          {spinning ? "Spinning..." : "Spin"}
-        </button>
-      </div>
-      <p style={{ marginTop: "15px", fontSize: "1.3rem", minHeight: "2rem" }}>
-        {result}
-      </p>
-    </div>
-  );
-}
+    function spinReels() {
+      if (spinning) return;
+      spinning = true;
+      resultP.textContent = "";
+      spinBtn.disabled = true;
 
-// --- Roulette Game ---
-function Roulette() {
-  const [spinning, setSpinning] = useState(false);
-  const [angle, setAngle] = useState(0);
-  const [result, setResult] = useState(null);
+      let count = 0;
+      const interval = setInterval(() => {
+        reels = [
+          slotSymbols[Math.floor(Math.random() * slotSymbols.length)],
+          slotSymbols[Math.floor(Math.random() * slotSymbols.length)],
+          slotSymbols[Math.floor(Math.random() * slotSymbols.length)],
+        ];
+        reelsEls.forEach((el, i) => {
+          el.textContent = reels[i];
+          el.classList.add('spinning');
+        });
+        count++;
+        if (count > 20) {
+          clearInterval(interval);
+          spinning = false;
+          reelsEls.forEach(el => el.classList.remove('spinning'));
+          spinBtn.disabled = false;
+          resultP.textContent = checkWin();
+        }
+      }, 100);
+    }
 
-  const numbers = [
+    spinBtn.addEventListener('click', spinReels);
+  }
+
+  // ----- Roulette Game -----
+  const rouletteNumbers = [
     0, 32, 15, 19, 4, 21, 2, 25,
     17, 34, 6, 27, 13, 36, 11, 30,
     8, 23, 10, 5, 24, 16, 33, 1,
@@ -193,180 +270,61 @@ function Roulette() {
     28, 12, 35, 3, 26,
   ];
 
-  const spinWheel = () => {
-    if (spinning) return;
-    setSpinning(true);
-    setResult(null);
-    const randomIndex = Math.floor(Math.random() * numbers.length);
-    const spinAngle = 360 * 5 + (360 / numbers.length) * randomIndex;
-    setAngle((prev) => prev + spinAngle);
-
-    setTimeout(() => {
-      setResult(numbers[randomIndex]);
-      setSpinning(false);
-    }, 5200); // Match animation duration
-  };
-
-  return (
-    <div style={{ textAlign: "center", userSelect: "none" }}>
-      <h2 style={gameTitleStyle}>Roulette</h2>
-      <div
-        style={{
-          margin: "0 auto",
-          width: "220px",
-          height: "220px",
-          borderRadius: "50%",
-          border: "12px solid #cc0000",
-          position: "relative",
-          overflow: "hidden",
-          boxShadow: "0 0 25px #cc0000",
-        }}
-      >
-        <div
-          style={{
-            width: "100%",
-            height: "100%",
-            borderRadius: "50%",
-            background:
-              "conic-gradient(red 0% 2.78%, black 2.78% 5.56%, red 5.56% 8.33%, black 8.33% 11.11%, red 11.11% 13.89%, black 13.89% 16.67%, red 16.67% 19.44%, black 19.44% 22.22%, red 22.22% 25%, black 25% 27.78%, red 27.78% 30.56%, black 30.56% 33.33%, red 33.33% 36.11%, black 36.11% 38.89%, red 38.89% 41.67%, black 41.67% 44.44%, red 44.44% 47.22%, black 47.22% 50%, red 50% 52.78%, black 52.78% 55.56%, red 55.56% 58.33%, black 58.33% 61.11%, red 61.11% 63.89%, black 63.89% 66.67%, red 66.67% 69.44%, black 69.44% 72.22%, red 72.22% 75%, black 75% 77.78%, red 77.78% 80.56%, black 80.56% 83.33%, red 83.33% 86.11%, black 86.11% 88.89%, red 88.89% 91.67%, black 91.67% 94.44%, red 94.44% 97.22%, black 97.22% 100%)",
-            transition: spinning ? "transform 5s cubic-bezier(0.33, 1, 0.68, 1)" : "none",
-            transform: `rotate(${angle}deg)`,
-          }}
-        >
-          {/* Number labels could go here */}
-        </div>
-        <div
-          style={{
-            position: "absolute",
-            top: "calc(50% - 10px)",
-            left: "50%",
-            width: "0",
-            height: "0",
-            borderLeft: "10px solid transparent",
-            borderRight: "10px solid transparent",
-            borderBottom: "20px solid white",
-            transform: "translateX(-50%)",
-            zIndex: 2,
-          }}
-        />
+  function renderRoulette() {
+    container.innerHTML = `
+      <h2 class="game-title">Roulette</h2>
+      <div class="roulette-wheel">
+        <div class="roulette-inner" id="roulette-inner"></div>
+        <div class="roulette-pointer"></div>
       </div>
+      <div style="text-align:center;">
+        <button class="button-large" id="roulette-spin-btn">Spin</button>
+      </div>
+      <p id="roulette-result" style="margin-top: 20px; font-size: 1.5rem; text-align:center;"></p>
+    `;
 
-      <button
-        onClick={spinWheel}
-        disabled={spinning}
-        style={{
-          ...buttonStyle,
-          marginTop: "20px",
-          opacity: spinning ? 0.5 : 1,
-          fontSize: "1.2rem",
-          padding: "12px 30px",
-        }}
-      >
-        {spinning ? "Spinning..." : "Spin"}
-      </button>
+    const rouletteInner = document.getElementById('roulette-inner');
+    const spinBtn = document.getElementById('roulette-spin-btn');
+    const resultP = document.getElementById('roulette-result');
+    let spinning = false;
+    let currentAngle = 0;
 
-      {result !== null && (
-        <p style={{ marginTop: "20px", fontSize: "1.5rem" }}>
-          Result: <strong>{result}</strong>
-        </p>
-      )}
-    </div>
-  );
-}
+    spinBtn.addEventListener('click', () => {
+      if (spinning) return;
+      spinning = true;
+      spinBtn.disabled = true;
+      resultP.textContent = "";
 
-// --- Blackjack Game ---
-const cardSymbols = [
-  "🂡", "🂢", "🂣", "🂤", "🂥", "🂦", "🂧", "🂨", "🂩", "🂪", "🂫", "🂭", "🂮", // Spades A-K
-  "🃁", "🃂", "🃃", "🃄", "🃅", "🃆", "🃇", "🃈", "🃉", "🃊", "🃋", "🃍", "🃎", // Hearts A-K
-  "🃑", "🃒", "🃓", "🃔", "🃕", "🃖", "🃗", "🃘", "🃙", "🃚", "🃛", "🃝", "🃞", // Diamonds A-K
-  "🃡", "🃢", "🃣", "🃤", "🃥", "🃦", "🃧", "🃨", "🃩", "🃪", "🃫", "🃭", "🃮", // Clubs A-K
-];
-const cardValues = {
-  "🂡": 11, "🂢": 2, "🂣": 3, "🂤": 4, "🂥": 5, "🂦": 6, "🂧": 7, "🂨": 8, "🂩": 9, "🂪": 10, "🂫": 10, "🂭": 10, "🂮": 10,
-  "🃁": 11, "🃂": 2, "🃃": 3, "🃄": 4, "🃅": 5, "🃆": 6, "🃇": 7, "🃈": 8, "🃉": 9, "🃊": 10, "🃋": 10, "🃍": 10, "🃎": 10,
-  "🃑": 11, "🃒": 2, "🃓": 3, "🃔": 4, "🃕": 5, "🃖": 6, "🃗": 7, "🃘": 8, "🃙": 9, "🃚": 10, "🃛": 10, "🃝": 10, "🃞": 10,
-  "🃡": 11, "🃢": 2, "🃣": 3, "🃤": 4, "🃥": 5, "🃦": 6, "🃧": 7, "🃨": 8, "🃩": 9, "🃪": 10, "🃫": 10, "🃭": 10, "🃮": 10,
-};
+      const randomIndex = Math.floor(Math.random() * rouletteNumbers.length);
+      const spins = 5; // full rotations
+      const anglePerNumber = 360 / rouletteNumbers.length;
+      const spinAngle = spins * 360 + randomIndex * anglePerNumber;
 
-function calculateScore(hand) {
-  let score = 0;
-  let aces = 0;
-  for (let card of hand) {
-    score += cardValues[card];
-    if (cardValues[card] === 11) aces++;
+      currentAngle += spinAngle;
+      rouletteInner.style.transition = 'transform 5s cubic-bezier(0.33, 1, 0.68, 1)';
+      rouletteInner.style.transform = `rotate(${currentAngle}deg)`;
+
+      setTimeout(() => {
+        spinning = false;
+        spinBtn.disabled = false;
+        resultP.innerHTML = `Result: <strong>${rouletteNumbers[randomIndex]}</strong>`;
+      }, 5200); // Match animation duration
+    });
   }
-  // Adjust for aces if bust
-  while (score > 21 && aces > 0) {
-    score -= 10;
-    aces--;
+
+  function renderGame() {
+    if (currentGame === 'slots') {
+      renderSlots();
+    } else if (currentGame === 'roulette') {
+      renderRoulette();
+    } else {
+      container.innerHTML = `<p>Game not implemented yet.</p>`;
+    }
   }
-  return score;
-}
 
-function Blackjack() {
-  const [deck, setDeck] = useState([]);
-  const [playerHand, setPlayerHand] = useState([]);
-  const [dealerHand, setDealerHand] = useState([]);
-  const [gameOver, setGameOver] = useState(false);
-  const [message, setMessage] = useState("");
-  const [showDealerCard, setShowDealerCard] = useState(false);
+  // Initial render
+  renderGame();
 
-  useEffect(() => {
-    startGame();
-  }, []);
-
-  const createDeck = () => {
-    return [...cardSymbols].sort(() => Math.random() - 0.5);
-  };
-
-  const startGame = () => {
-    const newDeck = createDeck();
-    const playerStart = [newDeck.pop(), newDeck.pop()];
-    const dealerStart = [newDeck.pop(), newDeck.pop()];
-    setDeck(newDeck);
-    setPlayerHand(playerStart);
-    setDealerHand(dealerStart);
-    setGameOver(false);
-    setMessage("");
-    setShowDealerCard(false);
-  };
-
-  const hit = () => {
-    if (gameOver) return;
-    if (deck.length === 0) return;
-    const newDeck = [...deck];
-    const card = newDeck.pop();
-    const newPlayerHand = [...playerHand, card];
-    setPlayerHand(newPlayerHand);
-    setDeck(newDeck);
-
-    const score = calculateScore(newPlayerHand);
-    if (score > 21) {
-      setMessage("Bust! You lose!");
-      setGameOver(true);
-      setShowDealerCard(true);
-    }
-  };
-
-  const stand = () => {
-    if (gameOver) return;
-    setShowDealerCard(true);
-
-    // Dealer draws until 17 or more
-    let dealerScore = calculateScore(dealerHand);
-    let newDeck = [...deck];
-    let newDealerHand = [...dealerHand];
-
-    while (dealerScore < 17 && newDeck.length > 0) {
-      const card = newDeck.pop();
-      newDealerHand.push(card);
-      dealerScore = calculateScore(newDealerHand);
-    }
-
-    setDealerHand(newDealerHand);
-    setDeck(newDeck);
-
-    const playerScore = calculateScore(playerHand);
-
-    if (dealerScore > 21) {
-      set
+</script>
+</body>
+</html>
