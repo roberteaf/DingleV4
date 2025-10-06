@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
-<title>Mobile Shooter Game</title>
+<title>Extended Mobile Shooter Game</title>
 <style>
   /* Reset and base */
   * {
@@ -37,6 +37,8 @@
     font-size: 18px;
     z-index: 10;
     user-select: none;
+    line-height: 1.6;
+    font-weight: bold;
   }
 
   /* Controls container for mobile */
@@ -47,6 +49,38 @@
     display: flex;
     justify-content: space-around;
     z-index: 10;
+  }
+
+  /* Joystick container */
+  #joystick-container {
+    position: fixed;
+    bottom: 90px;
+    left: 20px;
+    width: 100px;
+    height: 100px;
+    touch-action: none;
+    z-index: 10;
+  }
+
+  /* Joystick base */
+  #joystick-base {
+    width: 100px;
+    height: 100px;
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 50%;
+    position: relative;
+  }
+
+  /* Joystick knob */
+  #joystick-knob {
+    width: 50px;
+    height: 50px;
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    position: absolute;
+    top: 25px;
+    left: 25px;
+    transition: top 0.1s, left 0.1s;
   }
 
   .button {
@@ -77,7 +111,7 @@
     top: 50%; left: 50%;
     transform: translate(-50%, -50%);
     color: white;
-    background: rgba(0,0,0,0.8);
+    background: rgba(0,0,0,0.9);
     padding: 30px 50px;
     border-radius: 15px;
     font-size: 32px;
@@ -86,7 +120,7 @@
     z-index: 20;
   }
 
-  #restart-btn {
+  #restart-btn, #pause-btn {
     margin-top: 20px;
     background: #222;
     border: none;
@@ -96,31 +130,46 @@
     border-radius: 10px;
     cursor: pointer;
     transition: background 0.3s ease;
+    user-select: none;
   }
 
-  #restart-btn:hover {
+  #restart-btn:hover, #pause-btn:hover {
     background: #444;
+  }
+
+  #pause-btn {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    z-index: 15;
   }
 
 </style>
 </head>
 <body>
 
-<div id="hud">Score: 0</div>
+<div id="hud">
+  Score: 0<br />
+  Lives: 3<br />
+  Level: 1<br />
+  Multiplier: x1
+</div>
+
+<button id="pause-btn" aria-label="Pause Game">Pause</button>
 
 <div id="controls">
-  <div class="button" id="left-btn" aria-label="Move Left">
-    <svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>
-  </div>
   <div class="button" id="shoot-btn" aria-label="Shoot">
     <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="7"/></svg>
   </div>
-  <div class="button" id="right-btn" aria-label="Move Right">
-    <svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg>
+</div>
+
+<div id="joystick-container" aria-label="Movement Joystick" role="application">
+  <div id="joystick-base">
+    <div id="joystick-knob"></div>
   </div>
 </div>
 
-<div id="game-over">
+<div id="game-over" role="dialog" aria-modal="true" aria-labelledby="game-over-text">
   <div id="game-over-text">Game Over</div>
   <div>Your score: <span id="final-score">0</span></div>
   <button id="restart-btn">Restart</button>
@@ -130,20 +179,22 @@
 
 <script>
 (() => {
-  // Constants
+  // Canvas setup
   const canvas = document.getElementById('gameCanvas');
   const ctx = canvas.getContext('2d');
   const hud = document.getElementById('hud');
   const gameOverScreen = document.getElementById('game-over');
   const finalScoreElem = document.getElementById('final-score');
   const restartBtn = document.getElementById('restart-btn');
+  const pauseBtn = document.getElementById('pause-btn');
 
-  // Control buttons
-  const leftBtn = document.getElementById('left-btn');
-  const rightBtn = document.getElementById('right-btn');
+  const joystickContainer = document.getElementById('joystick-container');
+  const joystickBase = document.getElementById('joystick-base');
+  const joystickKnob = document.getElementById('joystick-knob');
+
   const shootBtn = document.getElementById('shoot-btn');
 
-  // Canvas sizing for mobile devices
+  // Resize canvas to full screen
   function resizeCanvas() {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
@@ -151,56 +202,145 @@
   window.addEventListener('resize', resizeCanvas);
   resizeCanvas();
 
-  // Game variables
+  // Game states and variables
   let keys = {};
   let touches = {};
   let lastTime = 0;
   let deltaTime = 0;
 
   let score = 0;
+  let multiplier = 1;
+  let multiplierTimer = 0;
+  let multiplierDuration = 3000; // 3 seconds to maintain multiplier
+  let lives = 3;
+  let level = 1;
   let gameOver = false;
+  let paused = false;
 
-  // Player Object
+  // Joystick state
+  let joystickActive = false;
+  let joystickPointerId = null;
+  let joystickPos = { x: 0, y: 0 };
+  const joystickMaxDistance = 40;
+
+  // Utility Functions
+
+  // Clamp number between min and max
+  function clamp(num, min, max) {
+    return Math.min(Math.max(num, min), max);
+  }
+
+  // Distance between two points
+  function distance(x1, y1, x2, y2) {
+    return Math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2);
+  }
+
+  // Rectangular collision detection (AABB)
+  function isColliding(rect1, rect2) {
+    return (
+      rect1.x < rect2.x + rect2.width &&
+      rect1.x + rect1.width > rect2.x &&
+      rect1.y < rect2.y + rect2.height &&
+      rect1.height + rect1.y > rect2.y
+    );
+  }
+
+  // Play sound helper
+  function playSound(sound) {
+    if (!sound) return;
+    const clone = sound.cloneNode();
+    clone.play();
+  }
+
+  // Classes for Game Objects
+
+  // Background Stars - parallax effect
+  class Star {
+    constructor() {
+      this.x = Math.random() * canvas.width;
+      this.y = Math.random() * canvas.height;
+      this.size = Math.random() * 1.2 + 0.3;
+      this.speed = this.size * 0.5 + 0.2;
+      this.alpha = Math.random() * 0.5 + 0.3;
+    }
+
+    update() {
+      this.y += this.speed;
+      if (this.y > canvas.height) {
+        this.y = 0;
+        this.x = Math.random() * canvas.width;
+      }
+    }
+
+    draw() {
+      ctx.save();
+      ctx.fillStyle = `rgba(255,255,255,${this.alpha})`;
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
+  }
+
+  // Player Class
   class Player {
     constructor() {
       this.width = 40;
       this.height = 60;
       this.x = canvas.width / 2 - this.width / 2;
       this.y = canvas.height - this.height - 30;
-      this.speed = 7;
+      this.speed = 6;
       this.color = 'cyan';
       this.bullets = [];
       this.shootCooldown = 0;
-      this.maxShootCooldown = 15; // frames cooldown between shots
+      this.maxShootCooldown = 12;
+      this.health = 3;
+      this.isInvincible = false;
+      this.invincibleTimer = 0;
+      this.invincibleDuration = 180; // frames ~3s
     }
 
     draw() {
       ctx.save();
+      if (this.isInvincible) {
+        ctx.globalAlpha = 0.5 + 0.5 * Math.sin(Date.now() / 100);
+      }
       ctx.fillStyle = this.color;
-      // Draw a simple spaceship shape (triangle)
+      // Spaceship shape (triangle)
       ctx.beginPath();
       ctx.moveTo(this.x + this.width / 2, this.y);
       ctx.lineTo(this.x, this.y + this.height);
       ctx.lineTo(this.x + this.width, this.y + this.height);
       ctx.closePath();
       ctx.fill();
+      ctx.globalAlpha = 1;
       ctx.restore();
     }
 
     update() {
       if (this.shootCooldown > 0) this.shootCooldown--;
 
-      // Movement left/right
-      if (keys['ArrowLeft'] || keys['a'] || touches.left) {
-        this.x -= this.speed;
-      }
-      if (keys['ArrowRight'] || keys['d'] || touches.right) {
-        this.x += this.speed;
+      if (this.isInvincible) {
+        this.invincibleTimer--;
+        if (this.invincibleTimer <= 0) {
+          this.isInvincible = false;
+        }
       }
 
+      // Movement via keys and joystick
+      let moveX = 0;
+      if (keys['ArrowLeft'] || keys['a']) moveX -= 1;
+      if (keys['ArrowRight'] || keys['d']) moveX += 1;
+
+      // Joystick movement overrides keys if active
+      if (joystickActive) {
+        moveX = joystickPos.x;
+      }
+
+      this.x += moveX * this.speed;
+
       // Boundaries
-      if (this.x < 0) this.x = 0;
-      if (this.x + this.width > canvas.width) this.x = canvas.width - this.width;
+      this.x = clamp(this.x, 0, canvas.width - this.width);
 
       // Shooting
       if ((keys[' '] || touches.shoot) && this.shootCooldown === 0) {
@@ -217,11 +357,23 @@
     shoot() {
       const bullet = new Bullet(this.x + this.width / 2, this.y);
       this.bullets.push(bullet);
-      playShootSound();
+      playSound(sounds.shoot);
+    }
+
+    hit() {
+      if (this.isInvincible) return false;
+      this.health--;
+      this.isInvincible = true;
+      this.invincibleTimer = this.invincibleDuration;
+      playSound(sounds.playerHit);
+      if (this.health <= 0) {
+        return true; // dead
+      }
+      return false;
     }
   }
 
-  // Bullet class
+  // Bullet class (player bullets)
   class Bullet {
     constructor(x, y) {
       this.x = x;
@@ -250,20 +402,18 @@
     }
 
     getRect() {
-      return {x: this.x - this.radius, y: this.y - this.radius, width: this.radius*2, height: this.radius*2};
+      return { x: this.x - this.radius, y: this.y - this.radius, width: this.radius * 2, height: this.radius * 2 };
     }
   }
 
-  // Enemy class
-  class Enemy {
+  // Enemy Bullet (enemy shooting at player)
+  class EnemyBullet {
     constructor(x, y, speed) {
       this.x = x;
       this.y = y;
-      this.width = 40;
-      this.height = 40;
-      this.speed = speed;
-      this.color = 'red';
-      this.health = 1;
+      this.radius = 6;
+      this.speed = speed || 5;
+      this.color = 'orange';
     }
 
     update() {
@@ -274,12 +424,128 @@
     draw() {
       ctx.save();
       ctx.fillStyle = this.color;
-      // Simple enemy shape - square with eyes
-      ctx.fillRect(this.x, this.y, this.width, this.height);
-      ctx.fillStyle = 'white';
-      ctx.fillRect(this.x + 8, this.y + 10, 8, 8);
-      ctx.fillRect(this.x + 24, this.y + 10, 8, 8);
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+      ctx.fill();
       ctx.restore();
+    }
+
+    offscreen() {
+      return this.y - this.radius > canvas.height;
+    }
+
+    getRect() {
+      return { x: this.x - this.radius, y: this.y - this.radius, width: this.radius * 2, height: this.radius * 2 };
+    }
+  }
+
+  // Enemy base class with polymorphism for different types
+  class Enemy {
+    constructor(x, y, speed, type) {
+      this.x = x;
+      this.y = y;
+      this.speed = speed;
+      this.type = type; // type string
+      this.bullets = [];
+      this.shootCooldown = 0;
+      this.maxShootCooldown = 90; // default shooting every 1.5 sec
+      this.explosionTimer = 0;
+      this.dead = false;
+
+      switch (type) {
+        case 'basic':
+          this.width = 40;
+          this.height = 40;
+          this.color = 'red';
+          this.health = 1;
+          this.shootCooldown = 0;
+          this.maxShootCooldown = 120;
+          break;
+        case 'fast':
+          this.width = 30;
+          this.height = 30;
+          this.color = 'yellow';
+          this.health = 1;
+          this.speed *= 1.5;
+          this.shootCooldown = 0;
+          this.maxShootCooldown = 90;
+          break;
+        case 'tank':
+          this.width = 60;
+          this.height = 60;
+          this.color = 'purple';
+          this.health = 3;
+          this.shootCooldown = 0;
+          this.maxShootCooldown = 150;
+          break;
+        default:
+          this.width = 40;
+          this.height = 40;
+          this.color = 'red';
+          this.health = 1;
+          this.shootCooldown = 0;
+          this.maxShootCooldown = 120;
+      }
+    }
+
+    update() {
+      if (this.dead) {
+        this.explosionTimer--;
+        if (this.explosionTimer <= 0) {
+          this.removeSelf();
+        }
+        this.drawExplosion();
+        return;
+      }
+
+      this.y += this.speed;
+
+      // Enemy shoots at player sometimes
+      if (this.shootCooldown > 0) this.shootCooldown--;
+      else if (this.type !== 'fast') {
+        this.shoot();
+        this.shootCooldown = this.maxShootCooldown;
+      }
+
+      // Update enemy bullets
+      this.bullets.forEach(bullet => bullet.update());
+      this.bullets = this.bullets.filter(bullet => !bullet.offscreen());
+
+      this.draw();
+    }
+
+    draw() {
+      ctx.save();
+      ctx.fillStyle = this.color;
+      ctx.fillRect(this.x, this.y, this.width, this.height);
+      // Simple eyes for enemies
+      ctx.fillStyle = 'white';
+      ctx.fillRect(this.x + this.width * 0.2, this.y + this.height * 0.3, this.width * 0.15, this.height * 0.15);
+      ctx.fillRect(this.x + this.width * 0.65, this.y + this.height * 0.3, this.width * 0.15, this.height * 0.15);
+      ctx.restore();
+    }
+
+    drawExplosion() {
+      ctx.save();
+      let radius = 30 - this.explosionTimer * 2;
+      ctx.beginPath();
+      let gradient = ctx.createRadialGradient(this.x + this.width / 2, this.y + this.height / 2, 0, this.x + this.width / 2, this.y + this.height / 2, radius);
+      gradient.addColorStop(0, 'rgba(255, 165, 0, 1)');
+      gradient.addColorStop(0.5, 'rgba(255, 69, 0, 0.7)');
+      gradient.addColorStop(1, 'rgba(255, 0, 0, 0)');
+      ctx.fillStyle = gradient;
+      ctx.arc(this.x + this.width / 2, this.y + this.height / 2, radius, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
+
+    shoot() {
+      if (this.dead) return;
+      let bulletX = this.x + this.width / 2;
+      let bulletY = this.y + this.height;
+      const bullet = new EnemyBullet(bulletX, bulletY, 6);
+      this.bullets.push(bullet);
+      playSound(sounds.enemyShoot);
     }
 
     offscreen() {
@@ -287,150 +553,329 @@
     }
 
     getRect() {
-      return {x: this.x, y: this.y, width: this.width, height: this.height};
+      return { x: this.x, y: this.y, width: this.width, height: this.height };
+    }
+
+    hit() {
+      this.health--;
+      playSound(sounds.enemyHit);
+      if (this.health <= 0) {
+        this.dead = true;
+        this.explosionTimer = 15;
+        score += 100 * multiplier;
+        multiplierTimer = multiplierDuration;
+        // Random chance to drop powerup
+        if (Math.random() < 0.3) {
+          spawnPowerUp(this.x + this.width / 2, this.y + this.height / 2);
+        }
+      }
+    }
+
+    removeSelf() {
+      const index = enemies.indexOf(this);
+      if (index > -1) enemies.splice(index, 1);
     }
   }
 
-  // Utility: Collision detection (AABB)
-  function isColliding(rect1, rect2) {
-    return (
-      rect1.x < rect2.x + rect2.width &&
-      rect1.x + rect1.width > rect2.x &&
-      rect1.y < rect2.y + rect2.height &&
-      rect1.height + rect1.y > rect2.y
-    );
+  // Power-ups
+  class PowerUp {
+    constructor(x, y, type) {
+      this.x = x;
+      this.y = y;
+      this.type = type; // 'health', 'multiplier', 'rapidFire'
+      this.radius = 15;
+      this.speed = 3;
+      this.color = 'green';
+      switch (type) {
+        case 'health':
+          this.color = 'lime';
+          break;
+        case 'multiplier':
+          this.color = 'gold';
+          break;
+        case 'rapidFire':
+          this.color = 'aqua';
+          break;
+      }
+    }
+
+    update() {
+      this.y += this.speed;
+      this.draw();
+    }
+
+    draw() {
+      ctx.save();
+      ctx.fillStyle = this.color;
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#000';
+      ctx.font = 'bold 20px Arial';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      let text = '?';
+      switch (this.type) {
+        case 'health': text = '+'; break;
+        case 'multiplier': text = 'x'; break;
+        case 'rapidFire': text = 'R'; break;
+      }
+      ctx.fillText(text, this.x, this.y);
+      ctx.restore();
+    }
+
+    getRect() {
+      return { x: this.x - this.radius, y: this.y - this.radius, width: this.radius * 2, height: this.radius * 2 };
+    }
+
+    offscreen() {
+      return this.y - this.radius > canvas.height;
+    }
   }
 
-  // Game variables
-  let player;
+  // Globals
+  let player = new Player();
   let enemies = [];
+  let powerUps = [];
+  let stars = [];
+
+  // Populate stars
+  for (let i = 0; i < 120; i++) {
+    stars.push(new Star());
+  }
+
+  // Sounds (using simple beep for demo)
+  const sounds = {
+    shoot: new Audio('https://actions.google.com/sounds/v1/weapons/laser_gun.ogg'),
+    enemyShoot: new Audio('https://actions.google.com/sounds/v1/weapons/plasma_gun.ogg'),
+    enemyHit: new Audio('https://actions.google.com/sounds/v1/explosions/explosion_1.ogg'),
+    playerHit: new Audio('https://actions.google.com/sounds/v1/cartoon/cartoon_boing.ogg'),
+    powerup: new Audio('https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg')
+  };
+
+  // Level and enemy spawn control
   let enemySpawnTimer = 0;
-  const enemySpawnInterval = 90; // frames (~1.5 seconds at 60fps)
+  let enemySpawnInterval = 60; // spawn enemy every 1 second approx.
 
-  // Sound effects setup
-  let shootSound;
-  function setupSounds() {
-    shootSound = new Audio();
-    shootSound.src = 'https://actions.google.com/sounds/v1/weapons/laser_shoot.ogg';
-    shootSound.volume = 0.15;
-  }
-
-  function playShootSound() {
-    if(shootSound) {
-      // Clone audio to allow overlapping
-      const snd = shootSound.cloneNode();
-      snd.play();
-    }
-  }
-
-  // Initialize game
-  function init() {
-    player = new Player();
-    enemies = [];
-    enemySpawnTimer = 0;
-    score = 0;
-    gameOver = false;
-    hud.textContent = 'Score: 0';
-    gameOverScreen.style.display = 'none';
-    setupSounds();
-  }
-
-  // Spawn enemy function
-  function spawnEnemy() {
-    const x = Math.random() * (canvas.width - 40);
-    const speed = 2 + Math.random() * 1.5;
-    const enemy = new Enemy(x, -40, speed);
-    enemies.push(enemy);
-  }
-
-  // Game Over
-  function triggerGameOver() {
-    gameOver = true;
-    finalScoreElem.textContent = score;
-    gameOverScreen.style.display = 'block';
+  // Powerup spawn helper
+  function spawnPowerUp(x, y) {
+    const types = ['health', 'multiplier', 'rapidFire'];
+    const chosen = types[Math.floor(Math.random() * types.length)];
+    powerUps.push(new PowerUp(x, y, chosen));
   }
 
   // Game loop
-  function gameLoop(timestamp = 0) {
-    if(gameOver) return;
-
+  function gameLoop(timestamp) {
+    if (!lastTime) lastTime = timestamp;
     deltaTime = timestamp - lastTime;
     lastTime = timestamp;
 
-    // Clear screen
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    // Spawn enemies periodically
-    enemySpawnTimer++;
-    if(enemySpawnTimer >= enemySpawnInterval) {
-      spawnEnemy();
-      enemySpawnTimer = 0;
+    if (!paused && !gameOver) {
+      update();
+      draw();
     }
+
+    requestAnimationFrame(gameLoop);
+  }
+
+  // Update function
+  function update() {
+    // Update stars
+    stars.forEach(star => star.update());
 
     // Update player
     player.update();
-    player.draw();
+
+    // Spawn enemies by timer
+    enemySpawnTimer--;
+    if (enemySpawnTimer <= 0) {
+      spawnEnemy();
+      enemySpawnTimer = Math.max(enemySpawnInterval - level * 3, 20);
+    }
 
     // Update enemies
     enemies.forEach(enemy => enemy.update());
 
-    // Remove offscreen enemies
-    enemies = enemies.filter(enemy => !enemy.offscreen());
+    // Update powerups
+    powerUps.forEach(powerUp => powerUp.update());
+    powerUps = powerUps.filter(p => !p.offscreen());
 
-    // Check collisions bullets <-> enemies
+    // Check collisions: player bullets -> enemies
     player.bullets.forEach(bullet => {
       enemies.forEach(enemy => {
-        if(isColliding(bullet.getRect(), enemy.getRect())) {
-          enemy.health--;
-          bullet.y = -100; // remove bullet by moving offscreen
-          if(enemy.health <= 0) {
-            score += 10;
-            hud.textContent = `Score: ${score}`;
-            enemies.splice(enemies.indexOf(enemy), 1);
+        if (!enemy.dead && isColliding(bullet.getRect(), enemy.getRect())) {
+          enemy.hit();
+          bullet.y = -1000; // remove bullet offscreen
+        }
+      });
+    });
+
+    // Enemy bullets -> player
+    enemies.forEach(enemy => {
+      enemy.bullets.forEach(bullet => {
+        if (isColliding(bullet.getRect(), { x: player.x, y: player.y, width: player.width, height: player.height })) {
+          bullet.y = canvas.height + 1000; // remove bullet
+          if (player.hit()) {
+            // Player dead
+            gameOver = true;
+            showGameOver();
           }
         }
       });
     });
 
-    // Check collisions enemies <-> player
+    // Enemies colliding with player
     enemies.forEach(enemy => {
-      const playerRect = {x: player.x, y: player.y, width: player.width, height: player.height};
-      if(isColliding(enemy.getRect(), playerRect)) {
-        triggerGameOver();
+      if (!enemy.dead && isColliding(enemy.getRect(), { x: player.x, y: player.y, width: player.width, height: player.height })) {
+        enemy.dead = true;
+        enemy.explosionTimer = 15;
+        if (player.hit()) {
+          gameOver = true;
+          showGameOver();
+        }
       }
     });
 
-    // Next frame
-    if(!gameOver) requestAnimationFrame(gameLoop);
+    // Player collecting powerups
+    powerUps.forEach((powerUp, i) => {
+      if (isColliding(powerUp.getRect(), { x: player.x, y: player.y, width: player.width, height: player.height })) {
+        collectPowerUp(powerUp);
+        powerUps.splice(i, 1);
+      }
+    });
+
+    // Multiplier timer update
+    if (multiplierTimer > 0) {
+      multiplierTimer -= deltaTime;
+      if (multiplierTimer <= 0) {
+        multiplier = 1;
+      }
+    }
+
+    // Level up every 2000 points
+    if (score >= level * 2000) {
+      level++;
+    }
   }
 
-  // Controls handlers
+  // Draw function
+  function draw() {
+    // Clear canvas
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Draw stars
+    stars.forEach(star => star.draw());
+
+    // Draw player bullets
+    player.bullets.forEach(bullet => bullet.draw());
+
+    // Draw enemies (and their bullets)
+    enemies.forEach(enemy => {
+      enemy.draw();
+      enemy.bullets.forEach(bullet => bullet.draw());
+    });
+
+    // Draw powerups
+    powerUps.forEach(powerUp => powerUp.draw());
+
+    // Draw player
+    player.draw();
+
+    // Draw HUD
+    hud.innerHTML = `
+      Score: ${score}<br />
+      Lives: ${player.health}<br />
+      Level: ${level}<br />
+      Multiplier: x${multiplier}
+    `;
+  }
+
+  // Spawn enemies with increasing difficulty
+  function spawnEnemy() {
+    const enemyTypes = ['basic', 'fast', 'tank'];
+    let typeChance = Math.random();
+
+    let type = 'basic';
+    if (level < 3) {
+      type = 'basic';
+    } else if (level < 6) {
+      if (typeChance < 0.6) type = 'basic';
+      else type = 'fast';
+    } else {
+      if (typeChance < 0.5) type = 'basic';
+      else if (typeChance < 0.8) type = 'fast';
+      else type = 'tank';
+    }
+
+    let x = Math.random() * (canvas.width - 60);
+    let y = -60;
+    let speed = 2 + level * 0.2;
+    enemies.push(new Enemy(x, y, speed, type));
+  }
+
+  // Collect powerups and apply effect
+  function collectPowerUp(powerUp) {
+    playSound(sounds.powerup);
+    switch (powerUp.type) {
+      case 'health':
+        player.health = Math.min(player.health + 1, 5);
+        break;
+      case 'multiplier':
+        multiplier = Math.min(multiplier + 1, 5);
+        multiplierTimer = multiplierDuration;
+        break;
+      case 'rapidFire':
+        player.maxShootCooldown = 5;
+        setTimeout(() => {
+          player.maxShootCooldown = 12;
+        }, 8000);
+        break;
+    }
+  }
+
+  // Show game over UI
+  function showGameOver() {
+    finalScoreElem.textContent = score;
+    gameOverScreen.style.display = 'block';
+  }
+
+  // Restart game
+  restartBtn.addEventListener('click', () => {
+    gameOverScreen.style.display = 'none';
+    resetGame();
+  });
+
+  // Pause toggle
+  pauseBtn.addEventListener('click', () => {
+    paused = !paused;
+    pauseBtn.textContent = paused ? 'Resume' : 'Pause';
+  });
+
+  // Reset game state
+  function resetGame() {
+    score = 0;
+    multiplier = 1;
+    multiplierTimer = 0;
+    lives = 3;
+    level = 1;
+    gameOver = false;
+    paused = false;
+    player = new Player();
+    enemies = [];
+    powerUps = [];
+    enemySpawnTimer = 0;
+    pauseBtn.textContent = 'Pause';
+  }
+
+  // Keyboard input
   window.addEventListener('keydown', e => {
-    keys[e.key] = true;
+    keys[e.key.toLowerCase()] = true;
   });
   window.addEventListener('keyup', e => {
-    keys[e.key] = false;
+    keys[e.key.toLowerCase()] = false;
   });
 
-  // Touch controls
-  leftBtn.addEventListener('touchstart', e => {
-    e.preventDefault();
-    touches.left = true;
-  });
-  leftBtn.addEventListener('touchend', e => {
-    e.preventDefault();
-    touches.left = false;
-  });
-
-  rightBtn.addEventListener('touchstart', e => {
-    e.preventDefault();
-    touches.right = true;
-  });
-  rightBtn.addEventListener('touchend', e => {
-    e.preventDefault();
-    touches.right = false;
-  });
-
+  // Touch shoot button
   shootBtn.addEventListener('touchstart', e => {
     e.preventDefault();
     touches.shoot = true;
@@ -440,21 +885,68 @@
     touches.shoot = false;
   });
 
-  // Prevent scrolling on touch for controls area
-  document.getElementById('controls').addEventListener('touchmove', e => {
+  // Joystick touch/mouse input
+  joystickBase.addEventListener('pointerdown', e => {
     e.preventDefault();
-  }, {passive:false});
-
-  // Restart button
-  restartBtn.addEventListener('click', () => {
-    init();
-    requestAnimationFrame(gameLoop);
+    if (!joystickActive) {
+      joystickActive = true;
+      joystickPointerId = e.pointerId;
+      updateJoystick(e);
+    }
+  });
+  window.addEventListener('pointermove', e => {
+    if (joystickActive && e.pointerId === joystickPointerId) {
+      e.preventDefault();
+      updateJoystick(e);
+    }
+  });
+  window.addEventListener('pointerup', e => {
+    if (joystickActive && e.pointerId === joystickPointerId) {
+      e.preventDefault();
+      resetJoystick();
+    }
+  });
+  window.addEventListener('pointercancel', e => {
+    if (joystickActive && e.pointerId === joystickPointerId) {
+      e.preventDefault();
+      resetJoystick();
+    }
   });
 
-  // Initialize and start game
-  init();
-  requestAnimationFrame(gameLoop);
+  function updateJoystick(e) {
+    const rect = joystickBase.getBoundingClientRect();
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
 
+    let deltaX = e.clientX - centerX;
+    let deltaY = e.clientY - centerY;
+
+    const dist = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+    if (dist > joystickMaxDistance) {
+      const angle = Math.atan2(deltaY, deltaX);
+      deltaX = Math.cos(angle) * joystickMaxDistance;
+      deltaY = Math.sin(angle) * joystickMaxDistance;
+    }
+
+    joystickKnob.style.left = `${50 + deltaX}px`;
+    joystickKnob.style.top = `${50 + deltaY}px`;
+
+    joystickPos.x = clamp(deltaX / joystickMaxDistance, -1, 1);
+    joystickPos.y = clamp(deltaY / joystickMaxDistance, -1, 1);
+  }
+
+  function resetJoystick() {
+    joystickActive = false;
+    joystickPointerId = null;
+    joystickPos.x = 0;
+    joystickPos.y = 0;
+    joystickKnob.style.left = '50px';
+    joystickKnob.style.top = '50px';
+  }
+
+  // Start game loop
+  resetGame();
+  requestAnimationFrame(gameLoop);
 })();
 </script>
 
