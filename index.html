@@ -2,27 +2,36 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Simple FPS Shooter (Raycasting)</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+<title>Mobile FPS Shooter</title>
 <style>
   html, body {
     margin: 0; padding: 0; overflow: hidden;
     height: 100%;
-    background: #222;
+    background: #111;
     font-family: monospace;
     color: white;
+    -webkit-user-select:none;
+    user-select:none;
+    touch-action: none;
   }
   #gameCanvas {
     display: block;
-    background: #555;
-    cursor: none; /* Hide default cursor */
+    background: #222;
+    width: 100vw;
+    height: 100vh;
   }
   #hud {
     position: fixed;
-    top: 15px;
-    left: 15px;
+    top: 12px;
+    left: 12px;
     font-size: 18px;
-    user-select: none;
+    z-index: 10;
+    user-select:none;
+    line-height: 1.3;
+  }
+  #hud .health {
+    color: #f66;
   }
   #crosshair {
     position: fixed;
@@ -33,12 +42,13 @@
     margin-left: -10px;
     margin-top: -10px;
     pointer-events: none;
-    z-index: 10;
+    z-index: 15;
   }
   #crosshair:before, #crosshair:after {
     content: '';
     position: absolute;
     background: white;
+    transition: background 0.2s;
   }
   #crosshair:before {
     left: 9px;
@@ -52,29 +62,144 @@
     width: 20px;
     height: 2px;
   }
+  #crosshair.hit:before, #crosshair.hit:after {
+    background: #f44;
+  }
+  /* Minimap */
+  #minimap {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 130px;
+    height: 130px;
+    background: rgba(0,0,0,0.7);
+    border: 2px solid white;
+    border-radius: 8px;
+    z-index: 15;
+    user-select:none;
+  }
+  /* Mobile Controls */
+  #joystickContainer {
+    position: fixed;
+    bottom: 40px;
+    left: 40px;
+    width: 120px;
+    height: 120px;
+    z-index: 20;
+    touch-action: none;
+  }
+  #joystickBase {
+    width: 120px;
+    height: 120px;
+    background: rgba(255,255,255,0.15);
+    border-radius: 50%;
+    position: relative;
+  }
+  #joystickKnob {
+    width: 60px;
+    height: 60px;
+    background: rgba(255,255,255,0.5);
+    border-radius: 50%;
+    position: absolute;
+    left: 30px;
+    top: 30px;
+    touch-action:none;
+    transition: left 0.1s, top 0.1s;
+  }
+  #shootButton {
+    position: fixed;
+    bottom: 60px;
+    right: 40px;
+    width: 80px;
+    height: 80px;
+    background: rgba(255,0,0,0.7);
+    border-radius: 50%;
+    z-index: 20;
+    user-select:none;
+    touch-action: manipulation;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 22px;
+    font-weight: bold;
+    color: white;
+    user-select:none;
+    box-shadow: 0 0 10px #f00;
+  }
+  #reloadButton {
+    position: fixed;
+    bottom: 150px;
+    right: 40px;
+    width: 80px;
+    height: 40px;
+    background: rgba(0,0,255,0.7);
+    border-radius: 8px;
+    z-index: 20;
+    user-select:none;
+    touch-action: manipulation;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 18px;
+    font-weight: bold;
+    color: white;
+    user-select:none;
+    box-shadow: 0 0 10px #00f;
+  }
 </style>
 </head>
 <body>
 
 <canvas id="gameCanvas"></canvas>
-<div id="hud">Ammo: 10</div>
+
+<div id="hud">
+  Health: <span class="health" id="healthDisplay">100</span><br/>
+  Ammo: <span id="ammoDisplay">10</span> / <span id="ammoMaxDisplay">10</span><br/>
+  <span id="reloadStatus"></span>
+</div>
+
 <div id="crosshair"></div>
 
+<canvas id="minimap"></canvas>
+
+<div id="joystickContainer" aria-label="Movement joystick" role="application">
+  <div id="joystickBase">
+    <div id="joystickKnob"></div>
+  </div>
+</div>
+
+<div id="shootButton" aria-label="Shoot button" role="button" tabindex="0">Shoot</div>
+<div id="reloadButton" aria-label="Reload button" role="button" tabindex="0">Reload</div>
+
 <script>
-// Simple raycasting FPS shooter - vanilla JS
+// Mobile FPS Shooter with touch look, joystick, shoot button, and reload
 
 (() => {
   const canvas = document.getElementById('gameCanvas');
   const ctx = canvas.getContext('2d');
-  const hud = document.getElementById('hud');
+  const minimap = document.getElementById('minimap');
+  const mmCtx = minimap.getContext('2d');
+  const healthDisplay = document.getElementById('healthDisplay');
+  const ammoDisplay = document.getElementById('ammoDisplay');
+  const ammoMaxDisplay = document.getElementById('ammoMaxDisplay');
+  const reloadStatus = document.getElementById('reloadStatus');
+  const crosshair = document.getElementById('crosshair');
 
-  // Screen size
+  const joystickContainer = document.getElementById('joystickContainer');
+  const joystickBase = document.getElementById('joystickBase');
+  const joystickKnob = document.getElementById('joystickKnob');
+  const shootButton = document.getElementById('shootButton');
+  const reloadButton = document.getElementById('reloadButton');
+
   let width = window.innerWidth;
   let height = window.innerHeight;
+
   canvas.width = width;
   canvas.height = height;
+  minimap.width = 130;
+  minimap.height = 130;
 
-  // Map config (1 = wall, 0 = empty)
+  // Map: 1 = wall, 0 = empty
   const map = [
     [1,1,1,1,1,1,1,1,1,1,1,1],
     [1,0,0,0,0,0,0,0,0,0,0,1],
@@ -92,298 +217,359 @@
   const mapHeight = map.length;
   const tileSize = 64;
 
-  // Player state
-  let player = {
+  // Player
+  const player = {
     x: 3 * tileSize + tileSize/2,
     y: 3 * tileSize + tileSize/2,
-    angle: 0, // direction facing, in radians
+    angle: 0,
     speed: 0,
-    turnSpeed: 0,
     radius: 10,
+    health: 100,
     ammo: 10,
+    ammoMax: 10,
+    reloading: false,
+    reloadTime: 1.5,
+    reloadTimer: 0,
+    velocityX: 0,
+    velocityY: 0,
+    moveX: 0,
+    moveY: 0,
   };
 
-  // Controls state
-  const keys = {};
-  let mouseMovementX = 0;
+  // Movement
+  const moveAccel = 700;
+  const maxSpeed = 140;
+  const friction = 700;
 
-  // Raycasting params
-  const fov = Math.PI / 3; // 60 degrees
-  const numRays = width; // one ray per pixel for highest quality
-  const maxDepth = 1000;
+  // Raycasting
+  const fov = Math.PI/3;
+  const maxDepth = 1200;
 
-  // Targets - enemies to shoot
-  const targets = [
-    {x: 6.5 * tileSize, y: 5.5 * tileSize, radius: 15, alive: true},
-    {x: 8.5 * tileSize, y: 7.5 * tileSize, radius: 15, alive: true},
+  // Crosshair hit timer
+  let crosshairHitTimer = 0;
+
+  // Enemies
+  const enemies = [
+    {x: 6.5 * tileSize, y: 5.5 * tileSize, radius: 15, health: 50, alive: true, speed: 40, hitTimer: 0},
+    {x: 8.5 * tileSize, y: 7.5 * tileSize, radius: 15, health: 50, alive: true, speed: 40, hitTimer: 0},
+    {x: 9.5 * tileSize, y: 2.5 * tileSize, radius: 15, health: 50, alive: true, speed: 40, hitTimer: 0},
   ];
 
-  // Mouse look sensitivity
-  const mouseSensitivity = 0.002;
-
-  // Game state
-  let lastTime = 0;
-
-  // Helper - clamp
-  function clamp(val, min, max) {
-    return Math.min(Math.max(val, min), max);
+  // Normalize angle between 0 and 2PI
+  function normalizeAngle(angle) {
+    angle = angle % (2*Math.PI);
+    if(angle < 0) angle += 2*Math.PI;
+    return angle;
   }
 
-  // Helper - distance
+  // Distance
   function dist(ax, ay, bx, by) {
-    return Math.hypot(bx - ax, by - ay);
+    return Math.hypot(bx-ax, by-ay);
   }
 
-  // Listen for keys
-  window.addEventListener('keydown', e => {
-    keys[e.key.toLowerCase()] = true;
-  });
-  window.addEventListener('keyup', e => {
-    keys[e.key.toLowerCase()] = false;
-  });
-
-  // Mouse lock and movement for pointer lock FPS
-  canvas.requestPointerLock = canvas.requestPointerLock || canvas.mozRequestPointerLock;
-  document.exitPointerLock = document.exitPointerLock || document.mozExitPointerLock;
-
-  canvas.onclick = () => {
-    if (document.pointerLockElement !== canvas) {
-      canvas.requestPointerLock();
-    } else if (player.ammo > 0) {
-      shoot();
-    }
-  };
-
-  document.addEventListener('pointerlockchange', lockChangeAlert, false);
-  document.addEventListener('mozpointerlockchange', lockChangeAlert, false);
-
-  function lockChangeAlert() {
-    if (document.pointerLockElement === canvas) {
-      document.addEventListener("mousemove", updateMousePosition, false);
-    } else {
-      document.removeEventListener("mousemove", updateMousePosition, false);
-    }
-  }
-
-  function updateMousePosition(e) {
-    player.angle += e.movementX * mouseSensitivity;
-    player.angle = player.angle % (2 * Math.PI);
-  }
-
-  // Movement update
-  function updatePlayer(dt) {
-    const moveSpeed = 150; // pixels per second
-    const turnSpeed = 3; // radians per second (not used, using mouse look)
-
-    let moveStep = moveSpeed * dt;
-
-    let dx = 0, dy = 0;
-
-    if (keys['w']) {
-      dx += Math.cos(player.angle) * moveStep;
-      dy += Math.sin(player.angle) * moveStep;
-    }
-    if (keys['s']) {
-      dx -= Math.cos(player.angle) * moveStep;
-      dy -= Math.sin(player.angle) * moveStep;
-    }
-    if (keys['a']) {
-      dx += Math.cos(player.angle - Math.PI / 2) * moveStep;
-      dy += Math.sin(player.angle - Math.PI / 2) * moveStep;
-    }
-    if (keys['d']) {
-      dx += Math.cos(player.angle + Math.PI / 2) * moveStep;
-      dy += Math.sin(player.angle + Math.PI / 2) * moveStep;
-    }
-
-    // Collision check
-    if (!isWall(player.x + dx, player.y)) {
-      player.x += dx;
-    }
-    if (!isWall(player.x, player.y + dy)) {
-      player.y += dy;
-    }
-  }
-
-  // Check if position hits a wall
+  // Wall check
   function isWall(x, y) {
-    if (x < 0 || y < 0 || x >= mapWidth * tileSize || y >= mapHeight * tileSize) return true;
+    if(x < 0 || y < 0 || x >= mapWidth*tileSize || y >= mapHeight*tileSize) return true;
     let mx = Math.floor(x / tileSize);
     let my = Math.floor(y / tileSize);
     return map[my][mx] !== 0;
   }
 
-  // Raycasting function to render scene
-  function castRays() {
-    // Clear screen (floor & ceiling)
-    ctx.fillStyle = '#333'; // ceiling color
-    ctx.fillRect(0, 0, width, height/2);
-    ctx.fillStyle = '#777'; // floor color
-    ctx.fillRect(0, height/2, width, height/2);
-
-    const stripWidth = width / numRays;
-    const rayAngleStep = fov / numRays;
-
-    for (let i = 0; i < numRays; i++) {
-      // Calculate ray angle relative to player
-      let rayAngle = player.angle - fov/2 + i * rayAngleStep;
-      rayAngle = normalizeAngle(rayAngle);
-
-      // Ray casting variables
-      let distance = 0;
-      let hit = false;
-      let wallX, wallY;
-      let textureX;
-
-      const eyeX = Math.cos(rayAngle);
-      const eyeY = Math.sin(rayAngle);
-
-      while (!hit && distance < maxDepth) {
-        distance += 1;
-        let testX = Math.floor((player.x + eyeX * distance) / tileSize);
-        let testY = Math.floor((player.y + eyeY * distance) / tileSize);
-
-        if (testX < 0 || testX >= mapWidth || testY < 0 || testY >= mapHeight) {
-          hit = true;
-          distance = maxDepth;
-        } else if (map[testY][testX] === 1) {
-          hit = true;
-          wallX = player.x + eyeX * distance;
-          wallY = player.y + eyeY * distance;
+  // Enemy hit by player collision
+  function enemyHitCheck() {
+    for(const e of enemies){
+      if(!e.alive) continue;
+      if(dist(player.x, player.y, e.x, e.y) < player.radius + e.radius){
+        if(player.health > 0){
+          player.health -= 25;
+          player.health = Math.max(player.health, 0);
+          if(player.health === 0) alert('Game Over! Reload page to restart.');
         }
       }
-
-      // Correct fish-eye distortion
-      distance = distance * Math.cos(player.angle - rayAngle);
-
-      // Calculate wall height on screen
-      const wallHeight = (tileSize * height) / distance;
-
-      // Shade walls based on distance
-      const shade = clamp(255 - distance * 0.7, 50, 255);
-      ctx.fillStyle = `rgb(${shade}, ${shade}, ${shade})`;
-
-      // Draw vertical strip
-      ctx.fillRect(i * stripWidth, (height - wallHeight)/2, stripWidth + 1, wallHeight);
     }
   }
 
-  // Normalize angle between 0 and 2PI
-  function normalizeAngle(angle) {
-    angle = angle % (2 * Math.PI);
-    if (angle < 0) angle += 2 * Math.PI;
-    return angle;
+  // Sound helpers
+  function loadSound(src){
+    let audio = new Audio(src);
+    audio.preload = 'auto';
+    return audio;
   }
 
-  // Shooting mechanic - raycast center ray for hit detection
-  function shoot() {
-    if (player.ammo <= 0) return;
+  // Sounds
+  const shootSound = loadSound('https://cdn.jsdelivr.net/gh/jakesgordon/javascript-keyboard-telegraph/sounds/gunshot.wav');
+  const reloadSound = loadSound('https://cdn.jsdelivr.net/gh/jakesgordon/javascript-keyboard-telegraph/sounds/reload.wav');
+  const enemyHitSound = loadSound('https://cdn.jsdelivr.net/gh/jakesgordon/javascript-keyboard-telegraph/sounds/hit.wav');
+
+  function playSound(sound){
+    sound.currentTime = 0;
+    sound.play().catch(() => {}); // ignore errors on mobile autoplay restrictions
+  }
+
+  // Shoot mechanic
+  function shoot(){
+    if(player.ammo <= 0 || player.reloading || player.health <= 0) return;
 
     player.ammo--;
-    hud.textContent = `Ammo: ${player.ammo}`;
+    ammoDisplay.textContent = player.ammo;
+
+    playSound(shootSound);
 
     const shootAngle = player.angle;
+    const maxShootDist = 1000;
 
-    // Cast a ray forward to max distance to detect hits on targets
-    const maxShootDistance = 1000;
-    for (let dist = 0; dist < maxShootDistance; dist += 5) {
-      let testX = player.x + Math.cos(shootAngle) * dist;
-      let testY = player.y + Math.sin(shootAngle) * dist;
+    for(let distCheck=0; distCheck<maxShootDist; distCheck += 5){
+      let testX = player.x + Math.cos(shootAngle)*distCheck;
+      let testY = player.y + Math.sin(shootAngle)*distCheck;
 
-      // Check wall hit, if hit stop
-      if (isWall(testX, testY)) break;
+      if(isWall(testX, testY)) break;
 
-      // Check targets
-      for (let t of targets) {
-        if (t.alive && distBetweenPoints(testX, testY, t.x, t.y) < t.radius) {
-          t.alive = false;
-          showHitEffect(t.x, t.y);
+      for(const e of enemies){
+        if(!e.alive) continue;
+        if(dist(testX, testY, e.x, e.y) < e.radius){
+          e.health -= 25;
+          e.hitTimer = 0.2;
+          playSound(enemyHitSound);
+          if(e.health <= 0) e.alive = false;
+          crosshairHitTimer = 0.15;
           return;
         }
       }
     }
   }
 
-  // Distance between two points
-  function distBetweenPoints(x1, y1, x2, y2) {
-    return Math.sqrt((x2-x1)**2 + (y2-y1)**2);
+  // Reload mechanic
+  function reload(){
+    if(player.reloading || player.ammo === player.ammoMax) return;
+
+    player.reloading = true;
+    reloadStatus.textContent = 'Reloading...';
+    playSound(reloadSound);
+    player.reloadTimer = player.reloadTime;
   }
 
-  // Visual hit effect (simple white circle)
-  let hitEffects = [];
-  function showHitEffect(x, y) {
-    hitEffects.push({x, y, alpha: 1.0});
-  }
+  // Update player position & velocity
+  function updatePlayer(dt){
+    if(player.health <= 0) return;
 
-  // Draw targets
-  function drawTargets() {
-    for (let t of targets) {
-      if (!t.alive) continue;
-      // Compute relative position to player
-      const dx = t.x - player.x;
-      const dy = t.y - player.y;
-      const distToTarget = Math.sqrt(dx*dx + dy*dy);
+    // Accelerate based on input
+    const inputX = player.moveX;
+    const inputY = player.moveY;
+    const length = Math.hypot(inputX, inputY);
 
-      // Angle between player direction and target
-      let angleToTarget = Math.atan2(dy, dx) - player.angle;
-      angleToTarget = ((angleToTarget + Math.PI) % (2 * Math.PI)) - Math.PI;
+    if(length > 0){
+      let normX = inputX / length;
+      let normY = inputY / length;
 
-      // Only draw if inside field of view (FOV)
-      if (Math.abs(angleToTarget) < fov / 2) {
-        const screenX = (0.5 + angleToTarget / fov) * width;
-        const size = (tileSize * height) / distToTarget;
-
-        ctx.fillStyle = 'red';
-        ctx.beginPath();
-        ctx.arc(screenX, height/2, size / 4, 0, 2 * Math.PI);
-        ctx.fill();
+      player.velocityX += normX * moveAccel * dt;
+      player.velocityY += normY * moveAccel * dt;
+    } else {
+      // friction slow down
+      if(player.velocityX > 0){
+        player.velocityX -= friction * dt;
+        if(player.velocityX < 0) player.velocityX = 0;
+      } else {
+        player.velocityX += friction * dt;
+        if(player.velocityX > 0) player.velocityX = 0;
       }
+
+      if(player.velocityY > 0){
+        player.velocityY -= friction * dt;
+        if(player.velocityY < 0) player.velocityY = 0;
+      } else {
+        player.velocityY += friction * dt;
+        if(player.velocityY > 0) player.velocityY = 0;
+      }
+    }
+
+    // Limit speed
+    let speed = Math.hypot(player.velocityX, player.velocityY);
+    if(speed > maxSpeed){
+      player.velocityX = (player.velocityX / speed) * maxSpeed;
+      player.velocityY = (player.velocityY / speed) * maxSpeed;
+    }
+
+    // Move player with collision
+    let newX = player.x + player.velocityX * dt;
+    let newY = player.y + player.velocityY * dt;
+
+    // Check X collision
+    if(!isWall(newX + Math.cos(player.angle)*player.radius, player.y + Math.sin(player.angle)*player.radius))
+      player.x = newX;
+
+    // Check Y collision
+    if(!isWall(player.x + Math.cos(player.angle)*player.radius, newY + Math.sin(player.angle)*player.radius))
+      player.y = newY;
+
+    enemyHitCheck();
+  }
+
+  // Simple enemy AI: move toward player if alive
+  function updateEnemies(dt){
+    for(const e of enemies){
+      if(!e.alive) continue;
+      let dx = player.x - e.x;
+      let dy = player.y - e.y;
+      let distance = Math.hypot(dx, dy);
+      if(distance > 1){
+        let vx = (dx / distance) * e.speed;
+        let vy = (dy / distance) * e.speed;
+
+        // Move enemy with collision
+        let newX = e.x + vx * dt;
+        let newY = e.y + vy * dt;
+
+        if(!isWall(newX, e.y)) e.x = newX;
+        if(!isWall(e.x, newY)) e.y = newY;
+      }
+
+      // Hit timer decreases for red flash effect
+      if(e.hitTimer > 0) e.hitTimer -= dt;
     }
   }
 
-  // Draw hit effects (white circles fading)
-  function drawHitEffects(dt) {
-    for (let i = hitEffects.length - 1; i >= 0; i--) {
-      let h = hitEffects[i];
-      h.alpha -= dt * 2;
-      if (h.alpha <= 0) {
-        hitEffects.splice(i, 1);
-        continue;
+  // Raycasting render
+  function render(){
+    ctx.clearRect(0, 0, width, height);
+
+    const stripWidth = width / 120;
+    const numRays = 120;
+
+    for(let i=0; i<numRays; i++){
+      const rayScreenPos = (i / numRays) - 0.5;
+      const rayAngle = normalizeAngle(player.angle + rayScreenPos * fov);
+
+      let distToWall = 0;
+      let hitWall = false;
+      let boundary = false;
+
+      let eyeX = Math.cos(rayAngle);
+      let eyeY = Math.sin(rayAngle);
+
+      while(!hitWall && distToWall < maxDepth){
+        distToWall += 5;
+
+        let testX = Math.floor((player.x + eyeX * distToWall) / tileSize);
+        let testY = Math.floor((player.y + eyeY * distToWall) / tileSize);
+
+        if(testX < 0 || testX >= mapWidth || testY < 0 || testY >= mapHeight){
+          hitWall = true;
+          distToWall = maxDepth;
+        } else {
+          if(map[testY][testX] === 1){
+            hitWall = true;
+
+            // Check boundaries (for shading)
+            let corners = [];
+
+            for(let tx=0; tx<2; tx++){
+              for(let ty=0; ty<2; ty++){
+                let vx = testX + tx - player.x / tileSize;
+                let vy = testY + ty - player.y / tileSize;
+                let d = Math.hypot(vx, vy);
+                corners.push(d);
+              }
+            }
+
+            corners.sort((a,b) => a-b);
+            if(corners[0] < 0.01) boundary = true;
+          }
+        }
       }
-      // Draw a white circle on the screen relative to player view
-      const dx = h.x - player.x;
-      const dy = h.y - player.y;
-      const distToTarget = Math.sqrt(dx*dx + dy*dy);
 
-      let angleToTarget = Math.atan2(dy, dx) - player.angle;
-      angleToTarget = ((angleToTarget + Math.PI) % (2 * Math.PI)) - Math.PI;
+      // Calculate ceiling and floor
+      let ceiling = (height / 2) - height / distToWall;
+      let floor = height - ceiling;
 
-      if (Math.abs(angleToTarget) < fov / 2) {
-        const screenX = (0.5 + angleToTarget / fov) * width;
-        const size = (tileSize * height) / distToTarget;
-        ctx.fillStyle = `rgba(255,255,255,${h.alpha})`;
+      // Shade walls based on distance
+      let shade = 1 - Math.min(distToWall / maxDepth, 1);
+      if(boundary) shade = 0;
+
+      let wallColor = `rgba(${Math.floor(255*shade)}, ${Math.floor(255*shade)}, ${Math.floor(255*shade)}, 1)`;
+
+      ctx.fillStyle = wallColor;
+      ctx.fillRect(i*stripWidth, ceiling, stripWidth, floor - ceiling);
+
+      // Floor
+      ctx.fillStyle = `rgba(40,40,40, ${0.3 * shade})`;
+      ctx.fillRect(i*stripWidth, floor, stripWidth, height - floor);
+    }
+
+    // Draw enemies as sprites
+    enemies.forEach(e => {
+      if(!e.alive) return;
+
+      // Vector to enemy from player
+      let dx = e.x - player.x;
+      let dy = e.y - player.y;
+      let distance = Math.hypot(dx, dy);
+
+      // Angle between player angle and enemy
+      let enemyAngle = Math.atan2(dy, dx) - player.angle;
+
+      while(enemyAngle < -Math.PI) enemyAngle += 2*Math.PI;
+      while(enemyAngle > Math.PI) enemyAngle -= 2*Math.PI;
+
+      // If enemy is in FOV and not behind
+      if(distance > 30 && Math.abs(enemyAngle) < fov/2){
+        // Size and screen position
+        let size = (tileSize*3) / distance;
+        let x = (width / 2) + Math.tan(enemyAngle) * (width / 2) - size / 2;
+        let y = (height / 2) - size / 2;
+
+        // Draw enemy (red circle)
+        ctx.save();
+        if(e.hitTimer > 0){
+          ctx.fillStyle = `rgba(255,50,50,${e.hitTimer*5})`;
+        } else {
+          ctx.fillStyle = 'red';
+        }
         ctx.beginPath();
-        ctx.arc(screenX, height/2, size / 3, 0, 2 * Math.PI);
+        ctx.ellipse(x + size/2, y + size/2, size/2, size/2 * 1.2, 0, 0, 2*Math.PI);
         ctx.fill();
+        ctx.restore();
+      }
+    });
+  }
+
+  // Draw minimap
+  function drawMinimap(){
+    mmCtx.clearRect(0,0,minimap.width,minimap.height);
+
+    const scale = minimap.width / (mapWidth*tileSize);
+
+    // Draw map tiles
+    for(let y=0; y<mapHeight; y++){
+      for(let x=0; x<mapWidth; x++){
+        mmCtx.fillStyle = map[y][x] === 1 ? 'white' : 'black';
+        mmCtx.fillRect(x*tileSize*scale, y*tileSize*scale, tileSize*scale, tileSize*scale);
       }
     }
+
+    // Draw player on minimap
+    mmCtx.fillStyle = 'cyan';
+    mmCtx.beginPath();
+    mmCtx.arc(player.x*scale, player.y*scale, player.radius*scale, 0, 2*Math.PI);
+    mmCtx.fill();
+
+    // Player direction line
+    mmCtx.strokeStyle = 'cyan';
+    mmCtx.beginPath();
+    mmCtx.moveTo(player.x*scale, player.y*scale);
+    mmCtx.lineTo(player.x*scale + Math.cos(player.angle)*20, player.y*scale + Math.sin(player.angle)*20);
+    mmCtx.stroke();
+
+    // Draw enemies on minimap
+    enemies.forEach(e => {
+      if(!e.alive) return;
+      mmCtx.fillStyle = 'red';
+      mmCtx.beginPath();
+      mmCtx.arc(e.x*scale, e.y*scale, e.radius*scale, 0, 2*Math.PI);
+      mmCtx.fill();
+    });
   }
 
-  // Game loop
-  function loop(timestamp = 0) {
-    if (!lastTime) lastTime = timestamp;
-    let dt = (timestamp - lastTime) / 1000;
-    lastTime = timestamp;
-
-    updatePlayer(dt);
-    castRays();
-    drawTargets();
-    drawHitEffects(dt);
-
-    requestAnimationFrame(loop);
-  }
-
-  // Resize handler
+  // Handle resizing
   window.addEventListener('resize', () => {
     width = window.innerWidth;
     height = window.innerHeight;
@@ -391,8 +577,173 @@
     canvas.height = height;
   });
 
-  // Initial draw
-  loop();
+  // Touch Controls
+  // Joystick for movement (left side)
+  let joystickActive = false;
+  let joystickCenter = {x:0,y:0};
+  let joystickPos = {x:0,y:0};
+
+  joystickBase.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    joystickActive = true;
+    const rect = joystickBase.getBoundingClientRect();
+    joystickCenter.x = rect.left + rect.width / 2;
+    joystickCenter.y = rect.top + rect.height / 2;
+    joystickPos.x = joystickCenter.x;
+    joystickPos.y = joystickCenter.y;
+  });
+
+  joystickBase.addEventListener('touchmove', (e) => {
+    e.preventDefault();
+    if(!joystickActive) return;
+    let touch = e.touches[0];
+    let dx = touch.clientX - joystickCenter.x;
+    let dy = touch.clientY - joystickCenter.y;
+    let distance = Math.min(Math.hypot(dx, dy), 50);
+    let angle = Math.atan2(dy, dx);
+
+    joystickPos.x = joystickCenter.x + Math.cos(angle)*distance;
+    joystickPos.y = joystickCenter.y + Math.sin(angle)*distance;
+
+    joystickKnob.style.left = (joystickPos.x - joystickBase.getBoundingClientRect().left - joystickKnob.offsetWidth/2) + 'px';
+    joystickKnob.style.top = (joystickPos.y - joystickBase.getBoundingClientRect().top - joystickKnob.offsetHeight/2) + 'px';
+
+    // Set movement vector normalized
+    player.moveX = Math.cos(angle) * (distance / 50);
+    player.moveY = Math.sin(angle) * (distance / 50);
+  });
+
+  joystickBase.addEventListener('touchend', (e) => {
+    e.preventDefault();
+    joystickActive = false;
+    joystickKnob.style.left = '30px';
+    joystickKnob.style.top = '30px';
+    player.moveX = 0;
+    player.moveY = 0;
+  });
+
+  // Touch look controls (right half swipe)
+  let lookActive = false;
+  let lastTouch = null;
+  let lookSensitivity = 0.0035;
+
+  canvas.addEventListener('touchstart', (e) => {
+    for(let touch of e.touches){
+      if(touch.clientX > width/2){
+        lookActive = true;
+        lastTouch = touch;
+      }
+    }
+  });
+
+  canvas.addEventListener('touchmove', (e) => {
+    if(!lookActive) return;
+    for(let touch of e.touches){
+      if(touch.identifier === lastTouch.identifier){
+        let dx = touch.clientX - lastTouch.clientX;
+        player.angle = normalizeAngle(player.angle + dx * lookSensitivity);
+        lastTouch = touch;
+        break;
+      }
+    }
+  });
+
+  canvas.addEventListener('touchend', (e) => {
+    if(lookActive){
+      let stillActive = false;
+      for(let touch of e.touches){
+        if(touch.identifier === lastTouch.identifier){
+          stillActive = true;
+          break;
+        }
+      }
+      if(!stillActive) lookActive = false;
+    }
+  });
+
+  // Shoot button
+  shootButton.addEventListener('touchstart', e => {
+    e.preventDefault();
+    shoot();
+  });
+  shootButton.addEventListener('click', e => {
+    shoot();
+  });
+
+  // Reload button
+  reloadButton.addEventListener('touchstart', e => {
+    e.preventDefault();
+    reload();
+  });
+  reloadButton.addEventListener('click', e => {
+    reload();
+  });
+
+  // Keyboard support for desktop (optional)
+  let keys = {};
+  window.addEventListener('keydown', e => {
+    keys[e.key] = true;
+  });
+  window.addEventListener('keyup', e => {
+    keys[e.key] = false;
+  });
+
+  function updateKeyboardInput(){
+    player.moveX = 0;
+    player.moveY = 0;
+    if(keys['w'] || keys['ArrowUp']) player.moveY -= 1;
+    if(keys['s'] || keys['ArrowDown']) player.moveY += 1;
+    if(keys['a'] || keys['ArrowLeft']) player.moveX -= 1;
+    if(keys['d'] || keys['ArrowRight']) player.moveX += 1;
+
+    // Mouse look with arrow keys
+    if(keys['ArrowLeft']) player.angle -= 0.05;
+    if(keys['ArrowRight']) player.angle += 0.05;
+
+    player.angle = normalizeAngle(player.angle);
+  }
+
+  // Game loop
+  let lastTime = performance.now();
+  function loop(time){
+    let dt = (time - lastTime) / 1000;
+    lastTime = time;
+
+    // Reload timer
+    if(player.reloading){
+      player.reloadTimer -= dt;
+      if(player.reloadTimer <= 0){
+        player.reloading = false;
+        player.ammo = player.ammoMax;
+        ammoDisplay.textContent = player.ammo;
+        reloadStatus.textContent = '';
+      }
+    }
+
+    // Update player from keyboard input (desktop)
+    updateKeyboardInput();
+
+    updatePlayer(dt);
+    updateEnemies(dt);
+    render();
+    drawMinimap();
+
+    // Update health & ammo UI
+    healthDisplay.textContent = player.health;
+    ammoDisplay.textContent = player.ammo;
+
+    // Crosshair flash on hit
+    if(crosshairHitTimer > 0){
+      crosshair.classList.add('hit');
+      crosshairHitTimer -= dt;
+    } else {
+      crosshair.classList.remove('hit');
+    }
+
+    requestAnimationFrame(loop);
+  }
+
+  loop(lastTime);
 })();
 </script>
 
