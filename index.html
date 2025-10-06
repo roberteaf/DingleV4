@@ -1,674 +1,372 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Plinko & Mines Game</title>
-<style>
-  /* Gradient background */
-  body, html {
-    margin: 0; padding: 0; height: 100%;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: linear-gradient(135deg, #0047AB, #FF0000);
-    color: white;
-    overflow-x: hidden;
-    user-select: none;
-  }
+import React, { useState, useEffect, useRef } from "react";
 
-  /* Container for all content */
-  #container {
-    max-width: 1200px;
-    margin: auto;
-    padding: 20px;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-  }
+// Rainbow background styles and keyframes
+const rainbowBackgroundStyle = {
+  position: "fixed",
+  top: 0,
+  left: 0,
+  width: "100vw",
+  height: "100vh",
+  zIndex: -1,
+  background:
+    "linear-gradient(270deg, red, orange, yellow, green, blue, indigo, violet, red)",
+  backgroundSize: "1400% 1400%",
+  animation: "rainbow 60s ease infinite",
+};
 
-  /* Title */
-  h1 {
-    font-weight: 900;
-    font-size: 3rem;
-    margin-bottom: 10px;
-    text-shadow: 2px 2px 6px rgba(0,0,0,0.7);
-  }
+const rainbowKeyframes = `
+@keyframes rainbow {
+  0%{background-position:0% 50%}
+  50%{background-position:100% 50%}
+  100%{background-position:0% 50%}
+}
+`;
 
-  /* Navigation buttons */
-  #nav-buttons {
-    margin-bottom: 20px;
-  }
-  button.nav-btn {
-    background: transparent;
-    border: 2px solid white;
-    color: white;
-    font-size: 1.2rem;
-    padding: 10px 20px;
-    margin: 0 10px;
-    border-radius: 30px;
-    cursor: pointer;
-    transition: 0.3s ease;
-    font-weight: 600;
-  }
-  button.nav-btn:hover, button.nav-btn.active {
-    background: white;
-    color: #0047AB;
-    font-weight: 700;
-  }
+const pulseKeyframes = `
+@keyframes pulse {
+  0%, 100% { text-shadow: 0 0 8px white; color: #fff; }
+  50% { text-shadow: 0 0 25px #ffcc00; color: #ffcc00; }
+}
+`;
 
-  /* Game area */
-  .game-area {
-    width: 100%;
-    max-width: 1100px;
-    background: rgba(255,255,255,0.05);
-    border-radius: 20px;
-    padding: 20px;
-    box-shadow: 0 0 20px rgba(255,255,255,0.15);
-  }
+const navStyle = {
+  display: "flex",
+  justifyContent: "center",
+  marginTop: "20px",
+  gap: "15px",
+  flexWrap: "wrap",
+};
 
-  /* Common scoreboard */
-  #scoreboard {
-    font-size: 1.4rem;
-    margin-bottom: 15px;
-    text-align: center;
-    font-weight: 700;
-    letter-spacing: 1px;
-  }
+const buttonStyle = {
+  backgroundColor: "rgba(255,255,255,0.8)",
+  border: "none",
+  padding: "10px 20px",
+  borderRadius: "10px",
+  cursor: "pointer",
+  fontWeight: "bold",
+  transition: "background-color 0.3s",
+};
 
-  /* -------- Plinko Styles --------- */
+const buttonActiveStyle = {
+  ...buttonStyle,
+  backgroundColor: "rgba(255,255,255,1)",
+  boxShadow: "0 0 15px 3px white",
+};
 
-  #plinko-canvas {
-    display: block;
-    margin: auto;
-    background: rgba(0,0,0,0.15);
-    border-radius: 10px;
-    box-shadow: inset 0 0 15px rgba(255,255,255,0.1);
-  }
+const containerStyle = {
+  maxWidth: "900px",
+  margin: "40px auto",
+  backgroundColor: "rgba(0,0,0,0.65)",
+  borderRadius: "20px",
+  padding: "30px",
+  color: "white",
+  fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
+  minHeight: "70vh",
+  boxShadow: "0 0 20px rgba(255,255,255,0.4)",
+};
 
-  #plinko-controls {
-    text-align: center;
-    margin-top: 15px;
-  }
-  #plinko-controls button {
-    background: #ff3b3b;
-    border: none;
-    color: white;
-    font-size: 1.1rem;
-    padding: 10px 25px;
-    border-radius: 30px;
-    cursor: pointer;
-    font-weight: 700;
-    box-shadow: 0 5px 15px rgba(255,59,59,0.7);
-    transition: background 0.3s ease;
-  }
-  #plinko-controls button:hover {
-    background: #cc2a2a;
-  }
-  #plinko-info {
-    margin-top: 10px;
-    font-size: 1.2rem;
-  }
+const gameTitleStyle = {
+  fontSize: "2.5rem",
+  marginBottom: "20px",
+  animation: "pulse 3s ease-in-out infinite",
+  textAlign: "center",
+  userSelect: "none",
+};
 
-  /* Pegs style */
-  .peg {
-    fill: white;
-    filter: drop-shadow(0 0 2px #fff);
-  }
+const games = [
+  { id: "slots", name: "Slots" },
+  { id: "roulette", name: "Roulette" },
+  { id: "blackjack", name: "Blackjack" },
+  { id: "poker", name: "Poker" },
+  { id: "baccarat", name: "Baccarat" },
+  { id: "craps", name: "Craps" },
+  { id: "keno", name: "Keno" },
+  { id: "scratchcards", name: "Scratch Cards" },
+  { id: "bingo", name: "Bingo" },
+  { id: "wheel", name: "Wheel of Fortune" },
+];
 
-  /* Ball style */
-  .ball {
-    fill: #ff4444;
-    filter: drop-shadow(0 0 8px #ff4444);
-  }
+// --- Slots Game ---
+const slotSymbols = ["🍒", "🍋", "🔔", "🍉", "⭐", "7️⃣"];
+function Slots() {
+  const [reels, setReels] = useState(["🍒", "🍋", "🔔"]);
+  const [spinning, setSpinning] = useState(false);
+  const [result, setResult] = useState("");
 
-  /* -------- Mines Styles --------- */
-
-  #mines-board {
-    display: grid;
-    margin: auto;
-    grid-template-columns: repeat(10, 50px);
-    grid-template-rows: repeat(10, 50px);
-    gap: 6px;
-    justify-content: center;
-  }
-
-  .mine-cell {
-    width: 50px;
-    height: 50px;
-    background: rgba(255,255,255,0.1);
-    border-radius: 12px;
-    box-shadow: inset 0 0 5px rgba(255,255,255,0.2);
-    cursor: pointer;
-    position: relative;
-    transition: background 0.25s ease;
-    user-select: none;
-  }
-  .mine-cell.revealed {
-    background: rgba(255,255,255,0.3);
-    cursor: default;
-  }
-  .mine-cell.mine {
-    background: #ff3333;
-  }
-
-  /* Number styles */
-  .mine-cell span {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    font-weight: 900;
-    font-size: 1.3rem;
-    pointer-events: none;
-  }
-  .mine-cell.number-1 span { color: #0074D9; }
-  .mine-cell.number-2 span { color: #2ECC40; }
-  .mine-cell.number-3 span { color: #FF4136; }
-  .mine-cell.number-4 span { color: #B10DC9; }
-  .mine-cell.number-5 span { color: #FF851B; }
-  .mine-cell.number-6 span { color: #7FDBFF; }
-  .mine-cell.number-7 span { color: #39CCCC; }
-  .mine-cell.number-8 span { color: #01FF70; }
-
-  /* Explosion animation */
-  @keyframes explosion {
-    0% {
-      box-shadow: 0 0 0 0 rgba(255, 0, 0, 0.7);
-    }
-    50% {
-      box-shadow: 0 0 20px 15px rgba(255, 0, 0, 0.9);
-    }
-    100% {
-      box-shadow: 0 0 0 0 rgba(255, 0, 0, 0);
-    }
-  }
-  .mine-cell.mine.exploded {
-    animation: explosion 0.6s ease forwards;
-  }
-
-  /* Mines controls */
-  #mines-controls {
-    margin: 20px auto 10px;
-    text-align: center;
-  }
-  #mines-controls button {
-    background: #0074D9;
-    border: none;
-    color: white;
-    font-size: 1.1rem;
-    padding: 10px 30px;
-    border-radius: 30px;
-    cursor: pointer;
-    font-weight: 700;
-    box-shadow: 0 5px 15px rgba(0,116,217,0.7);
-    transition: background 0.3s ease;
-  }
-  #mines-controls button:hover {
-    background: #005bb5;
-  }
-  #mines-info {
-    margin-top: 10px;
-    font-size: 1.2rem;
-    font-weight: 700;
-  }
-
-  /* Responsive adjustments */
-  @media (max-width: 650px) {
-    #mines-board {
-      grid-template-columns: repeat(8, 40px);
-      grid-template-rows: repeat(8, 40px);
-      gap: 5px;
-    }
-    .mine-cell {
-      width: 40px;
-      height: 40px;
-      border-radius: 10px;
-    }
-  }
-
-</style>
-</head>
-<body>
-
-<div id="container">
-  <h1>Plinko & Mines Games</h1>
-  <div id="nav-buttons">
-    <button class="nav-btn active" id="btn-plinko">Plinko</button>
-    <button class="nav-btn" id="btn-mines">Mines</button>
-  </div>
-
-  <!-- Plinko Game -->
-  <div id="plinko-game" class="game-area">
-    <div id="scoreboard">Score: 0</div>
-    <canvas id="plinko-canvas" width="900" height="600"></canvas>
-    <div id="plinko-controls">
-      <button id="drop-ball-btn">Drop Ball</button>
-    </div>
-    <div id="plinko-info">Drop the ball and watch it bounce to your prize slot!</div>
-  </div>
-
-  <!-- Mines Game -->
-  <div id="mines-game" class="game-area" style="display:none;">
-    <div id="scoreboard-mines">Safe Clicks: 0 / 10</div>
-    <div id="mines-board"></div>
-    <div id="mines-controls">
-      <button id="reset-mines-btn">Reset Game</button>
-    </div>
-    <div id="mines-info">Click on tiles, avoid the mines! You have 10 safe clicks.</div>
-  </div>
-</div>
-
-<script>
-  // -------------- PLINKO GAME ----------------
-  (() => {
-    const canvas = document.getElementById('plinko-canvas');
-    const ctx = canvas.getContext('2d');
-    const width = canvas.width;
-    const height = canvas.height;
-
-    const pegs = [];
-    const pegRadius = 8;
-    const rows = 10;
-    const cols = 13;
-    const spacingX = width / cols;
-    const spacingY = 50;
-    const ballRadius = 10;
-
-    let balls = [];
-    let score = 0;
-
-    // Prize slots at bottom with values
-    const slots = [
-      {x: spacingX * 0.5, value: 10},
-      {x: spacingX * 1.5, value: 50},
-      {x: spacingX * 2.5, value: 20},
-      {x: spacingX * 3.5, value: 100},
-      {x: spacingX * 4.5, value: 10},
-      {x: spacingX * 5.5, value: 500},
-      {x: spacingX * 6.5, value: 20},
-      {x: spacingX * 7.5, value: 100},
-      {x: spacingX * 8.5, value: 50},
-      {x: spacingX * 9.5, value: 10},
-      {x: spacingX * 10.5, value: 250},
-      {x: spacingX * 11.5, value: 30},
-      {x: spacingX * 12.5, value: 10}
-    ];
-
-    const gravity = 0.35;
-    const friction = 0.98;
-
-    // Build pegs coordinates
-    function buildPegs() {
-      pegs.length = 0;
-      for(let row = 0; row < rows; row++) {
-        for(let col = 0; col < cols; col++) {
-          // Stagger even rows
-          let x = col * spacingX + ((row % 2) * spacingX / 2) + spacingX/2;
-          let y = row * spacingY + 60;
-          if (x > pegRadius && x < width - pegRadius) {
-            pegs.push({x, y});
-          }
-        }
+  const spinReels = () => {
+    if (spinning) return;
+    setResult("");
+    setSpinning(true);
+    let count = 0;
+    const interval = setInterval(() => {
+      setReels([
+        slotSymbols[Math.floor(Math.random() * slotSymbols.length)],
+        slotSymbols[Math.floor(Math.random() * slotSymbols.length)],
+        slotSymbols[Math.floor(Math.random() * slotSymbols.length)],
+      ]);
+      count++;
+      if (count > 20) {
+        clearInterval(interval);
+        setSpinning(false);
+        checkWin();
       }
-    }
-
-    // Ball object
-    class Ball {
-      constructor() {
-        this.x = width / 2;
-        this.y = 30;
-        this.vx = (Math.random() - 0.5) * 2;
-        this.vy = 0;
-        this.radius = ballRadius;
-        this.stopped = false;
-        this.landedSlot = null;
-      }
-
-      update() {
-        if (this.stopped) return;
-
-        this.vy += gravity;
-        this.x += this.vx;
-        this.y += this.vy;
-
-        // Bounce off walls
-        if(this.x < this.radius) {
-          this.x = this.radius;
-          this.vx *= -0.6;
-        }
-        if(this.x > width - this.radius) {
-          this.x = width - this.radius;
-          this.vx *= -0.6;
-        }
-
-        // Collision with pegs
-        for(let peg of pegs) {
-          let dx = this.x - peg.x;
-          let dy = this.y - peg.y;
-          let dist = Math.sqrt(dx*dx + dy*dy);
-          if(dist < this.radius + pegRadius) {
-            // Simple collision response: reflect velocity based on collision vector
-            let angle = Math.atan2(dy, dx);
-            let targetX = peg.x + Math.cos(angle) * (this.radius + pegRadius);
-            let targetY = peg.y + Math.sin(angle) * (this.radius + pegRadius);
-            let ax = (targetX - this.x) * 0.5;
-            let ay = (targetY - this.y) * 0.5;
-
-            this.vx -= ax;
-            this.vy -= ay;
-
-            // Add some randomness to horizontal velocity after collision for natural bounce
-            this.vx += (Math.random() - 0.5) * 0.6;
-
-            // Move ball outside the peg
-            this.x = targetX;
-            this.y = targetY;
-          }
-        }
-
-        // Stop ball if reached bottom
-        if(this.y > height - 40) {
-          this.y = height - 40;
-          this.vx = 0;
-          this.vy = 0;
-          this.stopped = true;
-
-          // Determine landing slot
-          for(let i=0; i < slots.length; i++) {
-            let slot = slots[i];
-            if(this.x >= slot.x - spacingX/2 && this.x < slot.x + spacingX/2) {
-              this.landedSlot = slot;
-              break;
-            }
-          }
-          if(this.landedSlot) {
-            score += this.landedSlot.value;
-            updateScoreboard();
-            setTimeout(() => {
-              balls.shift();
-              draw();
-            }, 1500);
-          }
-        }
-      }
-
-      draw(ctx) {
-        ctx.beginPath();
-        ctx.fillStyle = '#ff4444';
-        ctx.shadowColor = 'rgba(255,68,68,0.9)';
-        ctx.shadowBlur = 15;
-        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.shadowBlur = 0;
-      }
-    }
-
-    function updateScoreboard() {
-      document.querySelector('#plinko-game #scoreboard').textContent = `Score: ${score}`;
-    }
-
-    function drawSlots() {
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.font = 'bold 16px Segoe UI';
-      ctx.fillStyle = 'white';
-      ctx.shadowColor = 'black';
-      ctx.shadowBlur = 4;
-
-      for(let slot of slots) {
-        // Slot divider lines
-        ctx.beginPath();
-        ctx.strokeStyle = 'rgba(255,255,255,0.3)';
-        ctx.lineWidth = 1;
-        ctx.moveTo(slot.x - spacingX/2, height - 40);
-        ctx.lineTo(slot.x - spacingX/2, height);
-        ctx.stroke();
-
-        // Slot values
-        ctx.fillText(slot.value, slot.x, height - 20);
-      }
-
-      // Final right edge line
-      ctx.beginPath();
-      ctx.strokeStyle = 'rgba(255,255,255,0.3)';
-      ctx.moveTo(slots[slots.length-1].x + spacingX/2, height - 40);
-      ctx.lineTo(slots[slots.length-1].x + spacingX/2, height);
-      ctx.stroke();
-      ctx.shadowBlur = 0;
-    }
-
-    function drawPegs() {
-      ctx.fillStyle = 'white';
-      ctx.shadowColor = 'white';
-      ctx.shadowBlur = 5;
-
-      for(let peg of pegs) {
-        ctx.beginPath();
-        ctx.arc(peg.x, peg.y, pegRadius, 0, Math.PI * 2);
-        ctx.fill();
-      }
-      ctx.shadowBlur = 0;
-    }
-
-    function draw() {
-      ctx.clearRect(0, 0, width, height);
-      drawSlots();
-      drawPegs();
-      for(let ball of balls) {
-        ball.draw(ctx);
-      }
-    }
-
-    function animate() {
-      for(let ball of balls) {
-        ball.update();
-      }
-      draw();
-      requestAnimationFrame(animate);
-    }
-
-    function dropBall() {
-      if(balls.length > 0 && !balls[0].stopped) return;
-      let ball = new Ball();
-      balls.push(ball);
-    }
-
-    // Init
-    buildPegs();
-    updateScoreboard();
-    draw();
-    animate();
-
-    // Controls
-    document.getElementById('drop-ball-btn').onclick = dropBall;
-
-    // Expose for external control
-    window.plinko = {
-      reset: () => {
-        balls = [];
-        score = 0;
-        updateScoreboard();
-        draw();
-      }
-    }
-  })();
-
-  // -------------- MINES GAME ----------------
-  (() => {
-    const boardSize = 10;
-    const mineCount = 15;
-    const maxSafeClicks = 10;
-
-    const minesBoard = document.getElementById('mines-board');
-    const scoreboardMines = document.getElementById('scoreboard-mines');
-    const minesInfo = document.getElementById('mines-info');
-
-    let mines = [];
-    let revealed = [];
-    let safeClicks = 0;
-    let gameOver = false;
-
-    function createBoard() {
-      minesBoard.innerHTML = '';
-      minesBoard.style.gridTemplateColumns = `repeat(${boardSize}, 50px)`;
-      minesBoard.style.gridTemplateRows = `repeat(${boardSize}, 50px)`;
-
-      mines = new Array(boardSize * boardSize).fill(false);
-      revealed = new Array(boardSize * boardSize).fill(false);
-      safeClicks = 0;
-      gameOver = false;
-      updateScoreboard();
-
-      // Place mines randomly
-      let placed = 0;
-      while(placed < mineCount) {
-        let pos = Math.floor(Math.random() * mines.length);
-        if(!mines[pos]) {
-          mines[pos] = true;
-          placed++;
-        }
-      }
-
-      for(let i=0; i<boardSize*boardSize; i++) {
-        const cell = document.createElement('div');
-        cell.classList.add('mine-cell');
-        cell.dataset.index = i;
-        cell.onclick = () => onCellClick(i);
-        minesBoard.appendChild(cell);
-      }
-
-      minesInfo.textContent = `Click on tiles, avoid the mines! You have ${maxSafeClicks} safe clicks.`;
-    }
-
-    function getNeighbors(index) {
-      const neighbors = [];
-      const row = Math.floor(index / boardSize);
-      const col = index % boardSize;
-
-      for(let dr = -1; dr <= 1; dr++) {
-        for(let dc = -1; dc <= 1; dc++) {
-          if(dr === 0 && dc === 0) continue;
-          let r = row + dr;
-          let c = col + dc;
-          if(r >= 0 && r < boardSize && c >= 0 && c < boardSize) {
-            neighbors.push(r * boardSize + c);
-          }
-        }
-      }
-      return neighbors;
-    }
-
-    function countAdjacentMines(index) {
-      let count = 0;
-      let neighbors = getNeighbors(index);
-      for(let n of neighbors) {
-        if(mines[n]) count++;
-      }
-      return count;
-    }
-
-    function revealCell(index) {
-      if(revealed[index]) return;
-      revealed[index] = true;
-      const cell = minesBoard.children[index];
-      cell.classList.add('revealed');
-
-      if(mines[index]) {
-        cell.classList.add('mine');
-        explodeCell(cell);
-        gameOver = true;
-        revealAllMines();
-        minesInfo.textContent = 'BOOM! You hit a mine! Game Over.';
-        disableBoard();
-        return;
-      }
-
-      safeClicks++;
-      updateScoreboard();
-
-      let adjacent = countAdjacentMines(index);
-      if(adjacent > 0) {
-        cell.classList.add('number-' + adjacent);
-        cell.innerHTML = `<span>${adjacent}</span>`;
-      } else {
-        // If no adjacent mines, reveal neighbors recursively
-        let neighbors = getNeighbors(index);
-        for(let n of neighbors) {
-          if(!revealed[n]) revealCell(n);
-        }
-      }
-
-      if(safeClicks >= maxSafeClicks) {
-        minesInfo.textContent = 'Congratulations! You cleared all safe tiles!';
-        gameOver = true;
-        disableBoard();
-      }
-    }
-
-    function onCellClick(index) {
-      if(gameOver) return;
-      revealCell(index);
-    }
-
-    function updateScoreboard() {
-      scoreboardMines.textContent = `Safe Clicks: ${safeClicks} / ${maxSafeClicks}`;
-    }
-
-    function explodeCell(cell) {
-      cell.classList.add('exploded');
-    }
-
-    function revealAllMines() {
-      for(let i=0; i<mines.length; i++) {
-        if(mines[i] && !revealed[i]) {
-          const cell = minesBoard.children[i];
-          cell.classList.add('revealed', 'mine');
-        }
-      }
-    }
-
-    function disableBoard() {
-      for(let i=0; i<minesBoard.children.length; i++) {
-        minesBoard.children[i].onclick = null;
-        minesBoard.children[i].style.cursor = 'default';
-      }
-    }
-
-    // Reset button
-    document.getElementById('reset-mines-btn').onclick = () => {
-      createBoard();
-    };
-
-    // Initialize on page load
-    createBoard();
-
-    // Expose for external control
-    window.mines = {
-      reset: createBoard
-    }
-  })();
-
-  // ------------ Navigation -------------------
-
-  const btnPlinko = document.getElementById('btn-plinko');
-  const btnMines = document.getElementById('btn-mines');
-  const plinkoGame = document.getElementById('plinko-game');
-  const minesGame = document.getElementById('mines-game');
-
-  btnPlinko.onclick = () => {
-    btnPlinko.classList.add('active');
-    btnMines.classList.remove('active');
-    plinkoGame.style.display = 'block';
-    minesGame.style.display = 'none';
+    }, 100);
   };
 
-  btnMines.onclick = () => {
-    btnMines.classList.add('active');
-    btnPlinko.classList.remove('active');
-    minesGame.style.display = 'block';
-    plinkoGame.style.display = 'none';
+  const checkWin = () => {
+    if (reels.every((r) => r === reels[0])) {
+      setResult("🎉 JACKPOT! You won! 🎉");
+    } else if (
+      new Set(reels).size === 2
+    ) {
+      setResult("Good! Two matching symbols!");
+    } else {
+      setResult("Try again!");
+    }
   };
-</script>
 
-</body>
-</html>
+  return (
+    <div style={{ textAlign: "center", userSelect: "none" }}>
+      <h2 style={gameTitleStyle}>Slots</h2>
+      <div
+        style={{
+          display: "inline-flex",
+          fontSize: "5rem",
+          gap: "15px",
+          marginBottom: "20px",
+          color: spinning ? "yellow" : "white",
+          textShadow: spinning ? "0 0 15px gold" : "none",
+        }}
+      >
+        {reels.map((r, i) => (
+          <div
+            key={i}
+            style={{
+              width: "70px",
+              height: "70px",
+              border: "4px solid white",
+              borderRadius: "15px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              backgroundColor: spinning ? "rgba(255,255,0,0.3)" : "rgba(0,0,0,0.4)",
+              transition: "background-color 0.3s",
+            }}
+          >
+            {r}
+          </div>
+        ))}
+      </div>
+      <div>
+        <button
+          onClick={spinReels}
+          disabled={spinning}
+          style={{
+            ...buttonStyle,
+            opacity: spinning ? 0.5 : 1,
+            fontSize: "1.2rem",
+            padding: "12px 30px",
+            marginTop: "10px",
+          }}
+        >
+          {spinning ? "Spinning..." : "Spin"}
+        </button>
+      </div>
+      <p style={{ marginTop: "15px", fontSize: "1.3rem", minHeight: "2rem" }}>
+        {result}
+      </p>
+    </div>
+  );
+}
+
+// --- Roulette Game ---
+function Roulette() {
+  const [spinning, setSpinning] = useState(false);
+  const [angle, setAngle] = useState(0);
+  const [result, setResult] = useState(null);
+
+  const numbers = [
+    0, 32, 15, 19, 4, 21, 2, 25,
+    17, 34, 6, 27, 13, 36, 11, 30,
+    8, 23, 10, 5, 24, 16, 33, 1,
+    20, 14, 31, 9, 22, 18, 29, 7,
+    28, 12, 35, 3, 26,
+  ];
+
+  const spinWheel = () => {
+    if (spinning) return;
+    setSpinning(true);
+    setResult(null);
+    const randomIndex = Math.floor(Math.random() * numbers.length);
+    const spinAngle = 360 * 5 + (360 / numbers.length) * randomIndex;
+    setAngle((prev) => prev + spinAngle);
+
+    setTimeout(() => {
+      setResult(numbers[randomIndex]);
+      setSpinning(false);
+    }, 5200); // Match animation duration
+  };
+
+  return (
+    <div style={{ textAlign: "center", userSelect: "none" }}>
+      <h2 style={gameTitleStyle}>Roulette</h2>
+      <div
+        style={{
+          margin: "0 auto",
+          width: "220px",
+          height: "220px",
+          borderRadius: "50%",
+          border: "12px solid #cc0000",
+          position: "relative",
+          overflow: "hidden",
+          boxShadow: "0 0 25px #cc0000",
+        }}
+      >
+        <div
+          style={{
+            width: "100%",
+            height: "100%",
+            borderRadius: "50%",
+            background:
+              "conic-gradient(red 0% 2.78%, black 2.78% 5.56%, red 5.56% 8.33%, black 8.33% 11.11%, red 11.11% 13.89%, black 13.89% 16.67%, red 16.67% 19.44%, black 19.44% 22.22%, red 22.22% 25%, black 25% 27.78%, red 27.78% 30.56%, black 30.56% 33.33%, red 33.33% 36.11%, black 36.11% 38.89%, red 38.89% 41.67%, black 41.67% 44.44%, red 44.44% 47.22%, black 47.22% 50%, red 50% 52.78%, black 52.78% 55.56%, red 55.56% 58.33%, black 58.33% 61.11%, red 61.11% 63.89%, black 63.89% 66.67%, red 66.67% 69.44%, black 69.44% 72.22%, red 72.22% 75%, black 75% 77.78%, red 77.78% 80.56%, black 80.56% 83.33%, red 83.33% 86.11%, black 86.11% 88.89%, red 88.89% 91.67%, black 91.67% 94.44%, red 94.44% 97.22%, black 97.22% 100%)",
+            transition: spinning ? "transform 5s cubic-bezier(0.33, 1, 0.68, 1)" : "none",
+            transform: `rotate(${angle}deg)`,
+          }}
+        >
+          {/* Number labels could go here */}
+        </div>
+        <div
+          style={{
+            position: "absolute",
+            top: "calc(50% - 10px)",
+            left: "50%",
+            width: "0",
+            height: "0",
+            borderLeft: "10px solid transparent",
+            borderRight: "10px solid transparent",
+            borderBottom: "20px solid white",
+            transform: "translateX(-50%)",
+            zIndex: 2,
+          }}
+        />
+      </div>
+
+      <button
+        onClick={spinWheel}
+        disabled={spinning}
+        style={{
+          ...buttonStyle,
+          marginTop: "20px",
+          opacity: spinning ? 0.5 : 1,
+          fontSize: "1.2rem",
+          padding: "12px 30px",
+        }}
+      >
+        {spinning ? "Spinning..." : "Spin"}
+      </button>
+
+      {result !== null && (
+        <p style={{ marginTop: "20px", fontSize: "1.5rem" }}>
+          Result: <strong>{result}</strong>
+        </p>
+      )}
+    </div>
+  );
+}
+
+// --- Blackjack Game ---
+const cardSymbols = [
+  "🂡", "🂢", "🂣", "🂤", "🂥", "🂦", "🂧", "🂨", "🂩", "🂪", "🂫", "🂭", "🂮", // Spades A-K
+  "🃁", "🃂", "🃃", "🃄", "🃅", "🃆", "🃇", "🃈", "🃉", "🃊", "🃋", "🃍", "🃎", // Hearts A-K
+  "🃑", "🃒", "🃓", "🃔", "🃕", "🃖", "🃗", "🃘", "🃙", "🃚", "🃛", "🃝", "🃞", // Diamonds A-K
+  "🃡", "🃢", "🃣", "🃤", "🃥", "🃦", "🃧", "🃨", "🃩", "🃪", "🃫", "🃭", "🃮", // Clubs A-K
+];
+const cardValues = {
+  "🂡": 11, "🂢": 2, "🂣": 3, "🂤": 4, "🂥": 5, "🂦": 6, "🂧": 7, "🂨": 8, "🂩": 9, "🂪": 10, "🂫": 10, "🂭": 10, "🂮": 10,
+  "🃁": 11, "🃂": 2, "🃃": 3, "🃄": 4, "🃅": 5, "🃆": 6, "🃇": 7, "🃈": 8, "🃉": 9, "🃊": 10, "🃋": 10, "🃍": 10, "🃎": 10,
+  "🃑": 11, "🃒": 2, "🃓": 3, "🃔": 4, "🃕": 5, "🃖": 6, "🃗": 7, "🃘": 8, "🃙": 9, "🃚": 10, "🃛": 10, "🃝": 10, "🃞": 10,
+  "🃡": 11, "🃢": 2, "🃣": 3, "🃤": 4, "🃥": 5, "🃦": 6, "🃧": 7, "🃨": 8, "🃩": 9, "🃪": 10, "🃫": 10, "🃭": 10, "🃮": 10,
+};
+
+function calculateScore(hand) {
+  let score = 0;
+  let aces = 0;
+  for (let card of hand) {
+    score += cardValues[card];
+    if (cardValues[card] === 11) aces++;
+  }
+  // Adjust for aces if bust
+  while (score > 21 && aces > 0) {
+    score -= 10;
+    aces--;
+  }
+  return score;
+}
+
+function Blackjack() {
+  const [deck, setDeck] = useState([]);
+  const [playerHand, setPlayerHand] = useState([]);
+  const [dealerHand, setDealerHand] = useState([]);
+  const [gameOver, setGameOver] = useState(false);
+  const [message, setMessage] = useState("");
+  const [showDealerCard, setShowDealerCard] = useState(false);
+
+  useEffect(() => {
+    startGame();
+  }, []);
+
+  const createDeck = () => {
+    return [...cardSymbols].sort(() => Math.random() - 0.5);
+  };
+
+  const startGame = () => {
+    const newDeck = createDeck();
+    const playerStart = [newDeck.pop(), newDeck.pop()];
+    const dealerStart = [newDeck.pop(), newDeck.pop()];
+    setDeck(newDeck);
+    setPlayerHand(playerStart);
+    setDealerHand(dealerStart);
+    setGameOver(false);
+    setMessage("");
+    setShowDealerCard(false);
+  };
+
+  const hit = () => {
+    if (gameOver) return;
+    if (deck.length === 0) return;
+    const newDeck = [...deck];
+    const card = newDeck.pop();
+    const newPlayerHand = [...playerHand, card];
+    setPlayerHand(newPlayerHand);
+    setDeck(newDeck);
+
+    const score = calculateScore(newPlayerHand);
+    if (score > 21) {
+      setMessage("Bust! You lose!");
+      setGameOver(true);
+      setShowDealerCard(true);
+    }
+  };
+
+  const stand = () => {
+    if (gameOver) return;
+    setShowDealerCard(true);
+
+    // Dealer draws until 17 or more
+    let dealerScore = calculateScore(dealerHand);
+    let newDeck = [...deck];
+    let newDealerHand = [...dealerHand];
+
+    while (dealerScore < 17 && newDeck.length > 0) {
+      const card = newDeck.pop();
+      newDealerHand.push(card);
+      dealerScore = calculateScore(newDealerHand);
+    }
+
+    setDealerHand(newDealerHand);
+    setDeck(newDeck);
+
+    const playerScore = calculateScore(playerHand);
+
+    if (dealerScore > 21) {
+      set
