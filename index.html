@@ -3,12 +3,12 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Mines Game - Animated & Stylish</title>
+<title>Mines Game - Single Mine Edition</title>
 <style>
   /* Background red-blue gradient */
   body, html {
     margin: 0; padding: 0; height: 100%;
-    background: linear-gradient(45deg, #ff0000 0%, #0000ff 100%);
+    background: linear-gradient(135deg, #ff0000 0%, #0000ff 100%);
     display: flex;
     justify-content: center;
     align-items: center;
@@ -18,13 +18,13 @@
 
   /* Main GUI container */
   #gameContainer {
-    background: #111; /* deep black */
-    border-radius: 15px;
-    padding: 30px;
+    background: #111;
+    border-radius: 20px;
+    padding: 40px 35px;
     box-shadow:
-      0 0 20px rgba(255,0,0,0.6),
-      0 0 40px rgba(0,0,255,0.6);
-    width: 450px;
+      0 0 25px rgba(255,0,0,0.7),
+      0 0 50px rgba(0,0,255,0.7);
+    width: 480px;
     max-width: 95vw;
     user-select: none;
     display: flex;
@@ -35,79 +35,87 @@
   /* Title */
   #gameContainer h1 {
     color: #eee;
-    margin-bottom: 15px;
+    margin-bottom: 20px;
     font-weight: 900;
-    letter-spacing: 2px;
+    letter-spacing: 3px;
+    font-size: 3rem;
     text-shadow:
-      0 0 10px #ff0000,
-      0 0 20px #0000ff;
+      0 0 15px #ff0000,
+      0 0 30px #0000ff;
+    user-select: none;
   }
 
   /* Info / Score panel */
   #infoPanel {
     color: #ccc;
-    margin-bottom: 20px;
-    font-size: 1.1em;
-    min-height: 24px;
+    margin-bottom: 25px;
+    font-size: 1.25rem;
+    min-height: 32px;
     text-align: center;
-    font-weight: 600;
+    font-weight: 700;
+    transition: color 0.4s ease, text-shadow 0.4s ease;
   }
 
   /* Grid container */
   #grid {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
-    grid-gap: 12px;
+    grid-gap: 14px;
     width: 100%;
   }
 
   /* Each cell button */
   .cell {
     background: #222;
-    border-radius: 8px;
-    height: 50px;
+    border-radius: 10px;
+    height: 58px;
     cursor: pointer;
-    border: 2px solid #444;
+    border: 3px solid #444;
     position: relative;
     overflow: hidden;
     transition:
-      background-color 0.3s ease,
-      box-shadow 0.3s ease,
-      transform 0.15s ease;
+      background-color 0.35s cubic-bezier(0.4,0,0.2,1),
+      box-shadow 0.35s cubic-bezier(0.4,0,0.2,1),
+      transform 0.2s ease;
     color: transparent;
-    font-size: 24px;
+    font-size: 30px;
     font-weight: 900;
     user-select: none;
+    display: flex;
+    justify-content: center;
+    align-items: center;
   }
 
   /* Hover effect on safe cells */
-  .cell.safe:hover {
-    background-color: #0f0a0f;
+  .cell.safe:hover:not(.revealed) {
+    background-color: #0b1b0b;
     box-shadow:
-      0 0 8px #00ff88,
-      0 0 20px #00ff88;
-    transform: scale(1.1);
-    color: #00ff88;
+      0 0 12px #00cc77,
+      0 0 26px #00cc77;
+    transform: scale(1.12);
+    color: #00cc77;
   }
 
   /* Clicked safe cell */
   .cell.safe.revealed {
-    background-color: #005500;
+    background-color: #004400;
     color: #00ff88;
-    box-shadow: 0 0 10px #00ff88;
+    box-shadow: 0 0 18px #00ff88;
     cursor: default;
     transform: scale(1);
+    pointer-events: none;
   }
 
   /* Mine cell clicked */
-  .cell.mine {
-    background-color: #440000;
+  .cell.mine.revealed {
+    background-color: #660000;
     color: #ff4444;
     box-shadow:
-      0 0 15px #ff0000,
-      0 0 35px #ff2222;
+      0 0 24px #ff0000,
+      0 0 60px #ff3333;
     cursor: default;
-    animation: explode 0.7s ease forwards;
+    pointer-events: none;
+    animation: explode 1s ease forwards;
   }
 
   /* Disable pointer on revealed cells */
@@ -115,84 +123,95 @@
     pointer-events: none;
   }
 
-  /* Animation for explosion */
+  /* Explosion animation */
   @keyframes explode {
     0% {
-      transform: scale(1);
+      transform: scale(1) rotate(0deg);
       box-shadow:
-        0 0 15px #ff0000,
-        0 0 35px #ff2222;
+        0 0 24px #ff0000,
+        0 0 60px #ff3333;
+      color: #ff4444;
     }
     50% {
-      transform: scale(1.4) rotate(15deg);
+      transform: scale(1.6) rotate(20deg);
       box-shadow:
-        0 0 40px #ff0000,
-        0 0 60px #ff5555;
+        0 0 50px #ff2200,
+        0 0 90px #ff5555;
       color: #ff0000;
+      text-shadow: 0 0 15px #ff6600;
     }
     100% {
       transform: scale(1) rotate(0deg);
       box-shadow:
-        0 0 15px #ff0000,
-        0 0 35px #ff2222;
+        0 0 24px #ff0000,
+        0 0 60px #ff3333;
       color: #ff4444;
+      text-shadow: none;
     }
   }
 
   /* Reset button */
   #resetBtn {
-    margin-top: 25px;
+    margin-top: 30px;
     background: #222;
-    border: 2px solid #00ccff;
-    padding: 12px 24px;
-    border-radius: 12px;
-    font-size: 1.2em;
-    color: #00ccff;
+    border: 3px solid #0099ff;
+    padding: 15px 32px;
+    border-radius: 15px;
+    font-size: 1.35rem;
+    color: #0099ff;
     cursor: pointer;
     transition:
-      background-color 0.3s ease,
-      color 0.3s ease,
-      box-shadow 0.3s ease;
-    font-weight: 700;
+      background-color 0.35s ease,
+      color 0.35s ease,
+      box-shadow 0.35s ease;
+    font-weight: 800;
     user-select: none;
   }
 
   #resetBtn:hover {
-    background-color: #00ccff;
+    background-color: #0099ff;
     color: #111;
     box-shadow:
-      0 0 20px #00ccff,
-      0 0 40px #00ccff;
+      0 0 30px #0099ff,
+      0 0 60px #00bbff;
   }
 
   /* Footer credit */
   #footer {
-    margin-top: 15px;
-    font-size: 0.75em;
+    margin-top: 18px;
+    font-size: 0.8rem;
     color: #666;
     user-select: none;
   }
 
   /* Responsive adjustments */
-  @media (max-width: 500px) {
+  @media (max-width: 540px) {
     #gameContainer {
-      width: 90vw;
-      padding: 20px;
+      width: 95vw;
+      padding: 30px 25px;
     }
     .cell {
-      height: 40px;
-      font-size: 20px;
+      height: 50px;
+      font-size: 26px;
+      border-width: 2.5px;
+    }
+    #resetBtn {
+      font-size: 1.1rem;
+      padding: 12px 28px;
+    }
+    #gameContainer h1 {
+      font-size: 2.4rem;
     }
   }
 </style>
 </head>
 <body>
 
-<div id="gameContainer" role="main" aria-label="Mines Game">
+<div id="gameContainer" role="main" aria-label="Mines Game with One Mine">
   <h1>Mines</h1>
-  <div id="infoPanel" aria-live="polite" aria-atomic="true">Click on the tiles to find safe spots. Avoid the mines!</div>
+  <div id="infoPanel" aria-live="polite" aria-atomic="true">Click on the tiles to find the safe spots. Avoid the mine!</div>
   <div id="grid" aria-label="Game grid" role="grid" aria-rowcount="7" aria-colcount="7"></div>
-  <button id="resetBtn" aria-label="Reset Game Button">Restart Game</button>
+  <button id="resetBtn" aria-label="Restart Game Button">Restart Game</button>
   <div id="footer">© 2025 Mines Game</div>
 </div>
 
@@ -200,83 +219,88 @@
   (() => {
     const gridSize = 7; // 7x7 grid
     const totalCells = gridSize * gridSize;
-    const minesCount = 10; // number of mines in grid
+    const minesCount = 1; // Only one mine
 
     const gridEl = document.getElementById('grid');
     const infoPanel = document.getElementById('infoPanel');
     const resetBtn = document.getElementById('resetBtn');
 
-    let minePositions = new Set();
+    let minePosition = -1; // single mine index
     let revealedCount = 0;
     let gameOver = false;
 
-    // Generate random mine positions
-    function generateMines() {
-      minePositions.clear();
-      while (minePositions.size < minesCount) {
-        const pos = Math.floor(Math.random() * totalCells);
-        minePositions.add(pos);
-      }
+    // Efficiently create grid cells once and reuse on reset
+    const cells = [];
+
+    // Generate single mine position (random)
+    function generateMine() {
+      minePosition = Math.floor(Math.random() * totalCells);
     }
 
-    // Create grid buttons
+    // Initialize grid with buttons or reuse existing
     function createGrid() {
+      // Clear previous grid if any
       gridEl.innerHTML = '';
+      cells.length = 0; // reset cells array
+
       for(let i = 0; i < totalCells; i++) {
         const btn = document.createElement('button');
         btn.classList.add('cell');
         btn.setAttribute('role', 'gridcell');
         btn.setAttribute('aria-label', `Tile ${i+1}`);
-        // Mark mines & safe for hover effect
-        if (minePositions.has(i)) {
+        btn.dataset.index = i;
+
+        // Mark the mine & safe classes for styling
+        if (i === minePosition) {
           btn.classList.add('mine');
         } else {
           btn.classList.add('safe');
         }
-        btn.dataset.index = i;
         gridEl.appendChild(btn);
+        cells.push(btn);
       }
     }
 
-    // Reveal safe spot
+    // Reveal safe spot with nice animation
     function revealSafe(btn) {
       if (btn.classList.contains('revealed') || gameOver) return;
       btn.classList.add('revealed');
-      btn.style.color = '#00ff88';
       btn.textContent = '✓';
       revealedCount++;
       updateInfo(`Safe! Tiles cleared: ${revealedCount}/${totalCells - minesCount}`);
       checkWin();
     }
 
-    // Reveal mine and end game
+    // Reveal mine with explosion animation
     function revealMine(btn) {
       if (btn.classList.contains('revealed') || gameOver) return;
       btn.classList.add('revealed');
-      // Show mine symbol
       btn.textContent = '💣';
-      updateInfo('💥 BOOM! You hit a mine! Game Over.', true);
+
+      updateInfo('💥 BOOM! You hit the mine! Game Over.', true);
       gameOver = true;
       revealAllMines();
     }
 
-    // Reveal all mines on game over
+    // Reveal all mines after game over (here just one mine)
     function revealAllMines() {
-      const cells = gridEl.children;
       for(let i=0; i<cells.length; i++) {
-        if (minePositions.has(i) && !cells[i].classList.contains('revealed')) {
-          cells[i].classList.add('revealed');
-          cells[i].textContent = '💣';
-          cells[i].style.color = '#ff4444';
-          cells[i].style.backgroundColor = '#440000';
-          cells[i].style.boxShadow = '0 0 15px #ff0000, 0 0 35px #ff2222';
-          cells[i].style.cursor = 'default';
+        if (i === minePosition && !cells[i].classList.contains('revealed')) {
+          const mineCell = cells[i];
+          mineCell.classList.add('revealed', 'mine');
+          mineCell.textContent = '💣';
+          mineCell.style.color = '#ff4444';
+          mineCell.style.backgroundColor = '#660000';
+          mineCell.style.boxShadow = '0 0 24px #ff0000, 0 0 60px #ff3333';
+          mineCell.style.cursor = 'default';
+          mineCell.style.animation = 'explode 1s ease forwards';
         }
+        // Disable safe cells interaction
         cells[i].classList.remove('safe');
       }
     }
 
-    // Check if player won
+    // Check if player won (all safe spots revealed)
     function checkWin() {
       if (revealedCount === totalCells - minesCount) {
         updateInfo('🎉 Congratulations! You cleared all safe tiles!', false, true);
@@ -284,52 +308,51 @@
       }
     }
 
-    // Update info panel with optional error style
+    // Update info panel with message and styles
     function updateInfo(text, isError = false, isSuccess = false) {
       infoPanel.textContent = text;
       if (isError) {
         infoPanel.style.color = '#ff4444';
-        infoPanel.style.textShadow = '0 0 8px #ff0000';
+        infoPanel.style.textShadow = '0 0 12px #ff0000';
       } else if (isSuccess) {
         infoPanel.style.color = '#00ff88';
-        infoPanel.style.textShadow = '0 0 8px #00ff88';
+        infoPanel.style.textShadow = '0 0 12px #00ff88';
       } else {
         infoPanel.style.color = '#ccc';
         infoPanel.style.textShadow = 'none';
       }
     }
 
-    // Handle cell click
-    function onCellClick(e) {
+    // Handle clicks via event delegation
+    function onGridClick(e) {
       if (gameOver) return;
       const btn = e.target;
       if (!btn.classList.contains('cell') || btn.classList.contains('revealed')) return;
 
-      const index = parseInt(btn.dataset.index);
+      const index = Number(btn.dataset.index);
 
-      if (minePositions.has(index)) {
+      if (index === minePosition) {
         revealMine(btn);
       } else {
         revealSafe(btn);
       }
     }
 
-    // Reset game
+    // Reset game state and UI
     function resetGame() {
       gameOver = false;
       revealedCount = 0;
-      updateInfo('Click on the tiles to find safe spots. Avoid the mines!');
-      generateMines();
+      updateInfo('Click on the tiles to find the safe spots. Avoid the mine!');
+      generateMine();
       createGrid();
     }
 
-    // Init
+    // Initialize game on page load
     resetGame();
 
     // Event listeners
-    gridEl.addEventListener('click', onCellClick);
+    gridEl.addEventListener('click', onGridClick);
     resetBtn.addEventListener('click', resetGame);
-
   })();
 </script>
 
