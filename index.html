@@ -1,0 +1,352 @@
+
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>SnapLite — demo (profiles & saved messages)</title>
+  <style>
+    :root{--bg:#0f1724;--card:#0b1220;--muted:#94a3b8;--accent:#22c55e}
+    *{box-sizing:border-box;font-family:Inter,system-ui,Arial,Helvetica,sans-serif}
+    html,body{height:100%;margin:0;background:linear-gradient(180deg,#071024 0%, #071b2a 100%);color:#e6eef8}
+    .app{display:grid;grid-template-columns:260px 1fr 360px;gap:18px;padding:18px;max-width:1200px;margin:18px auto}
+    .card{background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));border-radius:12px;padding:14px;box-shadow:0 6px 18px rgba(2,6,23,0.6);}
+    header{display:flex;align-items:center;gap:8px}
+    .logo{width:40px;height:40px;border-radius:10px;background:linear-gradient(90deg,#ffb86b,#ff5c7c);display:flex;align-items:center;justify-content:center;font-weight:700;color:#081024}
+    .small{font-size:13px;color:var(--muted)}
+    /* Sidebar */
+    .sidebar{display:flex;flex-direction:column;height:calc(100vh - 72px);}
+    .profiles{margin-top:12px;overflow:auto}
+    .profile-item{display:flex;gap:10px;align-items:center;padding:8px;border-radius:8px;cursor:pointer}
+    .avatar{width:44px;height:44px;border-radius:10px;background:#123;display:flex;align-items:center;justify-content:center;font-weight:700}
+    .profile-item:hover{background:rgba(255,255,255,0.02)}
+    .btn{padding:8px 12px;border-radius:8px;background:transparent;border:1px solid rgba(255,255,255,0.06);cursor:pointer}
+    .btn.primary{background:var(--accent);color:#022; border:none}
+    /* Feed */
+    .feed{height:calc(100vh - 72px);display:flex;flex-direction:column}
+    .composer{display:flex;gap:8px;align-items:center}
+    .composer textarea{flex:1;min-height:64px;padding:10px;border-radius:10px;background:transparent;border:1px dashed rgba(255,255,255,0.04);color:inherit}
+    .snap-list{margin-top:12px;overflow:auto}
+    .snap{padding:12px;border-radius:10px;margin-bottom:10px;display:flex;gap:12px;align-items:flex-start}
+    .snap .meta{flex:1}
+    .snap .controls{display:flex;gap:8px}
+    /* Right pane */
+    .right{height:calc(100vh - 72px);display:flex;flex-direction:column}
+    .saved-list{margin-top:10px;overflow:auto}
+    .saved-item{padding:10px;border-radius:8px;margin-bottom:8px;background:rgba(255,255,255,0.02)}
+    input[type=file]{display:none}
+    .center{display:flex;align-items:center;justify-content:center}
+    .muted{color:var(--muted)}
+    .pill{display:inline-block;padding:6px 8px;border-radius:999px;background:rgba(255,255,255,0.03);font-size:12px}
+    .profile-edit{display:flex;flex-direction:column;gap:8px;margin-top:8px}
+    .search{padding:8px;border-radius:8px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.03)}
+  </style>
+</head>
+<body>
+  <div style="max-width:1200px;margin:10px auto;color:var(--muted);text-align:center">This is a lightweight *client-only* demo of Snapchat-like features (ephemeral snaps, saved messages, profiles). It's intentionally local — open the HTML in your browser to run. No server required.</div>
+  <div class="app">
+    <aside class="card sidebar">
+      <header>
+        <div class="logo">SL</div>
+        <div>
+          <div style="font-weight:700">SnapLite</div>
+          <div class="small">Local demo • Profiles & saved messages</div>
+        </div>
+      </header>
+
+      <div style="margin-top:12px;display:flex;gap:8px;align-items:center">
+        <button class="btn" id="btnNewProfile">+ New profile</button>
+        <button class="btn" id="btnImport">Import</button>
+        <button class="btn" id="btnExport">Export</button>
+      </div>
+
+      <input id="fileInput" type="file" accept="application/json">
+
+      <div style="margin-top:12px">
+        <input id="searchProfiles" class="search" placeholder="Search profiles...">
+      </div>
+
+      <div class="profiles" id="profilesContainer"></div>
+
+      <div style="margin-top:auto;font-size:12px;color:var(--muted)" class="small">All data stored in your browser (localStorage). Clear browser data to reset.</div>
+    </aside>
+
+    <main class="card feed">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div>
+          <div style="font-size:18px;font-weight:700" id="currentTitle">Welcome</div>
+          <div class="small" id="currentSubtitle">Select or create a profile</div>
+        </div>
+        <div class="small muted">Demo — no network</div>
+      </div>
+
+      <div style="margin-top:12px" class="composer">
+        <img id="composerAvatar" src="" class="avatar" style="width:56px;height:56px;border-radius:12px;" />
+        <textarea id="snapText" placeholder="Write a snap (text or paste an image URL)."></textarea>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <label class="btn" for="fileUploader">📷 Attach</label>
+          <input id="fileUploader" type="file" accept="image/*">
+          <select id="expireSelect" class="pill">
+            <option value="5">5s</option>
+            <option value="10">10s</option>
+            <option value="20">20s</option>
+            <option value="0">Permanent (until viewed)</option>
+          </select>
+          <button id="sendSnap" class="btn primary">Send snap</button>
+        </div>
+      </div>
+
+      <div class="snap-list" id="snapsContainer"></div>
+    </main>
+
+    <aside class="card right">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div style="font-weight:700">Saved messages</div>
+        <div class="small muted">You can save a snap while viewing it</div>
+      </div>
+
+      <div class="saved-list" id="savedContainer"></div>
+
+      <hr style="margin:12px 0;border:none;border-top:1px solid rgba(255,255,255,0.03)">
+
+      <div style="font-weight:700">Profile</div>
+      <div id="profilePane" class="profile-edit">
+        <div style="display:flex;gap:8px;align-items:center">
+          <img id="profilePic" class="avatar" src="" style="width:64px;height:64px;border-radius:12px;">
+          <div style="flex:1">
+            <input id="profileName" placeholder="Name" style="width:100%;padding:8px;border-radius:8px;background:transparent;border:1px solid rgba(255,255,255,0.03);color:inherit">
+            <div class="small muted">Tap avatar to upload</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button id="saveProfile" class="btn primary">Save</button>
+          <button id="deleteProfile" class="btn">Delete</button>
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <template id="profileTemplate">
+    <div class="profile-item">
+      <div class="avatar"></div>
+      <div>
+        <div class="name"></div>
+        <div class="small muted">last active: <span class="last"></span></div>
+      </div>
+    </div>
+  </template>
+
+  <template id="snapTemplate">
+    <div class="snap card">
+      <img class="avatar" src="" style="width:56px;height:56px;border-radius:8px">
+      <div class="meta">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div><strong class="from"></strong> <span class="small muted time"></span></div>
+          <div class="pill status"></div>
+        </div>
+        <div class="content muted" style="margin-top:8px"></div>
+      </div>
+      <div class="controls">
+        <button class="btn viewBtn">View</button>
+        <button class="btn saveBtn">Save</button>
+        <button class="btn deleteBtn">Delete</button>
+      </div>
+    </div>
+  </template>
+
+  <script>
+    // Simple client-only Snapchat-like demo
+    // Data model in localStorage: snaplite_data
+    const STORAGE_KEY = 'snaplite_data_v1'
+
+    function nowISO(){return new Date().toISOString()}
+
+    function loadData(){
+      try{const s = localStorage.getItem(STORAGE_KEY); return s? JSON.parse(s) : {profiles:[], snaps:[], saved:[]}}catch(e){return {profiles:[], snaps:[], saved:[]}}
+    }
+    function saveData(){localStorage.setItem(STORAGE_KEY, JSON.stringify(DATA))}
+
+    let DATA = loadData()
+    let currentProfileId = null
+
+    // Utilities
+    function uid(prefix='id'){return prefix + '_' + Math.random().toString(36).slice(2,9)}
+    function el(q,ctx=document){return ctx.querySelector(q)}
+    function elAll(q,ctx=document){return Array.from((ctx||document).querySelectorAll(q))}
+
+    // Renderers
+    function renderProfiles(filter=''){
+      const container = el('#profilesContainer'); container.innerHTML=''
+      const tpl = el('#profileTemplate')
+      DATA.profiles.filter(p=>p.name.toLowerCase().includes(filter.toLowerCase())).forEach(p=>{
+        const node = tpl.content.cloneNode(true)
+        node.querySelector('.avatar').style.backgroundImage = p.avatar? `url(${p.avatar})` : ''
+        node.querySelector('.avatar').textContent = p.avatar? '' : p.name.slice(0,2).toUpperCase()
+        node.querySelector('.name').textContent = p.name
+        node.querySelector('.last').textContent = p.lastActive ? new Date(p.lastActive).toLocaleString() : 'never'
+        const item = node.querySelector('.profile-item')
+        item.addEventListener('click',()=>selectProfile(p.id))
+        container.appendChild(node)
+      })
+    }
+
+    function renderSnaps(){
+      const container = el('#snapsContainer'); container.innerHTML=''
+      const tpl = el('#snapTemplate')
+      // show snaps where recipient is currentProfileId OR public snaps (recipient null)
+      const list = DATA.snaps.filter(s=> !s.deleted && (s.to === currentProfileId || s.to === null))
+      list.sort((a,b)=> new Date(b.created) - new Date(a.created))
+      list.forEach(s=>{
+        const node = tpl.content.cloneNode(true)
+        const fromName = DATA.profiles.find(p=>p.id===s.from)?.name || 'Unknown'
+        node.querySelector('.avatar').style.backgroundImage = DATA.profiles.find(p=>p.id===s.from)?.avatar? `url(${DATA.profiles.find(p=>p.id===s.from).avatar})` : ''
+        node.querySelector('.from').textContent = fromName
+        node.querySelector('.time').textContent = timeAgo(s.created)
+        const contentEl = node.querySelector('.content')
+        if(s.type==='image'){const img = document.createElement('img'); img.src=s.payload; img.style.maxWidth='240px'; img.style.borderRadius='8px'; contentEl.appendChild(img)}
+        else contentEl.textContent = s.payload
+        const status = node.querySelector('.status')
+        status.textContent = s.viewed ? 'Viewed' : 'New'
+        node.querySelector('.viewBtn').addEventListener('click',()=>viewSnap(s.id))
+        node.querySelector('.saveBtn').addEventListener('click',()=>saveSnapToSaved(s.id))
+        node.querySelector('.deleteBtn').addEventListener('click',()=>deleteSnap(s.id))
+        container.appendChild(node)
+      })
+    }
+
+    function renderSaved(){
+      const container = el('#savedContainer'); container.innerHTML=''
+      if(DATA.saved.length===0){container.innerHTML='<div class="center muted" style="padding:14px">No saved messages</div>';return}
+      DATA.saved.slice().reverse().forEach(s=>{
+        const div = document.createElement('div'); div.className='saved-item'
+        const from = DATA.profiles.find(p=>p.id===s.from)?.name || 'Unknown'
+        div.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center"><strong>${escapeHtml(from)}</strong><span class="small muted">${new Date(s.savedAt).toLocaleString()}</span></div>`
+        if(s.type==='image'){const img = document.createElement('img'); img.src=s.payload; img.style.maxWidth='100%'; img.style.borderRadius='8px'; img.style.marginTop='8px'; div.appendChild(img)}
+        else {const p=document.createElement('div'); p.style.marginTop='8px'; p.textContent=s.payload; div.appendChild(p)}
+        const btnRow = document.createElement('div'); btnRow.style.display='flex'; btnRow.style.gap='8px'; btnRow.style.marginTop='8px'
+        const del = document.createElement('button'); del.className='btn'; del.textContent='Delete'; del.addEventListener('click',()=>{DATA.saved = DATA.saved.filter(x=>x.id!==s.id); saveData(); renderSaved()})
+        btnRow.appendChild(del)
+        div.appendChild(btnRow)
+        container.appendChild(div)
+      })
+    }
+
+    function timeAgo(iso){const d=new Date(iso);const diff=(Date.now()-d.getTime())/1000; if(diff<60) return Math.floor(diff)+'s ago'; if(diff<3600) return Math.floor(diff/60)+'m ago'; if(diff<86400) return Math.floor(diff/3600)+'h ago'; return d.toLocaleString()}
+
+    function escapeHtml(s){return (s+'').replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]))}
+
+    // Actions
+    function selectProfile(id){
+      currentProfileId = id
+      const p = DATA.profiles.find(x=>x.id===id)
+      if(p) p.lastActive = nowISO()
+      saveData(); renderProfiles(el('#searchProfiles').value)
+      el('#currentTitle').textContent = p ? p.name : 'Welcome'
+      el('#currentSubtitle').textContent = p ? `@${p.id}` : 'Select or create a profile'
+      el('#composerAvatar').style.backgroundImage = p?.avatar? `url(${p.avatar})` : ''
+      el('#composerAvatar').textContent = p?.avatar? '' : (p?.name||'').slice(0,2).toUpperCase()
+      el('#profilePic').style.backgroundImage = p?.avatar? `url(${p.avatar})` : ''; el('#profilePic').textContent = p?.avatar? '': (p?.name||'').slice(0,2).toUpperCase(); el('#profileName').value = p?.name||''
+      renderSnaps(); renderSaved()
+    }
+
+    function createProfile(name,avatar){
+      const p = {id: uid('u'), name: name||'Anonymous', avatar: avatar||null, created: nowISO(), lastActive: nowISO()}
+      DATA.profiles.push(p); saveData(); renderProfiles(); selectProfile(p.id)
+    }
+
+    function updateProfile(id,name,avatar){
+      const p = DATA.profiles.find(x=>x.id===id); if(!p) return; p.name=name; if(avatar!==undefined) p.avatar=avatar; p.lastActive=nowISO(); saveData(); renderProfiles(el('#searchProfiles').value); selectProfile(id)
+    }
+
+    function deleteProfile(id){
+      if(!confirm('Delete this profile? This will remove profile but keep snaps.')) return; DATA.profiles = DATA.profiles.filter(x=>x.id!==id); if(currentProfileId===id) currentProfileId=null; saveData(); renderProfiles(); renderSnaps(); renderSaved(); el('#currentTitle').textContent='Welcome'; el('#currentSubtitle').textContent='Select or create a profile'
+    }
+
+    function sendSnap(){
+      if(!currentProfileId){alert('Pick or create a profile first');return}
+      const text = el('#snapText').value.trim(); const file = el('#fileUploader').files[0]
+      const expire = parseInt(el('#expireSelect').value,10)
+      if(!text && !file){alert('Add text or attach an image');return}
+      if(file){const reader=new FileReader(); reader.onload=()=>{const payload = reader.result; pushSnap(payload,'image',expire)}; reader.readAsDataURL(file);}
+      else pushSnap(text,'text',expire)
+      el('#snapText').value=''; el('#fileUploader').value=''
+    }
+
+    function pushSnap(payload,type,expireSeconds){
+      const snap = {id: uid('s'), from: currentProfileId, to: null, payload, type, created: nowISO(), expireSeconds: expireSeconds||0, viewed:false, deleted:false}
+      DATA.snaps.push(snap); saveData(); renderSnaps()
+    }
+
+    function viewSnap(id){
+      const s = DATA.snaps.find(x=>x.id===id); if(!s) return; const title = DATA.profiles.find(p=>p.id===s.from)?.name || 'Unknown'
+      // show modal
+      const modal = document.createElement('div'); modal.style.position='fixed'; modal.style.left=0; modal.style.top=0; modal.style.right=0; modal.style.bottom=0; modal.style.display='flex'; modal.style.alignItems='center'; modal.style.justifyContent='center'; modal.style.background='rgba(2,6,23,0.6)'; modal.style.zIndex=9999
+      const card = document.createElement('div'); card.className='card'; card.style.maxWidth='720px'; card.style.width='90%'; card.style.textAlign='left'
+      const hdr = document.createElement('div'); hdr.style.display='flex'; hdr.style.justifyContent='space-between'; hdr.style.alignItems='center'
+      hdr.innerHTML = `<div><strong>${escapeHtml(title)}</strong><div class="small muted">${new Date(s.created).toLocaleString()}</div></div>`
+      const closeBtn = document.createElement('button'); closeBtn.className='btn'; closeBtn.textContent='Close'
+      hdr.appendChild(closeBtn); card.appendChild(hdr)
+      const content = document.createElement('div'); content.style.marginTop='12px'
+      if(s.type==='image'){const img = document.createElement('img'); img.src=s.payload; img.style.maxWidth='100%'; img.style.borderRadius='10px'; content.appendChild(img)} else {const p = document.createElement('div'); p.textContent = s.payload; content.appendChild(p)}
+      card.appendChild(content)
+      const row = document.createElement('div'); row.style.display='flex'; row.style.justifyContent='space-between'; row.style.alignItems='center'; row.style.marginTop='12px'
+      const saveBtn = document.createElement('button'); saveBtn.className='btn'; saveBtn.textContent='Save to saved'; row.appendChild(saveBtn)
+      const timer = document.createElement('div'); timer.className='small muted'; row.appendChild(timer)
+      card.appendChild(row)
+      modal.appendChild(card); document.body.appendChild(modal)
+
+      closeBtn.addEventListener('click',()=>{document.body.removeChild(modal)})
+      saveBtn.addEventListener('click',()=>{saveSnapToSaved(id); saveBtn.textContent='Saved'; saveBtn.disabled=true})
+
+      // viewing behavior: if expireSeconds > 0 -> countdown and then mark deleted; else mark viewed
+      s.viewed = true; saveData(); renderSnaps()
+      if(s.expireSeconds>0){
+        let remaining = s.expireSeconds
+        timer.textContent = `This snap will disappear in ${remaining}s`
+        const it = setInterval(()=>{
+          remaining--; timer.textContent = `This snap will disappear in ${remaining}s`
+          if(remaining<=0){ clearInterval(it); s.deleted=true; saveData(); renderSnaps(); document.body.removeChild(modal) }
+        },1000)
+      }
+    }
+
+    function saveSnapToSaved(id){
+      const s = DATA.snaps.find(x=>x.id===id); if(!s) return; DATA.saved.push({id: uid('sv'), from: s.from, payload: s.payload, type: s.type, savedAt: nowISO()}); saveData(); renderSaved(); alert('Saved to Saved messages')
+    }
+
+    function deleteSnap(id){ if(!confirm('Delete this snap?')) return; const s = DATA.snaps.find(x=>x.id===id); if(s) s.deleted=true; saveData(); renderSnaps() }
+
+    // Import/Export
+    function exportData(){ const blob = new Blob([JSON.stringify(DATA, null, 2)],{type:'application/json'}); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href=url; a.download='snaplite-export.json'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url) }
+    function importData(file){ const reader = new FileReader(); reader.onload=()=>{ try{const imported = JSON.parse(reader.result); if(imported.profiles) DATA = imported; saveData(); renderProfiles(); renderSnaps(); renderSaved(); alert('Imported') }catch(e){alert('Import failed')} }; reader.readAsText(file) }
+
+    // Tiny UI bindings
+    el('#btnNewProfile').addEventListener('click',()=>{
+      const name = prompt('Profile name:')
+      if(!name) return; createProfile(name)
+    })
+    el('#btnExport').addEventListener('click',exportData)
+    el('#btnImport').addEventListener('click',()=>el('#fileInput').click())
+    el('#fileInput').addEventListener('change',e=>{const f=e.target.files[0]; if(f) importData(f)})
+    el('#searchProfiles').addEventListener('input',e=>renderProfiles(e.target.value))
+    el('#sendSnap').addEventListener('click',sendSnap)
+    el('#fileUploader').addEventListener('change',()=>{/* preview not required */})
+    el('#profilePic').addEventListener('click',()=>{const inp = document.createElement('input'); inp.type='file'; inp.accept='image/*'; inp.onchange = (e)=>{const f=e.target.files[0]; if(!f) return; const r=new FileReader(); r.onload=()=>{ el('#profilePic').style.backgroundImage = `url(${r.result})`; el('#profilePic').textContent=''; el('#profilePic').dataset.newAvatar = r.result }; r.readAsDataURL(f)}; inp.click();})
+    el('#saveProfile').addEventListener('click',()=>{
+      if(!currentProfileId){alert('No profile selected');return}
+      const name = el('#profileName').value.trim()||'Anonymous'
+      const avatar = el('#profilePic').dataset.newAvatar || DATA.profiles.find(p=>p.id===currentProfileId).avatar || null
+      updateProfile(currentProfileId,name,avatar)
+      delete el('#profilePic').dataset.newAvatar
+    })
+    el('#deleteProfile').addEventListener('click',()=>{ if(currentProfileId) deleteProfile(currentProfileId) })
+
+    // First-run demo seed
+    if(DATA.profiles.length===0){ createProfile('Alice'); createProfile('Bob'); DATA.snaps.push({id:uid('s'), from:DATA.profiles[0].id, to:null, payload:'Hey! This is a demo snap. Click View to open it.', type:'text', created:nowISO(), expireSeconds:10, viewed:false, deleted:false}); saveData() }
+
+    // Start: render
+    renderProfiles(); renderSnaps(); renderSaved();
+
+  </script>
+</body>
+</html>
