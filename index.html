@@ -134,7 +134,7 @@
       display: flex;
     }
 
-    /* --- Mines Game styles: reusing your existing styles --- */
+    /* --- Mines Game styles --- */
     .mines-container {
       display: grid;
       grid-template-columns: 420px 1fr;
@@ -142,7 +142,6 @@
       width: 100%;
     }
 
-    /* Copied styles for mines game inside the panel */
     .mines-left {
       display: flex;
       flex-direction: column;
@@ -206,32 +205,6 @@
       box-shadow: 0 6px 18px rgba(122,240,194,0.2);
     }
 
-    .toggle {
-      display:inline-flex;
-      align-items:center;
-      gap:8px;
-      padding:6px;
-      border-radius:10px;
-      background: var(--glass);
-      border:1px solid rgba(255,255,255,0.02);
-    }
-
-    .toggle input[type=checkbox] {
-      width:16px; height:16px;
-      cursor: pointer;
-    }
-
-    .toggle input[type=number] {
-      width: 60px;
-      cursor: text;
-    }
-
-    .toggle span {
-      color: var(--muted);
-      font-size:13px;
-      user-select:none;
-    }
-
     .grid {
       display:grid;
       grid-template-columns: repeat(5,1fr);
@@ -246,7 +219,7 @@
       border-radius:8px;
       display:flex;
       align-items:center;
-      justify-content:center;
+      justify-content: center;
       font-size:18px;
       cursor:pointer;
       user-select:none;
@@ -276,392 +249,286 @@
 
     .cell .inner {
       transform: scale(0);
-      transition: transform 0.3s ease-out;
-      z-index:5;
+      transition: transform 0.3s ease;
     }
 
     .cell.revealed .inner {
       transform: scale(1);
     }
 
-    .history {
-      margin-top:12px;
-      max-height:300px;
-      overflow:auto;
-      background: linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.005));
-      border-radius:10px;
-      padding:10px;
-      user-select:none;
-    }
-
-    .history-item {
-      display:flex;
-      justify-content:space-between;
-      padding:6px;
-      border-radius:8px;
-      margin-bottom:6px;
-      transition: background 0.3s;
-    }
-
-    .history-item.win {
-      background: linear-gradient(90deg, rgba(64,255,192,0.05), rgba(255,255,255,0.01));
-    }
-
-    .history-item.loss {
-      background: linear-gradient(90deg, rgba(255,72,72,0.04), rgba(255,255,255,0.01));
-    }
-
-    .small { font-size:12px; color: var(--muted); }
-
-    /* --- Placeholder game styles --- */
-    .placeholder {
-      flex: 1;
-      display: flex;
-      justify-content: center;
-      align-items: center;
+    /* --- Status Bar --- */
+    .status-bar {
+      margin-top: auto;
+      font-size: 14px;
       color: var(--muted);
-      font-size: 20px;
-      font-weight: 600;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
       user-select:none;
-      height: 100%;
-      padding: 40px 20px;
-      text-align: center;
-      border: 2px dashed var(--muted);
-      border-radius: 12px;
-      background: rgba(255,255,255,0.02);
-      transition: background-color 0.3s ease;
     }
 
-    .placeholder:hover {
-      background: rgba(122,240,194,0.1);
+    /* --- Message Box --- */
+    .message {
+      font-weight: 700;
+      font-size: 16px;
       color: var(--accent);
-      cursor: default;
+      text-align: center;
+      padding: 8px 0;
+      min-height: 28px;
     }
   </style>
 </head>
 <body>
+  <!-- Game selector -->
+  <div class="game-selector" role="tablist" aria-label="Game Selector">
+    <button type="button" class="active" role="tab" aria-selected="true" aria-controls="mines-game" id="tab-mines">Mines</button>
+    <!-- Other game buttons can be added here -->
+  </div>
 
-  <!-- Game selector bar -->
-  <nav class="game-selector" role="navigation" aria-label="Select Game">
-    <button class="active" data-game="mines" aria-current="page" aria-label="Play Mines">Mines</button>
-    <button data-game="plinko" aria-label="Play Plinko">Plinko</button>
-    <button data-game="joker" aria-label="Play Joker">Joker</button>
-    <button data-game="blackjack" aria-label="Play Blackjack">Blackjack</button>
-  </nav>
-
-  <main class="main-container" role="main">
-
-    <!-- MINES GAME PANEL -->
-    <section class="game-panel active" id="minesPanel" aria-live="polite" aria-label="Mines game">
+  <main class="main-container">
+    <!-- Mines Game Panel -->
+    <section id="mines-game" class="game-panel active" role="tabpanel" aria-labelledby="tab-mines" tabindex="0">
       <div class="mines-container">
         <div class="mines-left">
           <div class="balance">
             <div>
               <div class="label">Balance</div>
-              <div class="amount" id="balanceDisplay">1,000,000</div>
-            </div>
-            <div>
-              <label class="toggle" title="Infinite money (fun mode)">
-                <input id="infiniteToggle" type="checkbox" />
-                <span class="small">Infinite</span>
-              </label>
+              <div id="balance" class="amount">1000</div>
             </div>
           </div>
-          <div class="small muted" style="margin-top:8px;">
-            Reveal tiles — avoid mines! Cash out before you explode.
-          </div>
-          <div class="grid" id="grid"></div>
-          <div style="margin-top:12px; display:flex; gap:12px; align-items:center;">
-            <button id="cashoutBtn" class="btn-primary" disabled>Cash Out</button>
-            <div id="statusLabel" class="small"></div>
-          </div>
+          <label for="bet-input" class="label" style="margin-top:12px;">Bet Amount</label>
+          <input type="number" id="bet-input" min="1" step="1" value="10" aria-describedby="bet-desc" />
+          <div id="bet-desc" class="label" style="margin-bottom: 8px;">Bet must be &le; balance</div>
+          <button id="start-btn" class="btn-primary" disabled>Start Game</button>
+          <div class="message" id="message"></div>
         </div>
 
-        <div class="mines-right">
-          <div style="display:flex; justify-content:space-between; align-items:center;">
-            <div style="flex:1">
-              <div class="label small">Bet</div>
-              <input type="number" id="betInput" min="1" step="1" value="1000" />
-            </div>
-            <div>
-              <label class="toggle">
-                <input type="number" id="mineCount" value="3" min="1" max="10" />
-                <span class="small">Mines</span>
-              </label>
-            </div>
-          </div>
-          <div style="margin-top:12px; display:flex; gap:8px; align-items:center;">
-            <button id="startBtn" class="btn-primary" style="flex:1;">Start Game</button>
-            <label class="toggle">
-              <input type="checkbox" id="autoCashout" />
-              <span class="small">Auto Cashout</span>
-            </label>
-          </div>
-          <div style="margin-top:12px; flex:1;">
-            <div class="small muted">History</div>
-            <div class="history" id="history"></div>
-          </div>
+        <div class="grid" id="mines-grid" aria-label="Mines grid" role="grid" tabindex="0">
+          <!-- 25 cells inserted by JS -->
         </div>
       </div>
-    </section>
 
-    <!-- PLINKO PLACEHOLDER -->
-    <section class="game-panel" id="plinkoPanel" aria-live="polite" aria-label="Plinko game">
-      <div class="placeholder">
-        Plinko game coming soon! 🎯<br />
-        (Imagine smooth animations and bouncing balls here.)
+      <div class="status-bar" aria-live="polite" aria-atomic="true">
+        <div>Revealed: <span id="revealed-count">0</span></div>
+        <div>Safe Left: <span id="safe-left">0</span></div>
+        <div>Current Win: <span id="current-win">0</span></div>
       </div>
     </section>
-
-    <!-- JOKER PLACEHOLDER -->
-    <section class="game-panel" id="jokerPanel" aria-live="polite" aria-label="Joker game">
-      <div class="placeholder">
-        Joker game coming soon! 🃏<br />
-        (This will be a cool card-based game.)
-      </div>
-    </section>
-
-    <!-- BLACKJACK PLACEHOLDER -->
-    <section class="game-panel" id="blackjackPanel" aria-live="polite" aria-label="Blackjack game">
-      <div class="placeholder">
-        Blackjack game coming soon! 🃑<br />
-        (Classic 21 card game to test your luck and skill.)
-      </div>
-    </section>
-
   </main>
 
   <script>
-    // --- Game Selector Logic ---
-    const selectorButtons = document.querySelectorAll('.game-selector button');
-    const gamePanels = document.querySelectorAll('.game-panel');
-
-    selectorButtons.forEach(button => {
-      button.addEventListener('click', () => {
-        if (button.classList.contains('active')) return;
-
-        // Remove active classes
-        selectorButtons.forEach(btn => btn.classList.remove('active'));
-        gamePanels.forEach(panel => panel.classList.remove('active'));
-
-        // Activate selected
-        button.classList.add('active');
-        const game = button.getAttribute('data-game');
-        const activePanel = document.getElementById(game + 'Panel');
-        if (activePanel) activePanel.classList.add('active');
-      });
-    });
-
-    // --- Mines Game Logic ---
     (() => {
-      const balanceDisplay = document.getElementById('balanceDisplay');
-      const infiniteToggle = document.getElementById('infiniteToggle');
-      const gridEl = document.getElementById('grid');
-      const startBtn = document.getElementById('startBtn');
-      const betInput = document.getElementById('betInput');
-      const mineCountInput = document.getElementById('mineCount');
-      const cashoutBtn = document.getElementById('cashoutBtn');
-      const statusLabel = document.getElementById('statusLabel');
-      const historyEl = document.getElementById('history');
-      const autoCashoutCheckbox = document.getElementById('autoCashout');
+      // Elements
+      const balanceEl = document.getElementById('balance');
+      const betInput = document.getElementById('bet-input');
+      const startBtn = document.getElementById('start-btn');
+      const messageEl = document.getElementById('message');
+      const grid = document.getElementById('mines-grid');
+      const revealedCountEl = document.getElementById('revealed-count');
+      const safeLeftEl = document.getElementById('safe-left');
+      const currentWinEl = document.getElementById('current-win');
 
-      let balance = 1000000;
-      let infinite = false;
-      let gameActive = false;
-      let gridSize = 25; // 5x5 grid
-      let mines = [];
+      // Constants
+      const totalCells = 25;
+      const totalMines = 3; // can be adjusted for difficulty
+
+      // Game state
+      let balance = 1000;
+      let bet = 10;
+      let mines = new Set();
       let revealed = new Set();
-      let currentBet = 0;
-      let mineCount = 3;
-      let multiplier = 1;
-      let autoCashout = false;
+      let gameActive = false;
+      let currentWin = 0;
+      let safeCellsLeft = totalCells - totalMines;
 
-      // Initialize balance display
+      // Update balance display
       function updateBalanceDisplay() {
-        if (infinite) {
-          balanceDisplay.textContent = "∞";
-        } else {
-          balanceDisplay.textContent = balance.toLocaleString();
-        }
+        balanceEl.textContent = balance.toFixed(2);
       }
 
-      // Generate mines positions
+      // Validate bet input and update start button enabled state
+      function validateBet() {
+        let val = parseInt(betInput.value, 10);
+        if (isNaN(val) || val < 1) val = 1;
+        if (val > balance) val = Math.floor(balance);
+        betInput.value = val;
+        bet = val;
+        startBtn.disabled = bet > balance || bet < 1;
+        messageEl.textContent = '';
+      }
+
+      // Generate mines randomly
       function generateMines() {
-        mines = [];
-        while (mines.length < mineCount) {
-          let pos = Math.floor(Math.random() * gridSize);
-          if (!mines.includes(pos)) {
-            mines.push(pos);
-          }
+        mines.clear();
+        while (mines.size < totalMines) {
+          const pos = Math.floor(Math.random() * totalCells);
+          mines.add(pos);
         }
       }
 
-      // Calculate multiplier based on revealed safe tiles
-      function calculateMultiplier() {
-        return (gridSize - mineCount) / (gridSize - mineCount - revealed.size);
-      }
-
-      // Reset game state
-      function resetGame() {
-        gameActive = false;
-        mines = [];
-        revealed.clear();
-        multiplier = 1;
-        gridEl.innerHTML = '';
-        cashoutBtn.disabled = true;
-        statusLabel.textContent = '';
-        startBtn.disabled = false;
-        betInput.disabled = false;
-        mineCountInput.disabled = false;
-        autoCashoutCheckbox.disabled = false;
-      }
-
-      // Create grid cells
-      function createGrid() {
-        gridEl.innerHTML = '';
-        gridEl.style.gridTemplateColumns = 'repeat(5, 1fr)';
-
-        for (let i = 0; i < gridSize; i++) {
+      // Initialize grid cells
+      function initGrid() {
+        grid.innerHTML = '';
+        for (let i = 0; i < totalCells; i++) {
           const cell = document.createElement('div');
-          cell.classList.add('cell');
+          cell.className = 'cell';
+          cell.setAttribute('role', 'button');
+          cell.setAttribute('tabindex', '0');
+          cell.setAttribute('aria-label', `Cell ${i+1}`);
           cell.dataset.index = i;
-
-          // Inner element for reveal effect
           const inner = document.createElement('div');
-          inner.classList.add('inner');
+          inner.className = 'inner';
           cell.appendChild(inner);
-
-          // Click handler
-          cell.addEventListener('click', () => {
-            if (!gameActive) return;
-            if (revealed.has(i)) return;
-
-            revealCell(i, cell);
-          });
-
-          gridEl.appendChild(cell);
+          grid.appendChild(cell);
         }
       }
 
       // Reveal a cell
-      function revealCell(i, cell) {
-        revealed.add(i);
+      function revealCell(index) {
+        if (!gameActive) return;
+        if (revealed.has(index)) return;
+        revealed.add(index);
 
-        // Check if mine
-        if (mines.includes(i)) {
-          // Revealed a mine - game over
-          cell.classList.add('mine', 'revealed');
+        const cell = grid.children[index];
+        cell.classList.add('revealed');
+
+        if (mines.has(index)) {
+          cell.classList.add('mine');
           cell.querySelector('.inner').textContent = '💣';
-
           gameOver(false);
         } else {
-          // Safe cell
-          cell.classList.add('safe', 'revealed');
+          cell.classList.add('safe');
           cell.querySelector('.inner').textContent = '✔️';
-
-          // Update multiplier
-          multiplier = calculateMultiplier();
-          statusLabel.textContent = `Multiplier: ${multiplier.toFixed(2)}x`;
-
-          // Auto cashout?
-          if (autoCashout && multiplier >= 2) {
-            cashOut();
+          safeCellsLeft--;
+          currentWin = calculateWin();
+          updateStatus();
+          if (safeCellsLeft === 0) {
+            gameOver(true);
           }
         }
       }
 
-      // Start the game
-      function startGame() {
-        currentBet = parseInt(betInput.value);
-        mineCount = parseInt(mineCountInput.value);
+      // Calculate current win based on bet and safe cells revealed
+      function calculateWin() {
+        // Simple multiplier: bet * (1 + revealed safe cells * 0.5)
+        // You can customize this formula
+        return +(bet * (1 + (revealed.size - mines.size) * 0.5)).toFixed(2);
+      }
 
-        if (isNaN(currentBet) || currentBet <= 0) {
-          alert("Enter a valid bet amount.");
-          return;
-        }
-        if (mineCount < 1 || mineCount > 10) {
-          alert("Mines count must be between 1 and 10.");
-          return;
-        }
-        if (!infinite && currentBet > balance) {
-          alert("You don't have enough balance.");
-          return;
-        }
+      // Update status display
+      function updateStatus() {
+        revealedCountEl.textContent = revealed.size;
+        safeLeftEl.textContent = safeCellsLeft;
+        currentWinEl.textContent = currentWin.toFixed(2);
+      }
 
-        // Deduct bet
-        if (!infinite) balance -= currentBet;
+      // Game over handler
+      function gameOver(won) {
+        gameActive = false;
+        startBtn.textContent = 'Start Game';
+        betInput.disabled = false;
+        grid.querySelectorAll('.cell').forEach((cell, i) => {
+          cell.classList.add('revealed');
+          const inner = cell.querySelector('.inner');
+          if (mines.has(i)) {
+            cell.classList.add('mine');
+            inner.textContent = '💣';
+          } else {
+            cell.classList.add('safe');
+            inner.textContent = '✔️';
+          }
+          cell.style.cursor = 'default';
+          cell.removeAttribute('tabindex');
+        });
+
+        if (won) {
+          balance += currentWin;
+          messageEl.textContent = `🎉 You won ${currentWin.toFixed(2)}!`;
+        } else {
+          balance -= bet;
+          messageEl.textContent = `💥 You hit a mine! You lost ${bet.toFixed(2)}.`;
+        }
 
         updateBalanceDisplay();
+        updateStatus();
 
-        generateMines();
-        createGrid();
+        // Disable start if balance depleted
+        if (balance < 1) {
+          startBtn.disabled = true;
+          messageEl.textContent += ' Game over: balance depleted.';
+        }
+      }
+
+      // Start or reset the game
+      function startGame() {
+        if (gameActive) {
+          // Prevent restart mid-game
+          return;
+        }
+
+        if (bet > balance) {
+          messageEl.textContent = 'Bet exceeds your balance!';
+          return;
+        }
 
         gameActive = true;
-        revealed.clear();
-
-        multiplier = 1;
-        statusLabel.textContent = `Multiplier: ${multiplier.toFixed(2)}x`;
-
-        startBtn.disabled = true;
+        startBtn.textContent = 'Game in progress...';
         betInput.disabled = true;
-        mineCountInput.disabled = true;
-        cashoutBtn.disabled = false;
-        autoCashoutCheckbox.disabled = true;
+        messageEl.textContent = '';
+        currentWin = 0;
+        revealed.clear();
+        safeCellsLeft = totalCells - totalMines;
+
+        generateMines();
+        initGrid();
+        updateStatus();
+
+        // Add click & keyboard event listeners for cells
+        grid.querySelectorAll('.cell').forEach(cell => {
+          cell.style.cursor = 'pointer';
+          cell.setAttribute('tabindex', '0');
+          cell.className = 'cell'; // reset classes
+          cell.querySelector('.inner').textContent = '';
+          cell.addEventListener('click', onCellClick);
+          cell.addEventListener('keydown', onCellKeyDown);
+        });
       }
 
-      // Cash out function
-      function cashOut() {
-        if (!gameActive) return;
-        const winAmount = Math.floor(currentBet * multiplier);
-
-        if (!infinite) balance += winAmount;
-
-        updateBalanceDisplay();
-        addHistory(true, winAmount);
-
-        resetGame();
+      // Cell click handler
+      function onCellClick(e) {
+        const index = Number(e.currentTarget.dataset.index);
+        revealCell(index);
       }
 
-      // Game over function
-      function gameOver(win) {
-        if (win === false) {
-          addHistory(false, 0);
-          statusLabel.textContent = "You hit a mine! Game over.";
+      // Cell keyboard handler (Enter/Space to reveal)
+      function onCellKeyDown(e) {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          const index = Number(e.currentTarget.dataset.index);
+          revealCell(index);
         }
-        cashoutBtn.disabled = true;
-        gameActive = false;
-        startBtn.disabled = false;
-        betInput.disabled = false;
-        mineCountInput.disabled = false;
-        autoCashoutCheckbox.disabled = false;
-      }
-
-      // Add history entry
-      function addHistory(won, amount) {
-        const div = document.createElement('div');
-        div.classList.add('history-item');
-        div.classList.add(won ? 'win' : 'loss');
-        div.textContent = won ? `Won ${amount.toLocaleString()}` : 'Lost';
-        historyEl.prepend(div);
       }
 
       // Event listeners
-      startBtn.addEventListener('click', startGame);
-      cashoutBtn.addEventListener('click', cashOut);
-      infiniteToggle.addEventListener('change', () => {
-        infinite = infiniteToggle.checked;
-        updateBalanceDisplay();
-      });
-      autoCashoutCheckbox.addEventListener('change', () => {
-        autoCashout = autoCashoutCheckbox.checked;
+      startBtn.addEventListener('click', () => {
+        if (!gameActive) {
+          startGame();
+        }
       });
 
-      // Init display
+      betInput.addEventListener('input', () => {
+        validateBet();
+      });
+
+      // Initial setup
       updateBalanceDisplay();
-      resetGame();
+      validateBet();
+      initGrid();
+      updateStatus();
 
+      // Accessibility: focus management for game selector (if more games added)
+      // Left for future expansion
     })();
   </script>
-
 </body>
 </html>
