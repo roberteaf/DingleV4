@@ -108,8 +108,7 @@ button:hover {transform: translateY(-2px); box-shadow:0 8px 22px rgba(0,0,0,0.7)
 
 <script>
 (() => {
-  const $ = (s, ctx=document) => ctx.querySelector(s);
-
+  const $ = s => document.querySelector(s);
   const balanceDisplay = $('#balanceDisplay');
   const betInput = $('#betInput');
   const startBtn = $('#startBtn');
@@ -124,8 +123,8 @@ button:hover {transform: translateY(-2px); box-shadow:0 8px 22px rgba(0,0,0,0.7)
   const playerNameInput = $('#playerName');
   const leaderboardList = $('#leaderboardList');
 
-  const STORAGE_KEY = 'mines_space_gradient_v3';
-  const LEADERBOARD_KEY = 'mines_leaderboard';
+  const STORAGE_KEY = 'mines_space_gradient_balance';
+  const LEADERBOARD_KEY = 'mines_leaderboard_balance';
   let state = { balance: 1000000, history: [] };
   let game = null;
 
@@ -133,97 +132,84 @@ button:hover {transform: translateY(-2px); box-shadow:0 8px 22px rgba(0,0,0,0.7)
   function loadState(){
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
-      if(!raw) return;
-      const p = JSON.parse(raw);
-      if(typeof p.balance==='number') state.balance = p.balance;
-      if(Array.isArray(p.history)) state.history = p.history;
+      if(raw){ const p=JSON.parse(raw); if(typeof p.balance==='number') state.balance=p.balance; if(Array.isArray(p.history)) state.history=p.history; }
     } catch(e){}
   }
 
-  function saveLeaderboard(playerName, score){
-    const leaderboard = JSON.parse(localStorage.getItem(LEADERBOARD_KEY) || '[]');
-    leaderboard.push({ name: playerName, score });
-    leaderboard.sort((a,b)=>b.score-a.score);
-    if(leaderboard.length>10) leaderboard.pop();
-    localStorage.setItem(LEADERBOARD_KEY, JSON.stringify(leaderboard));
+  function saveLeaderboard(name,balance){
+    if(!name) name='Anonymous';
+    const lb = JSON.parse(localStorage.getItem(LEADERBOARD_KEY)||'[]');
+    const exist = lb.find(e=>e.name===name);
+    if(exist){ exist.score = balance; } else { lb.push({name, score:balance}); }
+    lb.sort((a,b)=>b.score-a.score);
+    if(lb.length>10) lb.length=10;
+    localStorage.setItem(LEADERBOARD_KEY, JSON.stringify(lb));
     renderLeaderboard();
   }
 
   function renderLeaderboard(){
-    const leaderboard = JSON.parse(localStorage.getItem(LEADERBOARD_KEY) || '[]');
-    leaderboardList.innerHTML = '';
-    leaderboard.forEach((entry,i)=>{
-      const div = document.createElement('div');
-      div.textContent = `${i+1}. ${entry.name}`;
-      const span = document.createElement('span');
-      span.textContent = entry.score.toLocaleString();
+    const lb = JSON.parse(localStorage.getItem(LEADERBOARD_KEY)||'[]');
+    leaderboardList.innerHTML='';
+    lb.forEach((e,i)=>{
+      const div=document.createElement('div');
+      div.textContent=`${i+1}. ${e.name}`;
+      const span=document.createElement('span'); span.textContent=e.score.toLocaleString();
       div.appendChild(span);
       leaderboardList.appendChild(div);
     });
   }
 
   function fmt(n){ return n>=1000?n.toLocaleString():''+n; }
-  function renderBalance(){ balanceDisplay.textContent = fmt(state.balance); }
-
+  function renderBalance(){ balanceDisplay.textContent=fmt(state.balance); }
   function renderHistory(){
-    historyEl.innerHTML = '';
-    const items = state.history.slice().reverse();
-    if(items.length===0){ historyEl.innerHTML='<div class="small muted">No history yet.</div>'; return;}
-    items.forEach(it=>{
-      const el = document.createElement('div');
-      el.className = 'history-item ' + (it.profit>=0?'win':'loss');
-      el.innerHTML=`<div>${it.result}</div><div>${it.profit>=0?'+':''}${fmt(it.profit)}</div>`;
-      historyEl.appendChild(el);
+    historyEl.innerHTML=''; 
+    if(state.history.length===0){ historyEl.innerHTML='<div class="small muted">No history yet.</div>'; return;}
+    state.history.slice().reverse().forEach(it=>{
+      const div=document.createElement('div');
+      div.className='history-item '+(it.profit>=0?'win':'loss');
+      div.innerHTML=`<div>${it.result}</div><div>${it.profit>=0?'+':''}${fmt(it.profit)}</div>`;
+      historyEl.appendChild(div);
     });
   }
 
-  function resetGame(){
-    game=null;
-    gridEl.innerHTML='';
-    cashoutBtn.disabled=true;
-    statusLabel.textContent='';
-  }
+  function resetGame(){ game=null; gridEl.innerHTML=''; cashoutBtn.disabled=true; statusLabel.textContent=''; }
 
   function startGame(){
     resetGame();
-    const bet = Math.floor(Number(betInput.value));
+    const bet=Math.floor(Number(betInput.value));
     if(!Number.isFinite(bet)||bet<1){ alert('Enter a valid bet'); return;}
     if(bet>state.balance){ alert('Not enough balance'); return;}
-    const mines = Math.floor(Number(mineCountInput.value));
+    const mines=Math.floor(Number(mineCountInput.value));
     if(!Number.isFinite(mines)||mines<1||mines>=25){ alert('Mines must be between 1 and 24'); return;}
-    const total=25;
-    const minePos = new Set();
-    while(minePos.size<mines) minePos.add(Math.floor(Math.random()*total));
-    game = { bet, mines, minePos, opened:new Set(), currentPayout:0 };
-    state.balance-=bet;
+    const total=25; const minePos=new Set();
+    while(minePos.size<mines){ minePos.add(Math.floor(Math.random()*total)); }
+    game={ bet, mines, minePos, opened:new Set(), currentPayout:0 };
+    state.balance -= bet;
+    renderBalance();
+    saveState();
     for(let i=0;i<25;i++){
-      const c=document.createElement('div');
-      c.className='cell'; c.dataset.idx=i;
+      const c=document.createElement('div'); c.className='cell'; c.dataset.idx=i;
+      const inner=document.createElement('div'); inner.className='inner'; c.appendChild(inner);
       c.addEventListener('click', cellClick);
-      const inner=document.createElement('div'); inner.className='inner';
-      c.appendChild(inner); gridEl.appendChild(c);
+      gridEl.appendChild(c);
     }
     cashoutBtn.disabled=false;
     statusLabel.textContent=`Opened 0 safe / ${mines} mines`;
-    renderBalance(); saveState();
   }
 
   function cellClick(ev){
     if(!game) return;
-    const idx = +ev.currentTarget.dataset.idx;
+    const idx=+ev.currentTarget.dataset.idx;
     if(game.opened.has(idx)) return;
     game.opened.add(idx);
-    const cell = ev.currentTarget;
-    const inner = cell.querySelector('.inner');
+    const cell=ev.currentTarget;
+    const inner=cell.querySelector('.inner');
     if(game.minePos.has(idx)){
-      cell.classList.add('revealed','mine'); inner.textContent='💣';
-      endGame(false);
+      cell.classList.add('revealed','mine'); inner.textContent='💣'; endGame(false);
     } else {
       cell.classList.add('revealed','safe'); inner.textContent='';
-      const safeCount = game.opened.size;
-      statusLabel.textContent=`Opened ${safeCount} safe / ${game.mines} mines`;
-      const multiplier=1+safeCount*0.1;
-      game.currentPayout=game.bet*multiplier;
+      const safeCount=game.opened.size; statusLabel.textContent=`Opened ${safeCount} safe / ${game.mines} mines`;
+      const multiplier=1+safeCount*0.1; game.currentPayout=Math.floor(game.bet*multiplier);
       if(autoCashout.checked) cashOut();
     }
   }
@@ -231,39 +217,32 @@ button:hover {transform: translateY(-2px); box-shadow:0 8px 22px rgba(0,0,0,0.7)
   function endGame(win){
     for(const idx of game.minePos){
       const c = gridEl.querySelector(`.cell[data-idx='${idx}']`);
-      if(c&&!c.classList.contains('revealed')){
-        c.classList.add('revealed','mine'); c.querySelector('.inner').textContent='💣';
-      }
+      if(c&&!c.classList.contains('revealed')){ c.classList.add('revealed','mine'); c.querySelector('.inner').textContent='💣'; }
     }
     cashoutBtn.disabled=true;
-    if(!win){
-      statusLabel.textContent=`💥 Boom! You lost -${fmt(game.bet)}`;
-      state.history.push({ result:'Loss', profit:-game.bet });
-    }
-    renderBalance(); saveState(); game=null;
+    if(!win){ statusLabel.textContent=`💥 Boom! You lost -${fmt(game.bet)}`; state.history.push({result:'Loss', profit:-game.bet}); }
+    renderBalance(); saveState(); game=null; renderHistory();
   }
 
   function cashOut(){
     if(!game) return;
-    const profit = Math.floor(game.currentPayout)-game.bet;
-    state.balance+=Math.floor(game.currentPayout);
+    const profit = game.currentPayout;
+    state.balance += profit;
+    const playerName = playerNameInput.value.trim() || 'Anonymous';
+    saveLeaderboard(playerName,state.balance);
     statusLabel.textContent=`Cashed out +${fmt(profit)}`;
     state.history.push({ result:'Win', profit });
-    const playerName = playerNameInput.value.trim() || 'Anonymous';
-    saveLeaderboard(playerName, state.balance);
-    renderBalance(); saveState(); endGame(true);
-    renderHistory();
+    saveState(); renderBalance(); endGame(true); renderHistory();
   }
 
   startBtn.addEventListener('click', startGame);
   cashoutBtn.addEventListener('click', cashOut);
-  resetMoneyBtn.addEventListener('click', ()=>{
-    const amount = Math.floor(Number(resetAmountInput.value));
-    if(!Number.isFinite(amount)||amount<1){ alert('Enter valid reset amount'); return;}
-    state.balance = amount;
-    renderBalance();
-    saveState();
-    statusLabel.textContent='Balance reset!';
+  resetMoneyBtn.addEventListener('click',()=>{
+    const amt=Math.floor(Number(resetAmountInput.value));
+    if(!Number.isFinite(amt)||amt<1){ alert('Enter valid amount'); return; }
+    state.balance = amt; saveState(); renderBalance(); statusLabel.textContent='Balance reset!'; 
+    const playerName = playerNameInput.value.trim() || 'Anonymous';
+    saveLeaderboard(playerName,state.balance);
   });
 
   loadState(); renderBalance(); renderHistory(); renderLeaderboard();
