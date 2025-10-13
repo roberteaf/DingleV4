@@ -3,270 +3,405 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Clash Royale Mini Deck & Play Demo</title>
+<title>Mini Clash Royale Battle Arena</title>
 <style>
-  body {
-    background: #0a2e47;
-    color: #f4f4f4;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  @import url('https://fonts.googleapis.com/css2?family=Bangers&display=swap');
+  body, html {
     margin: 0; padding: 0;
-    display: flex;
-    flex-direction: column;
-    min-height: 100vh;
-  }
-  header {
-    background: #07304a;
-    padding: 1rem 2rem;
-    text-align: center;
-    font-size: 2rem;
-    font-weight: bold;
-    color: #ffd700;
-    letter-spacing: 3px;
-    box-shadow: 0 3px 6px rgba(0,0,0,0.6);
-  }
-  main {
-    flex: 1;
+    height: 100%;
+    background: linear-gradient(135deg, #034078, #0c71c3);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: #fff;
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 1rem 1rem 3rem;
-    gap: 1rem;
   }
-  h2 {
-    margin-bottom: 0.5rem;
+  header {
+    font-family: 'Bangers', cursive;
+    font-size: 3rem;
+    margin: 1rem;
     color: #ffd700;
+    text-shadow: 0 0 10px #ffd700;
   }
-  .deck-builder, .play-area {
-    background: #07304a;
-    padding: 1rem;
-    border-radius: 10px;
-    box-shadow: 0 0 15px #ffd700;
-    width: 90%;
+  #arena {
+    position: relative;
+    width: 90vw;
     max-width: 900px;
+    height: 400px;
+    background: #03588c;
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 0 30px #03a9f4 inset;
+    margin-bottom: 1rem;
+    border: 4px solid #00b0ff;
   }
-  .cards-list {
+  /* Liquid waves effect */
+  #arena::before, #arena::after {
+    content: "";
+    position: absolute;
+    width: 200%;
+    height: 200%;
+    top: -50%;
+    left: -50%;
+    background: radial-gradient(circle at center, #00d4ff88, transparent 70%);
+    animation: wave 8s linear infinite;
+    opacity: 0.3;
+  }
+  #arena::after {
+    animation-delay: 4s;
+    opacity: 0.2;
+  }
+  @keyframes wave {
+    from { transform: rotate(0deg) translateX(0); }
+    to { transform: rotate(360deg) translateX(10px); }
+  }
+  #player-stats, #bot-stats {
+    position: absolute;
+    top: 10px;
+    font-weight: bold;
+    font-size: 1.2rem;
+    padding: 0.3rem 0.8rem;
+    background: rgba(0,0,0,0.4);
+    border-radius: 12px;
+  }
+  #player-stats {
+    left: 10px;
+    color: #00ff84;
+    box-shadow: 0 0 10px #00ff84;
+  }
+  #bot-stats {
+    right: 10px;
+    color: #ff4081;
+    box-shadow: 0 0 10px #ff4081;
+  }
+  #player-cards, #bot-cards {
+    position: absolute;
+    bottom: 10px;
     display: flex;
-    flex-wrap: wrap;
     gap: 1rem;
+    padding: 0 1rem;
+  }
+  #player-cards {
+    left: 0;
+    right: 0;
     justify-content: center;
   }
+  #bot-cards {
+    top: 50px;
+    left: 0;
+    right: 0;
+    justify-content: center;
+    pointer-events: none; /* bot cards not clickable */
+  }
   .card {
-    background: #112f4f;
-    width: 110px;
-    border-radius: 10px;
+    background: #036a8a;
+    border-radius: 12px;
+    width: 100px;
     padding: 0.5rem;
-    box-shadow: 0 3px 5px rgba(0,0,0,0.7);
+    box-shadow: 0 0 10px #00bcd4;
     cursor: pointer;
-    text-align: center;
-    color: #ffd700;
     user-select: none;
+    color: #ffd700;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
     transition: transform 0.3s ease, box-shadow 0.3s ease;
     position: relative;
   }
   .card:hover {
     transform: scale(1.1);
-    box-shadow: 0 0 20px #ffd700;
-    z-index: 10;
+    box-shadow: 0 0 20px #00e5ff;
   }
   .card img {
-    width: 80px;
-    filter: drop-shadow(0 0 5px #ffd700);
+    width: 70px;
+    border-radius: 8px;
+    margin-bottom: 0.3rem;
   }
   .card h3 {
-    margin-top: 0.4rem;
-    font-size: 1rem;
+    font-family: 'Bangers', cursive;
+    margin: 0;
+    font-size: 1.2rem;
+    text-shadow: 0 0 5px #ffd700;
   }
   .card p {
     font-size: 0.75rem;
-    color: #eee;
-    min-height: 40px;
+    margin: 0.2rem 0 0;
+    text-align: center;
   }
-  .deck {
-    display: flex;
-    gap: 1rem;
-    justify-content: center;
-    flex-wrap: wrap;
+  #message {
+    margin: 1rem 0;
+    font-size: 1.3rem;
+    height: 30px;
+    text-align: center;
+    min-height: 1.5em;
   }
-  .deck .card {
-    width: 90px;
-  }
-  button {
-    margin-top: 1rem;
+  #restart {
+    margin: 0.5rem;
+    padding: 0.6rem 1.2rem;
+    font-weight: bold;
     background: #ffd700;
     border: none;
-    color: #07304a;
-    font-weight: bold;
-    padding: 0.6rem 1.2rem;
-    border-radius: 6px;
+    border-radius: 8px;
+    color: #03588c;
     cursor: pointer;
-    transition: background-color 0.3s ease;
+    box-shadow: 0 0 10px #ffd700;
+    display: none;
   }
-  button:hover {
-    background: #ffea00;
+  #restart:hover {
+    background: #fff350;
   }
-  /* Play Area */
-  .play-area {
-    min-height: 200px;
-    position: relative;
-  }
-  .play-area h3 {
-    margin-bottom: 1rem;
-  }
-  .played-cards {
-    display: flex;
-    gap: 1rem;
-    flex-wrap: wrap;
-    justify-content: center;
-  }
+  /* Played cards flying animation */
   .played-card {
-    width: 90px;
-    animation: dropCard 0.6s ease forwards;
+    position: absolute;
+    width: 100px;
+    pointer-events: none;
+    animation: flyCard 0.8s ease forwards;
+    z-index: 10;
   }
-  @keyframes dropCard {
+  @keyframes flyCard {
     0% {
-      transform: translateY(-50px) scale(0.5);
-      opacity: 0;
+      opacity: 1;
+      transform: translateY(0) scale(1);
     }
     100% {
-      transform: translateY(0) scale(1);
-      opacity: 1;
+      opacity: 0;
+      transform: translateY(-100px) scale(0.5);
     }
   }
 </style>
 </head>
 <body>
 
-<header>Clash Royale Mini Deck Builder & Play</header>
+<header>Mini Clash Royale Arena</header>
 
-<main>
-  <section class="deck-builder">
-    <h2>Available Cards (Click to Add to Deck)</h2>
-    <div class="cards-list" id="available-cards"></div>
-    <h2>Your Deck (Max 8 cards)</h2>
-    <div class="deck" id="deck"></div>
-    <button id="clear-deck">Clear Deck</button>
-  </section>
+<div id="arena">
+  <div id="player-stats">Player HP: 20</div>
+  <div id="bot-stats">Bot HP: 20</div>
 
-  <section class="play-area">
-    <h3>Play Your Cards (Click Card to Play)</h3>
-    <div class="played-cards" id="played-cards"></div>
-  </section>
-</main>
+  <div id="bot-cards"></div>
+  <div id="player-cards"></div>
+</div>
+
+<div id="message"></div>
+<button id="restart">Restart Game</button>
 
 <script>
-  // Card Data (Add more cards here if you want)
+  // Cards with funny idiot images (free placeholder faces)
   const cards = [
     {
       name: 'Giant',
-      description: 'Slow but powerful, targets buildings.',
-      img: 'https://static.wikia.nocookie.net/clashroyale/images/8/8a/Giant_card_icon.png'
+      damage: 5,
+      img: 'https://i.imgur.com/4AiXzf8.jpeg', // silly face placeholder
+      description: 'Big idiot that hits hard.'
     },
     {
       name: 'Fireball',
-      description: 'Direct damage spell with area effect.',
-      img: 'https://static.wikia.nocookie.net/clashroyale/images/5/5f/Fireball_card_icon.png'
+      damage: 4,
+      img: 'https://i.imgur.com/6v3r5cR.jpeg', // silly face placeholder
+      description: 'Throws a burning idiot ball.'
     },
     {
       name: 'Musketeer',
-      description: 'Ranged troop, attacks air & ground.',
-      img: 'https://static.wikia.nocookie.net/clashroyale/images/0/0f/Musketeer_card_icon.png'
+      damage: 3,
+      img: 'https://i.imgur.com/7Pq79Ul.jpeg', // silly face placeholder
+      description: 'Shoots idiot lasers.'
     },
     {
       name: 'Hog Rider',
-      description: 'Fast, targets buildings.',
-      img: 'https://static.wikia.nocookie.net/clashroyale/images/9/9c/Hog_Rider_card_icon.png'
+      damage: 4,
+      img: 'https://i.imgur.com/LVprxnW.jpeg', // silly face placeholder
+      description: 'Rides an idiot hog.'
     },
     {
       name: 'Golden Knight',
-      description: 'Powerful and fast, dash attack.',
-      img: 'https://static.wikia.nocookie.net/clashroyale/images/e/e7/Golden_Knight_card_icon.png'
+      damage: 6,
+      img: 'https://i.imgur.com/JVyOy6x.jpeg', // silly face placeholder golden knight
+      description: 'The shiny idiot with dash attack.'
     }
   ];
 
-  const maxDeckSize = 8;
-  const availableCardsEl = document.getElementById('available-cards');
-  const deckEl = document.getElementById('deck');
-  const playedCardsEl = document.getElementById('played-cards');
-  const clearDeckBtn = document.getElementById('clear-deck');
+  let playerHP = 20;
+  let botHP = 20;
+  let playerDeck = [];
+  let botDeck = [];
+  const maxDeckSize = 5;
 
-  let deck = [];
+  const playerStats = document.getElementById('player-stats');
+  const botStats = document.getElementById('bot-stats');
+  const playerCardsEl = document.getElementById('player-cards');
+  const botCardsEl = document.getElementById('bot-cards');
+  const messageEl = document.getElementById('message');
+  const restartBtn = document.getElementById('restart');
 
-  // Render available cards
-  function renderAvailableCards() {
-    availableCardsEl.innerHTML = '';
-    cards.forEach((card, i) => {
-      const cardEl = document.createElement('div');
-      cardEl.className = 'card';
-      cardEl.title = card.description;
-      cardEl.innerHTML = `
-        <img src="${card.img}" alt="${card.name}" />
-        <h3>${card.name}</h3>
-        <p>${card.description}</p>
-      `;
-      cardEl.onclick = () => addToDeck(i);
-      availableCardsEl.appendChild(cardEl);
-    });
+  // Initialize game
+  function initGame() {
+    playerHP = 20;
+    botHP = 20;
+    playerDeck = [];
+    botDeck = [];
+
+    messageEl.textContent = 'Build your deck by clicking cards below!';
+    restartBtn.style.display = 'none';
+
+    generateDecks();
+    renderDecks();
+    updateStats();
   }
 
-  // Render deck
-  function renderDeck() {
-    deckEl.innerHTML = '';
-    deck.forEach((cardIndex, idx) => {
-      const card = cards[cardIndex];
-      const cardEl = document.createElement('div');
-      cardEl.className = 'card';
-      cardEl.title = card.description;
-      cardEl.innerHTML = `
-        <img src="${card.img}" alt="${card.name}" />
-        <h3>${card.name}</h3>
-        <p>${card.description}</p>
-      `;
-      cardEl.onclick = () => playCard(idx);
-      deckEl.appendChild(cardEl);
-    });
-  }
-
-  // Add card to deck
-  function addToDeck(cardIndex) {
-    if (deck.length >= maxDeckSize) {
-      alert('Deck is full! Max 8 cards.');
-      return;
+  // Generate random decks for player & bot
+  function generateDecks() {
+    // For simplicity, player deck is first 5 cards
+    playerDeck = [...Array(maxDeckSize).keys()]; // indexes 0 to 4
+    // Bot deck shuffled random cards
+    botDeck = [];
+    while(botDeck.length < maxDeckSize) {
+      const randIndex = Math.floor(Math.random() * cards.length);
+      if (!botDeck.includes(randIndex)) botDeck.push(randIndex);
     }
-    deck.push(cardIndex);
-    renderDeck();
   }
 
-  // Play card from deck
-  function playCard(deckIndex) {
-    const cardIndex = deck[deckIndex];
-    const card = cards[cardIndex];
+  // Render decks on screen (player can click to play)
+  function renderDecks() {
+    playerCardsEl.innerHTML = '';
+    botCardsEl.innerHTML = '';
 
-    // Create played card element with animation
-    const playedCardEl = document.createElement('div');
-    playedCardEl.className = 'card played-card';
-    playedCardEl.title = card.description;
-    playedCardEl.innerHTML = `
+    playerDeck.forEach((cardIndex, idx) => {
+      const card = cards[cardIndex];
+      const cardEl = createCardElement(card);
+      cardEl.onclick = () => playerPlayCard(idx);
+      playerCardsEl.appendChild(cardEl);
+    });
+
+    // Bot cards shown face down (idiot images hidden)
+    botDeck.forEach(() => {
+      const backEl = document.createElement('div');
+      backEl.className = 'card';
+      backEl.style.background = '#003f5c';
+      backEl.style.cursor = 'not-allowed';
+      backEl.style.filter = 'brightness(0.3)';
+      backEl.textContent = '???';
+      botCardsEl.appendChild(backEl);
+    });
+  }
+
+  // Create card element HTML
+  function createCardElement(card) {
+    const el = document.createElement('div');
+    el.className = 'card';
+    el.title = card.description;
+    el.innerHTML = `
       <img src="${card.img}" alt="${card.name}" />
       <h3>${card.name}</h3>
-      <p>${card.description}</p>
+      <p>Damage: ${card.damage}</p>
     `;
-    playedCardsEl.appendChild(playedCardEl);
-
-    // Remove card from deck
-    deck.splice(deckIndex, 1);
-    renderDeck();
-
-    // Optional: Play sound or animation effect here
+    return el;
   }
 
-  clearDeckBtn.onclick = () => {
-    deck = [];
-    renderDeck();
-    playedCardsEl.innerHTML = '';
+  // Player plays a card
+  function playerPlayCard(deckIndex) {
+    if (playerDeck.length === 0) return;
+
+    const cardIndex = playerDeck[deckIndex];
+    const card = cards[cardIndex];
+
+    playCardAnimation(card, 'player');
+
+    botHP -= card.damage;
+    if (botHP < 0) botHP = 0;
+
+    playerDeck.splice(deckIndex, 1);
+    updateStats();
+
+    if (checkGameOver()) return;
+
+    messageEl.textContent = `You played ${card.name}! Bot HP is now ${botHP}. Bot's turn...`;
+
+    // Bot plays after delay
+    setTimeout(botPlayCard, 1500);
+  }
+
+  // Bot plays a card (random)
+  function botPlayCard() {
+    if (botDeck.length === 0) {
+      messageEl.textContent = "Bot has no cards left! Your turn.";
+      return;
+    }
+    const randIdx = Math.floor(Math.random() * botDeck.length);
+    const cardIndex = botDeck[randIdx];
+    const card = cards[cardIndex];
+
+    playCardAnimation(card, 'bot');
+
+    playerHP -= card.damage;
+    if (playerHP < 0) playerHP = 0;
+
+    botDeck.splice(randIdx, 1);
+    updateStats();
+
+    if (checkGameOver()) return;
+
+    messageEl.textContent = `Bot played ${card.name}! Your HP is now ${playerHP}. Your turn!`;
+  }
+
+  // Play card animation
+  function playCardAnimation(card, who) {
+    const cardEl = createCardElement(card);
+    cardEl.classList.add('played-card');
+    if (who === 'player') {
+      cardEl.style.bottom = '70px';
+      cardEl.style.left = '50%';
+      cardEl.style.transform = 'translateX(-50%)';
+    } else {
+      cardEl.style.top = '70px';
+      cardEl.style.left = '50%';
+      cardEl.style.transform = 'translateX(-50%)';
+    }
+    document.getElementById('arena').appendChild(cardEl);
+
+    setTimeout(() => {
+      cardEl.remove();
+    }, 800);
+  }
+
+  // Update HP and UI
+  function updateStats() {
+    playerStats.textContent = `Player HP: ${playerHP}`;
+    botStats.textContent = `Bot HP: ${botHP}`;
+    renderDecks();
+  }
+
+  // Check for game over
+  function checkGameOver() {
+    if (playerHP <= 0) {
+      messageEl.textContent = 'You lost! The idiot bot wins! 😜';
+      restartBtn.style.display = 'inline-block';
+      disablePlayer();
+      return true;
+    }
+    if (botHP <= 0) {
+      messageEl.textContent = 'You won! The idiot bot got destroyed! 🎉';
+      restartBtn.style.display = 'inline-block';
+      disablePlayer();
+      return true;
+    }
+    return false;
+  }
+
+  // Disable player cards when game over
+  function disablePlayer() {
+    playerCardsEl.querySelectorAll('.card').forEach(card => {
+      card.onclick = null;
+      card.style.cursor = 'default';
+      card.style.filter = 'grayscale(0.7)';
+    });
+  }
+
+  // Restart game button
+  restartBtn.onclick = () => {
+    initGame();
   };
 
-  renderAvailableCards();
-  renderDeck();
+  initGame();
 </script>
 
 </body>
