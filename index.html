@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Space Mines — Leaderboard</title>
+<title>Space Mines — Login & Game</title>
 <style>
 :root {
   --bg1: #a0eaff;
@@ -15,29 +15,27 @@
   --glass: rgba(255,255,255,0.02);
 }
 * { box-sizing: border-box; margin:0; padding:0; }
-html, body { height:100%; }
-body {
-  background: linear-gradient(135deg, var(--bg1), var(--bg2));
-  background-size: 400% 400%;
-  animation: bgShift 20s ease infinite;
-  color: #e6eef8;
-  display:flex;
-  align-items:flex-start;
-  justify-content:center;
-  padding:40px 20px;
-  font-family: Inter, system-ui, sans-serif;
-}
+html, body { height:100%; font-family: Inter, system-ui, sans-serif; }
+body { background: linear-gradient(135deg, var(--bg1), var(--bg2)); background-size: 400% 400%; animation: bgShift 20s ease infinite; color: #e6eef8; display:flex; align-items:flex-start; justify-content:center; padding:40px 20px; }
 @keyframes bgShift {0% { background-position: 0% 50%; }50% { background-position: 100% 50%; }100% { background-position: 0% 50%; }}
-.container {width:100%; max-width:1000px; display:grid; grid-template-columns: 420px 1fr; gap:20px;}
-.card {background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)), var(--card-bg); border-radius:12px; padding:18px; box-shadow: 0 8px 30px rgba(0,0,0,0.7), inset 0 1px 0 var(--card-overlay); border:1px solid rgba(255,255,255,0.03); display:flex; flex-direction:column; gap:14px;}
+
+input, button { font-family: inherit; font-size:14px; }
+
+#loginScreen { display:flex; flex-direction:column; align-items:center; justify-content:center; height:100vh; gap:12px; }
+#loginScreen input { padding:8px 10px; border-radius:6px; border:1px solid rgba(255,255,255,0.2); background:rgba(0,0,0,0.1); color:#fff; }
+#loginScreen button { padding:8px 12px; border-radius:6px; border:none; background:var(--accent); color:#0b0d18; cursor:pointer; font-weight:700; }
+
+#gameScreen { display:none; width:100%; max-width:1000px; }
+.container {display:grid; grid-template-columns: 420px 1fr; gap:20px;}
+.card {background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)), var(--card-bg); border-radius:12px; padding:18px; box-shadow:0 8px 30px rgba(0,0,0,0.7), inset 0 1px 0 var(--card-overlay); border:1px solid rgba(255,255,255,0.03); display:flex; flex-direction:column; gap:14px;}
 .balance {display:flex; justify-content:space-between; align-items:center;}
 .balance .amount {font-size:28px; font-weight:700; color: var(--accent);}
 .balance .label {color: var(--muted); font-size:13px;}
-input[type=number], input[type=text] {padding:8px 10px; border-radius:8px; border:1px solid rgba(255,255,255,0.04); background:transparent; color:inherit; font-weight:600; transition:border-color 0.3s;}
+input[type=number], input[type=text] {padding:8px 10px; border-radius:8px; border:1px solid rgba(255,255,255,0.04); background:transparent; color:inherit; font-weight:600; transition:border-color 0.3s; }
 input[type=number]:focus, input[type=text]:focus {border-color: var(--accent); outline:none;}
 button {background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); color:inherit; border:1px solid rgba(255,255,255,0.04); padding:8px 10px; border-radius:8px; cursor:pointer; font-weight:700; transition: transform 0.15s, box-shadow 0.15s;}
 button:hover {transform: translateY(-2px); box-shadow:0 8px 22px rgba(0,0,0,0.7);}
-.btn-primary {background: linear-gradient(90deg, var(--accent), #a0f9d8); border:none; color:#0b0d18; box-shadow: 0 6px 18px rgba(122,240,194,0.2);}
+.btn-primary {background: linear-gradient(90deg, var(--accent), #a0f9d8); border:none; color:#0b0d18; box-shadow:0 6px 18px rgba(122,240,194,0.2);}
 .grid {display:grid; grid-template-columns: repeat(5,1fr); gap:6px; margin-top:12px;}
 .cell {position: relative; background: var(--glass); border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:18px; cursor:pointer; user-select:none; aspect-ratio:1; overflow:hidden; transition: background 0.3s;}
 .cell:hover {background: rgba(255,255,255,0.06);}
@@ -56,6 +54,15 @@ button:hover {transform: translateY(-2px); box-shadow:0 8px 22px rgba(0,0,0,0.7)
 .leaderboard div {display:flex; justify-content:space-between; padding:4px 6px;}
 </style>
 <body>
+<div id="loginScreen">
+  <h2>Login / Register</h2>
+  <input type="text" id="loginName" placeholder="Username" />
+  <input type="password" id="loginPassword" placeholder="Password" />
+  <button id="loginBtn">Login / Register</button>
+  <div id="loginStatus"></div>
+</div>
+
+<div id="gameScreen">
 <div class="container">
   <div class="card left-col">
     <div>
@@ -105,158 +112,208 @@ button:hover {transform: translateY(-2px); box-shadow:0 8px 22px rgba(0,0,0,0.7)
     </div>
   </div>
 </div>
+</div>
 
 <script>
-(() => {
-  const $ = s => document.querySelector(s);
-  const balanceDisplay = $('#balanceDisplay');
-  const betInput = $('#betInput');
-  const startBtn = $('#startBtn');
-  const mineCountInput = $('#mineCount');
-  const autoCashout = $('#autoCashout');
-  const gridEl = $('#grid');
-  const cashoutBtn = $('#cashoutBtn');
-  const resetMoneyBtn = $('#resetMoneyBtn');
-  const resetAmountInput = $('#resetAmount');
-  const statusLabel = $('#statusLabel');
-  const historyEl = $('#history');
-  const playerNameInput = $('#playerName');
-  const leaderboardList = $('#leaderboardList');
+(async()=>{
+// --- LOGIN SYSTEM ---
+const loginScreen = document.getElementById('loginScreen');
+const gameScreen = document.getElementById('gameScreen');
+const loginBtn = document.getElementById('loginBtn');
+const loginName = document.getElementById('loginName');
+const loginPassword = document.getElementById('loginPassword');
+const loginStatus = document.getElementById('loginStatus');
 
-  const STORAGE_KEY = 'mines_space_gradient_balance';
-  const LEADERBOARD_KEY = 'mines_leaderboard_balance';
-  let state = { balance: 1000000, history: [] };
-  let game = null;
+const USERS_KEY = 'spaceMinesUsers';
 
-  function saveState(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
-  function loadState(){
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if(raw){ 
-        const p = JSON.parse(raw); 
-        if(typeof p.balance==='number') state.balance = Math.min(Math.max(p.balance,0),1000000);
-        if(Array.isArray(p.history)) state.history = p.history; 
-      }
-    } catch(e){}
+// SHA-256 hash
+async function hashPassword(password){
+  const encoder = new TextEncoder();
+  const data = encoder.encode(password);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+
+function loadUsers(){
+  try{ return JSON.parse(localStorage.getItem(USERS_KEY)||'{}'); } catch(e){ return {}; }
+}
+function saveUsers(users){ localStorage.setItem(USERS_KEY,JSON.stringify(users)); }
+
+loginBtn.addEventListener('click', async ()=>{
+  const name = loginName.value.trim();
+  const pass = loginPassword.value;
+  if(!name || !pass){ loginStatus.textContent="Enter username & password"; return; }
+  const hashed = await hashPassword(pass);
+  const users = loadUsers();
+  if(users[name]){
+    if(users[name].pass !== hashed){ loginStatus.textContent="Wrong password"; return; }
+  } else {
+    users[name] = { pass: hashed, balance:1000000, history:[] };
+    saveUsers(users);
   }
+  loginScreen.style.display='none';
+  gameScreen.style.display='block';
+  initGame(name,users[name]);
+});
 
-  function saveLeaderboard(name,balance){
-    if(!name) name='Anonymous';
-    const lb = JSON.parse(localStorage.getItem(LEADERBOARD_KEY)||'[]');
-    const exist = lb.find(e=>e.name===name);
-    if(exist){ exist.score = balance; } else { lb.push({name, score:balance}); }
-    lb.sort((a,b)=>b.score-b.score);
-    if(lb.length>10) lb.length=10;
-    localStorage.setItem(LEADERBOARD_KEY, JSON.stringify(lb));
-    renderLeaderboard();
-  }
+// --- GAME SYSTEM ---
+function initGame(username,userData){
+const $ = s => document.querySelector(s);
+const balanceDisplay = $('#balanceDisplay');
+const betInput = $('#betInput');
+const startBtn = $('#startBtn');
+const mineCountInput = $('#mineCount');
+const autoCashout = $('#autoCashout');
+const gridEl = $('#grid');
+const cashoutBtn = $('#cashoutBtn');
+const resetMoneyBtn = $('#resetMoneyBtn');
+const resetAmountInput = $('#resetAmount');
+const statusLabel = $('#statusLabel');
+const historyEl = $('#history');
+const playerNameInput = $('#playerName');
+const leaderboardList = $('#leaderboardList');
 
-  function renderLeaderboard(){
-    const lb = JSON.parse(localStorage.getItem(LEADERBOARD_KEY)||'[]');
-    leaderboardList.innerHTML='';
-    lb.forEach((e,i)=>{
-      const div=document.createElement('div');
-      div.textContent=`${i+1}. ${e.name}`;
-      const span=document.createElement('span'); span.textContent=e.score.toLocaleString();
-      div.appendChild(span);
-      leaderboardList.appendChild(div);
-    });
-  }
+const LEADERBOARD_KEY = 'mines_leaderboard_balance';
+let state = { balance:userData.balance, history:userData.history };
+let game = null;
 
-  function fmt(n){ return n>=1000?n.toLocaleString():''+n; }
-  function renderBalance(){ balanceDisplay.textContent=fmt(state.balance); }
-  function renderHistory(){
-    historyEl.innerHTML=''; 
-    if(state.history.length===0){ historyEl.innerHTML='<div class="small muted">No history yet.</div>'; return;}
-    state.history.slice().reverse().forEach(it=>{
-      const div=document.createElement('div');
-      div.className='history-item '+(it.profit>=0?'win':'loss');
-      div.innerHTML=`<div>${it.result}</div><div>${it.profit>=0?'+':''}${fmt(it.profit)}</div>`;
-      historyEl.appendChild(div);
-    });
-  }
-
-  function resetGame(){ game=null; gridEl.innerHTML=''; cashoutBtn.disabled=true; statusLabel.textContent=''; }
-
-  function startGame(){
-    resetGame();
-    const bet=Math.floor(Number(betInput.value));
-    if(!Number.isFinite(bet)||bet<1){ alert('Enter a valid bet'); return;}
-    if(bet>state.balance){ alert('Not enough balance'); return;}
-    const mines=Math.floor(Number(mineCountInput.value));
-    if(!Number.isFinite(mines)||mines<1||mines>=25){ alert('Mines must be between 1 and 24'); return;}
-    const total=25; const minePos=new Set();
-    while(minePos.size<mines){ minePos.add(Math.floor(Math.random()*total)); }
-    game={ bet, mines, minePos, opened:new Set(), currentPayout:0 };
-    state.balance -= bet;
-    renderBalance();
-    saveState();
-    for(let i=0;i<25;i++){
-      const c=document.createElement('div'); c.className='cell'; c.dataset.idx=i;
-      const inner=document.createElement('div'); inner.className='inner'; c.appendChild(inner);
-      c.addEventListener('click', cellClick);
-      gridEl.appendChild(c);
-    }
-    cashoutBtn.disabled=false;
-    statusLabel.textContent=`Opened 0 safe / ${mines} mines`;
-  }
-
-  function cellClick(ev){
-    if(!game) return;
-    const idx=+ev.currentTarget.dataset.idx;
-    if(game.opened.has(idx)) return;
-    game.opened.add(idx);
-    const cell=ev.currentTarget;
-    const inner=cell.querySelector('.inner');
-    if(game.minePos.has(idx)){
-      cell.classList.add('revealed','mine'); inner.textContent='💣'; endGame(false);
-    } else {
-      cell.classList.add('revealed','safe'); inner.textContent='';
-      const safeCount=game.opened.size; statusLabel.textContent=`Opened ${safeCount} safe / ${game.mines} mines`;
-      const multiplier=1+safeCount*0.1; game.currentPayout=Math.floor(game.bet*multiplier);
-      if(autoCashout.checked) cashOut();
-    }
-  }
-
-  function endGame(win){
-    for(const idx of game.minePos){
-      const c = gridEl.querySelector(`.cell[data-idx='${idx}']`);
-      if(c&&!c.classList.contains('revealed')){ c.classList.add('revealed','mine'); c.querySelector('.inner').textContent='💣'; }
-    }
-    cashoutBtn.disabled=true;
-    if(!win){ statusLabel.textContent=`💥 Boom! You lost -${fmt(game.bet)}`; state.history.push({result:'Loss', profit:-game.bet}); }
-    renderBalance(); saveState(); game=null; renderHistory();
-  }
-
-  function cashOut(){
-    if(!game) return;
-    const profit = game.currentPayout;
-    state.balance += profit;
-    state.balance = Math.min(state.balance,1000000); // cap at 1M
-    const playerName = playerNameInput.value.trim() || 'Anonymous';
-    saveLeaderboard(playerName,state.balance);
-    statusLabel.textContent=`Cashed out +${fmt(profit)}`;
-    state.history.push({ result:'Win', profit });
-    saveState(); renderBalance(); endGame(true); renderHistory();
-  }
-
-  startBtn.addEventListener('click', startGame);
-  cashoutBtn.addEventListener('click', cashOut);
-  resetMoneyBtn.addEventListener('click',()=>{
-    let amt=Math.floor(Number(resetAmountInput.value));
-    if(!Number.isFinite(amt) || amt<0 || amt>1000000){ 
-      alert('Enter a valid amount between 0 and 1,000,000'); 
-      return; 
-    }
-    state.balance = amt; 
-    saveState(); 
-    renderBalance(); 
-    statusLabel.textContent='Balance reset!';
-    const playerName = playerNameInput.value.trim() || 'Anonymous';
-    saveLeaderboard(playerName,state.balance);
+function saveState(){ 
+  const users = loadUsers();
+  users[username] = { pass:users[username].pass, balance:state.balance, history:state.history };
+  saveUsers(users);
+}
+function fmt(n){ return n>=1000?n.toLocaleString():''+n; }
+function renderBalance(){ balanceDisplay.textContent=fmt(state.balance); }
+function renderHistory(){
+  historyEl.innerHTML=''; 
+  if(state.history.length===0){ historyEl.innerHTML='<div class="small muted">No history yet.</div>'; return;}
+  state.history.slice().reverse().forEach(it=>{
+    const div=document.createElement('div');
+    div.className='history-item '+(it.profit>=0?'win':'loss');
+    div.innerHTML=`<div>${it.result}</div><div>${it.profit>=0?'+':''}${fmt(it.profit)}</div>`;
+    historyEl.appendChild(div);
   });
+}
 
-  loadState(); renderBalance(); renderHistory(); renderLeaderboard();
+function saveLeaderboard(name,balance){
+  if(!name) name='Anonymous';
+  let lb = JSON.parse(localStorage.getItem(LEADERBOARD_KEY)||'[]');
+  const exist = lb.find(e=>e.name===name);
+  if(exist){ exist.score = balance; } else { lb.push({name, score:balance}); }
+  lb = lb.filter(e=>e.score>0);
+  lb.sort((a,b)=>b.score-a.score);
+  if(lb.length>10) lb.length=10;
+  localStorage.setItem(LEADERBOARD_KEY, JSON.stringify(lb));
+  renderLeaderboard();
+}
+
+function renderLeaderboard(){
+  const lb = JSON.parse(localStorage.getItem(LEADERBOARD_KEY)||'[]');
+  leaderboardList.innerHTML='';
+  lb.forEach((e,i)=>{
+    const div=document.createElement('div');
+    div.textContent=`${i+1}. ${e.name}`;
+    const span=document.createElement('span'); span.textContent=e.score.toLocaleString();
+    div.appendChild(span);
+    leaderboardList.appendChild(div);
+  });
+}
+
+// --- BET LIMIT ---
+betInput.addEventListener('input',()=>{
+  let bet = Math.floor(Number(betInput.value));
+  if(!Number.isFinite(bet) || bet<1) bet=1;
+  if(bet>state.balance) bet=state.balance;
+  betInput.value=bet;
+});
+
+// --- GAME FUNCTIONS ---
+function resetGame(){ game=null; gridEl.innerHTML=''; cashoutBtn.disabled=true; statusLabel.textContent=''; }
+
+function startGame(){
+  resetGame();
+  const bet=Math.floor(Number(betInput.value));
+  if(!Number.isFinite(bet)||bet<1){ alert('Enter a valid bet'); return;}
+  if(bet>state.balance){ alert('Not enough balance'); return;}
+  const mines=Math.floor(Number(mineCountInput.value));
+  if(!Number.isFinite(mines)||mines<1||mines>=25){ alert('Mines must be between 1 and 24'); return;}
+  const total=25; const minePos=new Set();
+  while(minePos.size<mines){ minePos.add(Math.floor(Math.random()*total)); }
+  game={ bet, mines, minePos, opened:new Set(), currentPayout:0 };
+  state.balance -= bet;
+  renderBalance();
+  saveState();
+  for(let i=0;i<25;i++){
+    const c=document.createElement('div'); c.className='cell'; c.dataset.idx=i;
+    const inner=document.createElement('div'); inner.className='inner'; c.appendChild(inner);
+    c.addEventListener('click', cellClick);
+    gridEl.appendChild(c);
+  }
+  cashoutBtn.disabled=false;
+  statusLabel.textContent=`Opened 0 safe / ${mines} mines`;
+}
+
+function cellClick(ev){
+  if(!game) return;
+  const idx=+ev.currentTarget.dataset.idx;
+  if(game.opened.has(idx)) return;
+  game.opened.add(idx);
+  const cell=ev.currentTarget;
+  const inner=cell.querySelector('.inner');
+  if(game.minePos.has(idx)){
+    cell.classList.add('revealed','mine'); inner.textContent='💣'; endGame(false);
+  } else {
+    cell.classList.add('revealed','safe'); inner.textContent='';
+    const safeCount=game.opened.size; statusLabel.textContent=`Opened ${safeCount} safe / ${game.mines} mines`;
+    const multiplier=1+safeCount*0.1; game.currentPayout=Math.floor(game.bet*multiplier);
+    if(autoCashout.checked) cashOut();
+  }
+}
+
+function endGame(win){
+  for(const idx of game.minePos){
+    const c = gridEl.querySelector(`.cell[data-idx='${idx}']`);
+    if(c&&!c.classList.contains('revealed')){ c.classList.add('revealed','mine'); c.querySelector('.inner').textContent='💣'; }
+  }
+  cashoutBtn.disabled=true;
+  if(!win){ statusLabel.textContent=`💥 Boom! You lost -${fmt(game.bet)}`; state.history.push({result:'Loss', profit:-game.bet}); }
+  renderBalance(); saveState(); game=null; renderHistory();
+}
+
+function cashOut(){
+  if(!game) return;
+  const profit = game.currentPayout;
+  state.balance += profit;
+  if(state.balance>1000000) state.balance=1000000;
+  const playerName = playerNameInput.value.trim() || 'Anonymous';
+  saveLeaderboard(playerName,state.balance);
+  statusLabel.textContent=`Cashed out +${fmt(profit)}`;
+  state.history.push({ result:'Win', profit });
+  saveState(); renderBalance(); endGame(true); renderHistory();
+}
+
+startBtn.addEventListener('click', startGame);
+cashoutBtn.addEventListener('click', cashOut);
+resetMoneyBtn.addEventListener('click',()=>{
+  let amt=Math.floor(Number(resetAmountInput.value));
+  if(!Number.isFinite(amt) || amt<0 || amt>1000000){ 
+    alert('Enter a valid amount between 0 and 1,000,000'); 
+    return; 
+  }
+  state.balance = amt; 
+  saveState(); 
+  renderBalance(); 
+  statusLabel.textContent='Balance reset!';
+  const playerName = playerNameInput.value.trim() || 'Anonymous';
+  saveLeaderboard(playerName,state.balance);
+});
+
+renderBalance(); renderHistory(); renderLeaderboard();
+
+// Auto-refresh leaderboard every 5 minutes
+setInterval(renderLeaderboard,300000);
+});
 })();
 </script>
 </body>
