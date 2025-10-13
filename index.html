@@ -1,196 +1,273 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Clash Royale Fan Site</title>
-  <style>
-    /* Reset & basic styles */
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Clash Royale Mini Deck & Play Demo</title>
+<style>
+  body {
+    background: #0a2e47;
+    color: #f4f4f4;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0; padding: 0;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+  }
+  header {
+    background: #07304a;
+    padding: 1rem 2rem;
+    text-align: center;
+    font-size: 2rem;
+    font-weight: bold;
+    color: #ffd700;
+    letter-spacing: 3px;
+    box-shadow: 0 3px 6px rgba(0,0,0,0.6);
+  }
+  main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 1rem 1rem 3rem;
+    gap: 1rem;
+  }
+  h2 {
+    margin-bottom: 0.5rem;
+    color: #ffd700;
+  }
+  .deck-builder, .play-area {
+    background: #07304a;
+    padding: 1rem;
+    border-radius: 10px;
+    box-shadow: 0 0 15px #ffd700;
+    width: 90%;
+    max-width: 900px;
+  }
+  .cards-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    justify-content: center;
+  }
+  .card {
+    background: #112f4f;
+    width: 110px;
+    border-radius: 10px;
+    padding: 0.5rem;
+    box-shadow: 0 3px 5px rgba(0,0,0,0.7);
+    cursor: pointer;
+    text-align: center;
+    color: #ffd700;
+    user-select: none;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    position: relative;
+  }
+  .card:hover {
+    transform: scale(1.1);
+    box-shadow: 0 0 20px #ffd700;
+    z-index: 10;
+  }
+  .card img {
+    width: 80px;
+    filter: drop-shadow(0 0 5px #ffd700);
+  }
+  .card h3 {
+    margin-top: 0.4rem;
+    font-size: 1rem;
+  }
+  .card p {
+    font-size: 0.75rem;
+    color: #eee;
+    min-height: 40px;
+  }
+  .deck {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  .deck .card {
+    width: 90px;
+  }
+  button {
+    margin-top: 1rem;
+    background: #ffd700;
+    border: none;
+    color: #07304a;
+    font-weight: bold;
+    padding: 0.6rem 1.2rem;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  button:hover {
+    background: #ffea00;
+  }
+  /* Play Area */
+  .play-area {
+    min-height: 200px;
+    position: relative;
+  }
+  .play-area h3 {
+    margin-bottom: 1rem;
+  }
+  .played-cards {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .played-card {
+    width: 90px;
+    animation: dropCard 0.6s ease forwards;
+  }
+  @keyframes dropCard {
+    0% {
+      transform: translateY(-50px) scale(0.5);
+      opacity: 0;
     }
-
-    body {
-      background: #0a2e47;
-      color: #f4f4f4;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
+    100% {
+      transform: translateY(0) scale(1);
+      opacity: 1;
     }
-
-    a {
-      color: #ffd700;
-      text-decoration: none;
-    }
-
-    a:hover {
-      text-decoration: underline;
-    }
-
-    header {
-      background: #07304a;
-      padding: 1rem 2rem;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.4);
-    }
-
-    header h1 {
-      font-family: 'Bangers', cursive;
-      font-size: 2rem;
-      color: #ffd700;
-      letter-spacing: 3px;
-    }
-
-    nav a {
-      margin-left: 1.5rem;
-      font-weight: bold;
-      font-size: 1.1rem;
-    }
-
-    /* Hero Section */
-    .hero {
-      flex: 1;
-      background: url('https://static.wikia.nocookie.net/clashroyale/images/4/42/Clash_Royale_Logo.png/revision/latest?cb=20160518010352') no-repeat center center/contain;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 3rem 1rem;
-      text-align: center;
-      filter: drop-shadow(0 0 5px #ffd700);
-    }
-
-    .hero h2 {
-      margin-top: 2rem;
-      font-size: 2.5rem;
-      color: #ffd700;
-      text-shadow: 1px 1px 5px #000;
-    }
-
-    .hero p {
-      margin-top: 1rem;
-      font-size: 1.2rem;
-      max-width: 600px;
-    }
-
-    /* Cards Section */
-    .cards {
-      background: #07304a;
-      padding: 2rem;
-      display: grid;
-      grid-template-columns: repeat(auto-fit,minmax(200px,1fr));
-      gap: 1.5rem;
-    }
-
-    .card {
-      background: #112f4f;
-      border-radius: 12px;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.7);
-      padding: 1rem;
-      text-align: center;
-      transition: transform 0.3s ease;
-      cursor: pointer;
-    }
-
-    .card:hover {
-      transform: scale(1.05);
-      box-shadow: 0 6px 12px #ffd700;
-    }
-
-    .card img {
-      width: 100px;
-      margin-bottom: 1rem;
-      filter: drop-shadow(0 0 5px #ffd700);
-    }
-
-    .card h3 {
-      font-size: 1.4rem;
-      margin-bottom: 0.5rem;
-      color: #ffd700;
-    }
-
-    .card p {
-      font-size: 1rem;
-      color: #ccc;
-    }
-
-    /* Footer */
-    footer {
-      background: #041e2a;
-      text-align: center;
-      padding: 1rem;
-      font-size: 0.9rem;
-      color: #888;
-      margin-top: auto;
-    }
-
-    /* Responsive */
-    @media (max-width: 600px) {
-      header h1 {
-        font-size: 1.5rem;
-      }
-
-      nav a {
-        margin-left: 1rem;
-        font-size: 1rem;
-      }
-
-      .hero h2 {
-        font-size: 1.8rem;
-      }
-    }
-  </style>
+  }
+</style>
 </head>
 <body>
 
-  <header>
-    <h1>Clash Royale</h1>
-    <nav>
-      <a href="#cards">Cards</a>
-      <a href="#about">About</a>
-      <a href="#contact">Contact</a>
-    </nav>
-  </header>
+<header>Clash Royale Mini Deck Builder & Play</header>
 
-  <section class="hero">
-    <h2>Welcome to the Clash Royale Fan Site!</h2>
-    <p>Explore your favorite Clash Royale cards and learn strategies to dominate the arena.</p>
+<main>
+  <section class="deck-builder">
+    <h2>Available Cards (Click to Add to Deck)</h2>
+    <div class="cards-list" id="available-cards"></div>
+    <h2>Your Deck (Max 8 cards)</h2>
+    <div class="deck" id="deck"></div>
+    <button id="clear-deck">Clear Deck</button>
   </section>
 
-  <section class="cards" id="cards">
-    <div class="card" title="The mighty Giant">
-      <img src="https://static.wikia.nocookie.net/clashroyale/images/8/8a/Giant_card_icon.png" alt="Giant" />
-      <h3>Giant</h3>
-      <p>Slow but powerful, the Giant targets buildings and soaks damage for your other troops.</p>
-    </div>
-
-    <div class="card" title="The explosive Fireball">
-      <img src="https://static.wikia.nocookie.net/clashroyale/images/5/5f/Fireball_card_icon.png" alt="Fireball" />
-      <h3>Fireball</h3>
-      <p>A direct damage spell dealing area damage, perfect for clearing medium-health troops.</p>
-    </div>
-
-    <div class="card" title="The versatile Musketeer">
-      <img src="https://static.wikia.nocookie.net/clashroyale/images/0/0f/Musketeer_card_icon.png" alt="Musketeer" />
-      <h3>Musketeer</h3>
-      <p>Ranged troop with solid damage output, effective against both air and ground units.</p>
-    </div>
-
-    <div class="card" title="The fast Hog Rider">
-      <img src="https://static.wikia.nocookie.net/clashroyale/images/9/9c/Hog_Rider_card_icon.png" alt="Hog Rider" />
-      <h3>Hog Rider</h3>
-      <p>Fast and furious, it targets buildings and can quickly pressure your opponent.</p>
-    </div>
+  <section class="play-area">
+    <h3>Play Your Cards (Click Card to Play)</h3>
+    <div class="played-cards" id="played-cards"></div>
   </section>
+</main>
 
-  <footer>
-    &copy; 2025 Clash Royale Fan Site. All rights reserved.
-  </footer>
+<script>
+  // Card Data (Add more cards here if you want)
+  const cards = [
+    {
+      name: 'Giant',
+      description: 'Slow but powerful, targets buildings.',
+      img: 'https://static.wikia.nocookie.net/clashroyale/images/8/8a/Giant_card_icon.png'
+    },
+    {
+      name: 'Fireball',
+      description: 'Direct damage spell with area effect.',
+      img: 'https://static.wikia.nocookie.net/clashroyale/images/5/5f/Fireball_card_icon.png'
+    },
+    {
+      name: 'Musketeer',
+      description: 'Ranged troop, attacks air & ground.',
+      img: 'https://static.wikia.nocookie.net/clashroyale/images/0/0f/Musketeer_card_icon.png'
+    },
+    {
+      name: 'Hog Rider',
+      description: 'Fast, targets buildings.',
+      img: 'https://static.wikia.nocookie.net/clashroyale/images/9/9c/Hog_Rider_card_icon.png'
+    },
+    {
+      name: 'Golden Knight',
+      description: 'Powerful and fast, dash attack.',
+      img: 'https://static.wikia.nocookie.net/clashroyale/images/e/e7/Golden_Knight_card_icon.png'
+    }
+  ];
+
+  const maxDeckSize = 8;
+  const availableCardsEl = document.getElementById('available-cards');
+  const deckEl = document.getElementById('deck');
+  const playedCardsEl = document.getElementById('played-cards');
+  const clearDeckBtn = document.getElementById('clear-deck');
+
+  let deck = [];
+
+  // Render available cards
+  function renderAvailableCards() {
+    availableCardsEl.innerHTML = '';
+    cards.forEach((card, i) => {
+      const cardEl = document.createElement('div');
+      cardEl.className = 'card';
+      cardEl.title = card.description;
+      cardEl.innerHTML = `
+        <img src="${card.img}" alt="${card.name}" />
+        <h3>${card.name}</h3>
+        <p>${card.description}</p>
+      `;
+      cardEl.onclick = () => addToDeck(i);
+      availableCardsEl.appendChild(cardEl);
+    });
+  }
+
+  // Render deck
+  function renderDeck() {
+    deckEl.innerHTML = '';
+    deck.forEach((cardIndex, idx) => {
+      const card = cards[cardIndex];
+      const cardEl = document.createElement('div');
+      cardEl.className = 'card';
+      cardEl.title = card.description;
+      cardEl.innerHTML = `
+        <img src="${card.img}" alt="${card.name}" />
+        <h3>${card.name}</h3>
+        <p>${card.description}</p>
+      `;
+      cardEl.onclick = () => playCard(idx);
+      deckEl.appendChild(cardEl);
+    });
+  }
+
+  // Add card to deck
+  function addToDeck(cardIndex) {
+    if (deck.length >= maxDeckSize) {
+      alert('Deck is full! Max 8 cards.');
+      return;
+    }
+    deck.push(cardIndex);
+    renderDeck();
+  }
+
+  // Play card from deck
+  function playCard(deckIndex) {
+    const cardIndex = deck[deckIndex];
+    const card = cards[cardIndex];
+
+    // Create played card element with animation
+    const playedCardEl = document.createElement('div');
+    playedCardEl.className = 'card played-card';
+    playedCardEl.title = card.description;
+    playedCardEl.innerHTML = `
+      <img src="${card.img}" alt="${card.name}" />
+      <h3>${card.name}</h3>
+      <p>${card.description}</p>
+    `;
+    playedCardsEl.appendChild(playedCardEl);
+
+    // Remove card from deck
+    deck.splice(deckIndex, 1);
+    renderDeck();
+
+    // Optional: Play sound or animation effect here
+  }
+
+  clearDeckBtn.onclick = () => {
+    deck = [];
+    renderDeck();
+    playedCardsEl.innerHTML = '';
+  };
+
+  renderAvailableCards();
+  renderDeck();
+</script>
 
 </body>
 </html>
