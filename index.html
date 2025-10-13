@@ -71,7 +71,7 @@ button:hover {transform: translateY(-2px); box-shadow:0 8px 22px rgba(0,0,0,0.7)
     <div class="grid" id="grid"></div>
     <div style="margin-top:12px; display:flex; gap:8px; align-items:center;">
       <button id="cashoutBtn" class="btn-primary" disabled>Cash Out</button>
-      <input type="number" id="resetAmount" value="1000000" min="1" step="1000" style="width:120px;"/>
+      <input type="number" id="resetAmount" value="1000000" min="0" max="1000000" step="1000" style="width:120px;"/>
       <button id="resetMoneyBtn" class="btn-primary">Reset Money</button>
       <div id="statusLabel" class="small"></div>
     </div>
@@ -132,7 +132,11 @@ button:hover {transform: translateY(-2px); box-shadow:0 8px 22px rgba(0,0,0,0.7)
   function loadState(){
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
-      if(raw){ const p=JSON.parse(raw); if(typeof p.balance==='number') state.balance=p.balance; if(Array.isArray(p.history)) state.history=p.history; }
+      if(raw){ 
+        const p = JSON.parse(raw); 
+        if(typeof p.balance==='number') state.balance = Math.min(Math.max(p.balance,0),1000000);
+        if(Array.isArray(p.history)) state.history = p.history; 
+      }
     } catch(e){}
   }
 
@@ -141,7 +145,7 @@ button:hover {transform: translateY(-2px); box-shadow:0 8px 22px rgba(0,0,0,0.7)
     const lb = JSON.parse(localStorage.getItem(LEADERBOARD_KEY)||'[]');
     const exist = lb.find(e=>e.name===name);
     if(exist){ exist.score = balance; } else { lb.push({name, score:balance}); }
-    lb.sort((a,b)=>b.score-a.score);
+    lb.sort((a,b)=>b.score-b.score);
     if(lb.length>10) lb.length=10;
     localStorage.setItem(LEADERBOARD_KEY, JSON.stringify(lb));
     renderLeaderboard();
@@ -228,6 +232,7 @@ button:hover {transform: translateY(-2px); box-shadow:0 8px 22px rgba(0,0,0,0.7)
     if(!game) return;
     const profit = game.currentPayout;
     state.balance += profit;
+    state.balance = Math.min(state.balance,1000000); // cap at 1M
     const playerName = playerNameInput.value.trim() || 'Anonymous';
     saveLeaderboard(playerName,state.balance);
     statusLabel.textContent=`Cashed out +${fmt(profit)}`;
@@ -238,9 +243,15 @@ button:hover {transform: translateY(-2px); box-shadow:0 8px 22px rgba(0,0,0,0.7)
   startBtn.addEventListener('click', startGame);
   cashoutBtn.addEventListener('click', cashOut);
   resetMoneyBtn.addEventListener('click',()=>{
-    const amt=Math.floor(Number(resetAmountInput.value));
-    if(!Number.isFinite(amt)||amt<1){ alert('Enter valid amount'); return; }
-    state.balance = amt; saveState(); renderBalance(); statusLabel.textContent='Balance reset!'; 
+    let amt=Math.floor(Number(resetAmountInput.value));
+    if(!Number.isFinite(amt) || amt<0 || amt>1000000){ 
+      alert('Enter a valid amount between 0 and 1,000,000'); 
+      return; 
+    }
+    state.balance = amt; 
+    saveState(); 
+    renderBalance(); 
+    statusLabel.textContent='Balance reset!';
     const playerName = playerNameInput.value.trim() || 'Anonymous';
     saveLeaderboard(playerName,state.balance);
   });
