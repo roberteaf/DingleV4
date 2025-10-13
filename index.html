@@ -1,408 +1,428 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Mini Clash Royale Battle Arena</title>
-<style>
-  @import url('https://fonts.googleapis.com/css2?family=Bangers&display=swap');
-  body, html {
-    margin: 0; padding: 0;
-    height: 100%;
-    background: linear-gradient(135deg, #034078, #0c71c3);
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    color: #fff;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-  }
-  header {
-    font-family: 'Bangers', cursive;
-    font-size: 3rem;
-    margin: 1rem;
-    color: #ffd700;
-    text-shadow: 0 0 10px #ffd700;
-  }
-  #arena {
-    position: relative;
-    width: 90vw;
-    max-width: 900px;
-    height: 400px;
-    background: #03588c;
-    border-radius: 20px;
-    overflow: hidden;
-    box-shadow: 0 0 30px #03a9f4 inset;
-    margin-bottom: 1rem;
-    border: 4px solid #00b0ff;
-  }
-  /* Liquid waves effect */
-  #arena::before, #arena::after {
-    content: "";
-    position: absolute;
-    width: 200%;
-    height: 200%;
-    top: -50%;
-    left: -50%;
-    background: radial-gradient(circle at center, #00d4ff88, transparent 70%);
-    animation: wave 8s linear infinite;
-    opacity: 0.3;
-  }
-  #arena::after {
-    animation-delay: 4s;
-    opacity: 0.2;
-  }
-  @keyframes wave {
-    from { transform: rotate(0deg) translateX(0); }
-    to { transform: rotate(360deg) translateX(10px); }
-  }
-  #player-stats, #bot-stats {
-    position: absolute;
-    top: 10px;
-    font-weight: bold;
-    font-size: 1.2rem;
-    padding: 0.3rem 0.8rem;
-    background: rgba(0,0,0,0.4);
-    border-radius: 12px;
-  }
-  #player-stats {
-    left: 10px;
-    color: #00ff84;
-    box-shadow: 0 0 10px #00ff84;
-  }
-  #bot-stats {
-    right: 10px;
-    color: #ff4081;
-    box-shadow: 0 0 10px #ff4081;
-  }
-  #player-cards, #bot-cards {
-    position: absolute;
-    bottom: 10px;
-    display: flex;
-    gap: 1rem;
-    padding: 0 1rem;
-  }
-  #player-cards {
-    left: 0;
-    right: 0;
-    justify-content: center;
-  }
-  #bot-cards {
-    top: 50px;
-    left: 0;
-    right: 0;
-    justify-content: center;
-    pointer-events: none; /* bot cards not clickable */
-  }
-  .card {
-    background: #036a8a;
-    border-radius: 12px;
-    width: 100px;
-    padding: 0.5rem;
-    box-shadow: 0 0 10px #00bcd4;
-    cursor: pointer;
-    user-select: none;
-    color: #ffd700;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-    position: relative;
-  }
-  .card:hover {
-    transform: scale(1.1);
-    box-shadow: 0 0 20px #00e5ff;
-  }
-  .card img {
-    width: 70px;
-    border-radius: 8px;
-    margin-bottom: 0.3rem;
-  }
-  .card h3 {
-    font-family: 'Bangers', cursive;
-    margin: 0;
-    font-size: 1.2rem;
-    text-shadow: 0 0 5px #ffd700;
-  }
-  .card p {
-    font-size: 0.75rem;
-    margin: 0.2rem 0 0;
-    text-align: center;
-  }
-  #message {
-    margin: 1rem 0;
-    font-size: 1.3rem;
-    height: 30px;
-    text-align: center;
-    min-height: 1.5em;
-  }
-  #restart {
-    margin: 0.5rem;
-    padding: 0.6rem 1.2rem;
-    font-weight: bold;
-    background: #ffd700;
-    border: none;
-    border-radius: 8px;
-    color: #03588c;
-    cursor: pointer;
-    box-shadow: 0 0 10px #ffd700;
-    display: none;
-  }
-  #restart:hover {
-    background: #fff350;
-  }
-  /* Played cards flying animation */
-  .played-card {
-    position: absolute;
-    width: 100px;
-    pointer-events: none;
-    animation: flyCard 0.8s ease forwards;
-    z-index: 10;
-  }
-  @keyframes flyCard {
-    0% {
-      opacity: 1;
-      transform: translateY(0) scale(1);
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Space Mines — Gradient BG</title>
+  <style>
+    :root {
+      --bg1: #a0eaff;
+      --bg2: #ff9aa2;
+      --stars: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjQiIGhlaWdodD0iNjQiIHZpZXdCb3g9IjAgMCA2NCA2NCIgc3R5bGU9ImJhY2tncm91bmQ6bm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBvcGFjaXR5PSIwLjQ1Ij48Y2lyY2xlIGN4PSIyMiIgY3k9IjE4IiByPSIxIiBmaWxsPSJ3aGl0ZSIvPjxjaXJjbGUgY3g9IjQiIGN5PSI0IiByPSIxIiBmaWxsPSJ3aGl0ZSIvPjxjaXJjbGUgY3g9IjU4IiBjeT0iNCIgcj0iMSIgZmlsbD0id2hpdGUiLz48Y2lyY2xlIGN4PSI1MCIgY3k9IjIwIiByPSIxIiBmaWxsPSJ3aGl0ZSIvPjxjaXJjbGUgY3g9IjMwIiBjeT0iNDgiIHI9IjEiIGZpbGw9IndoaXRlIi8+PC9nPjwvc3ZnPg==');
+      --card-bg: #0b0d18;
+      --card-overlay: rgba(255,255,255,0.04);
+      --accent: #7af0c2;
+      --muted: #8fa3b3;
+      --glass: rgba(255,255,255,0.02);
     }
-    100% {
-      opacity: 0;
-      transform: translateY(-100px) scale(0.5);
+    * { box-sizing: border-box; margin:0; padding:0; }
+    html, body { height:100%; }
+    body {
+      background: linear-gradient(135deg, var(--bg1), var(--bg2));
+      background-size: 400% 400%;
+      animation: bgShift 20s ease infinite;
+      color: #e6eef8;
+      display:flex;
+      align-items:flex-start;
+      justify-content:center;
+      padding:40px 20px;
+      font-family: Inter, system-ui, sans-serif;
     }
-  }
-</style>
-</head>
+    @keyframes bgShift {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+    .container {
+      width:100%;
+      max-width:1000px;
+      display:grid;
+      grid-template-columns: 420px 1fr;
+      gap:20px;
+    }
+    .card {
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)), var(--card-bg);
+      border-radius:12px;
+      padding:18px;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.7), inset 0 1px 0 var(--card-overlay);
+      border:1px solid rgba(255,255,255,0.03);
+      display:flex;
+      flex-direction:column;
+      gap:14px;
+    }
+    .balance {
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+    }
+    .balance .amount {
+      font-size:28px;
+      font-weight:700;
+      color: var(--accent);
+    }
+    .balance .label {
+      color: var(--muted);
+      font-size:13px;
+    }
+    input[type=number] {
+      width:140px;
+      padding:10px 12px;
+      border-radius:8px;
+      border:1px solid rgba(255,255,255,0.04);
+      background:transparent;
+      color:inherit;
+      font-weight:600;
+      transition: border-color 0.3s;
+    }
+    input[type=number]:focus {
+      border-color: var(--accent);
+      outline: none;
+    }
+    button {
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+      color:inherit;
+      border:1px solid rgba(255,255,255,0.04);
+      padding:10px 12px;
+      border-radius:8px;
+      cursor:pointer;
+      font-weight:700;
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 22px rgba(0,0,0,0.7);
+    }
+    .btn-primary {
+      background: linear-gradient(90deg, var(--accent), #a0f9d8);
+      border:none;
+      color:#0b0d18;
+      box-shadow: 0 6px 18px rgba(122,240,194,0.2);
+    }
+    .toggle {
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:6px;
+      border-radius:10px;
+      background: var(--glass);
+      border:1px solid rgba(255,255,255,0.02);
+    }
+    .toggle input {
+      width:16px; height:16px;
+    }
+    .toggle span {
+      color: var(--muted);
+      font-size:13px;
+    }
+    .grid {
+      display:grid;
+      grid-template-columns: repeat(5,1fr);
+      gap:6px;
+      margin-top:12px;
+    }
+    .cell {
+      position: relative;
+      background: var(--glass);
+      border-radius:8px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size:18px;
+      cursor:pointer;
+      user-select:none;
+      aspect-ratio:1;
+      overflow:hidden;
+      transition: background 0.3s;
+    }
+    .cell:hover {
+      background: rgba(255,255,255,0.06);
+    }
+    .cell.revealed {
+      cursor: default;
+      background: rgba(255,255,255,0.08);
+    }
+    .cell.mine {
+      background: linear-gradient(135deg, #001a33, #004f66);
+      color: #ff6666;
+    }
+    .cell.safe {
+      background: linear-gradient(135deg, #002244, #33cc88);
+      color: #ccffee;
+    }
+    .cell .inner {
+      transform: scale(0);
+      transition: transform 0.3s ease-out;
+      z-index:5;
+    }
+    .cell.revealed .inner {
+      transform: scale(1);
+    }
+    .history {
+      margin-top:12px;
+      max-height:300px;
+      overflow:auto;
+      background: linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.005));
+      border-radius:10px;
+      padding:10px;
+    }
+    .history-item {
+      display:flex;
+      justify-content:space-between;
+      padding:6px;
+      border-radius:8px;
+      margin-bottom:6px;
+      transition: background 0.3s;
+    }
+    .history-item.win {
+      background: linear-gradient(90deg, rgba(64,255,192,0.05), rgba(255,255,255,0.01));
+    }
+    .history-item.loss {
+      background: linear-gradient(90deg, rgba(255,72,72,0.04), rgba(255,255,255,0.01));
+    }
+    .small { font-size:12px; color: var(--muted); }
+  </style>
 <body>
+  <div class="container">
+    <div class="card left-col">
+      <div class="balance">
+        <div>
+          <div class="label">Balance</div>
+          <div class="amount" id="balanceDisplay">1,000,000</div>
+        </div>
+        <div>
+          <label class="toggle" title="Infinite money (fun mode)">
+            <input id="infiniteToggle" type="checkbox" />
+            <span class="small">Infinite</span>
+          </label>
+        </div>
+      </div>
+      <div class="small muted" style="margin-top:8px;">
+        Reveal tiles — avoid mines! Cash out before you explode.
+      </div>
+      <div class="grid" id="grid"></div>
+      <div style="margin-top:12px; display:flex; gap:12px; align-items:center;">
+        <button id="cashoutBtn" class="btn-primary" disabled>Cash Out</button>
+        <div id="statusLabel" class="small"></div>
+      </div>
+    </div>
 
-<header>Mini Clash Royale Arena</header>
-
-<div id="arena">
-  <div id="player-stats">Player HP: 20</div>
-  <div id="bot-stats">Bot HP: 20</div>
-
-  <div id="bot-cards"></div>
-  <div id="player-cards"></div>
-</div>
-
-<div id="message"></div>
-<button id="restart">Restart Game</button>
+    <div class="card right-col">
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <div style="flex:1">
+          <div class="label small">Bet</div>
+          <input type="number" id="betInput" min="1" step="1" value="1000" />
+        </div>
+        <div>
+          <label class="toggle">
+            <input type="number" id="mineCount" value="3" min="1" max="10" style="width:60px;" />
+            <span class="small">Mines</span>
+          </label>
+        </div>
+      </div>
+      <div style="margin-top:12px; display:flex; gap:8px; align-items:center;">
+        <button id="startBtn" class="btn-primary" style="flex:1;">Start Game</button>
+        <label class="toggle">
+          <input type="checkbox" id="autoCashout" />
+          <span class="small">Auto Cashout</span>
+        </label>
+      </div>
+      <div style="margin-top:12px; flex:1;">
+        <div class="small muted">History</div>
+        <div class="history" id="history"></div>
+      </div>
+    </div>
+  </div>
 
 <script>
-  // Cards with funny idiot images (free placeholder faces)
-  const cards = [
-    {
-      name: 'Giant',
-      damage: 5,
-      img: 'https://i.imgur.com/4AiXzf8.jpeg', // silly face placeholder
-      description: 'Big idiot that hits hard.'
-    },
-    {
-      name: 'Fireball',
-      damage: 4,
-      img: 'https://i.imgur.com/6v3r5cR.jpeg', // silly face placeholder
-      description: 'Throws a burning idiot ball.'
-    },
-    {
-      name: 'Musketeer',
-      damage: 3,
-      img: 'https://i.imgur.com/7Pq79Ul.jpeg', // silly face placeholder
-      description: 'Shoots idiot lasers.'
-    },
-    {
-      name: 'Hog Rider',
-      damage: 4,
-      img: 'https://i.imgur.com/LVprxnW.jpeg', // silly face placeholder
-      description: 'Rides an idiot hog.'
-    },
-    {
-      name: 'Golden Knight',
-      damage: 6,
-      img: 'https://i.imgur.com/JVyOy6x.jpeg', // silly face placeholder golden knight
-      description: 'The shiny idiot with dash attack.'
-    }
-  ];
+(() => {
+  const $ = (s, ctx=document) => ctx.querySelector(s);
+  const $$ = (s, ctx=document) => Array.from(ctx.querySelectorAll(s));
 
-  let playerHP = 20;
-  let botHP = 20;
-  let playerDeck = [];
-  let botDeck = [];
-  const maxDeckSize = 5;
+  const balanceDisplay = $('#balanceDisplay');
+  const infiniteToggle = $('#infiniteToggle');
+  const betInput = $('#betInput');
+  const startBtn = $('#startBtn');
+  const mineCountInput = $('#mineCount');
+  const autoCashout = $('#autoCashout');
+  const gridEl = $('#grid');
+  const cashoutBtn = $('#cashoutBtn');
+  const statusLabel = $('#statusLabel');
+  const historyEl = $('#history');
 
-  const playerStats = document.getElementById('player-stats');
-  const botStats = document.getElementById('bot-stats');
-  const playerCardsEl = document.getElementById('player-cards');
-  const botCardsEl = document.getElementById('bot-cards');
-  const messageEl = document.getElementById('message');
-  const restartBtn = document.getElementById('restart');
+  const STORAGE_KEY = 'mines_space_gradient_v1';
+  const defaultState = {
+    balance: 1_000_000,
+    infinite: true,
+    history: []
+  };
+  let state = loadState();
+  let game = null;
 
-  // Initialize game
-  function initGame() {
-    playerHP = 20;
-    botHP = 20;
-    playerDeck = [];
-    botDeck = [];
-
-    messageEl.textContent = 'Build your deck by clicking cards below!';
-    restartBtn.style.display = 'none';
-
-    generateDecks();
-    renderDecks();
-    updateStats();
-  }
-
-  // Generate random decks for player & bot
-  function generateDecks() {
-    // For simplicity, player deck is first 5 cards
-    playerDeck = [...Array(maxDeckSize).keys()]; // indexes 0 to 4
-    // Bot deck shuffled random cards
-    botDeck = [];
-    while(botDeck.length < maxDeckSize) {
-      const randIndex = Math.floor(Math.random() * cards.length);
-      if (!botDeck.includes(randIndex)) botDeck.push(randIndex);
+  function loadState(){
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return {...defaultState};
+      const p = JSON.parse(raw);
+      p.balance = typeof p.balance === 'number' ? p.balance : defaultState.balance;
+      p.infinite = !!p.infinite;
+      p.history = Array.isArray(p.history) ? p.history : [];
+      return p;
+    } catch(e) {
+      return {...defaultState};
     }
   }
-
-  // Render decks on screen (player can click to play)
-  function renderDecks() {
-    playerCardsEl.innerHTML = '';
-    botCardsEl.innerHTML = '';
-
-    playerDeck.forEach((cardIndex, idx) => {
-      const card = cards[cardIndex];
-      const cardEl = createCardElement(card);
-      cardEl.onclick = () => playerPlayCard(idx);
-      playerCardsEl.appendChild(cardEl);
-    });
-
-    // Bot cards shown face down (idiot images hidden)
-    botDeck.forEach(() => {
-      const backEl = document.createElement('div');
-      backEl.className = 'card';
-      backEl.style.background = '#003f5c';
-      backEl.style.cursor = 'not-allowed';
-      backEl.style.filter = 'brightness(0.3)';
-      backEl.textContent = '???';
-      botCardsEl.appendChild(backEl);
-    });
+  function saveState(){
+    const to = {
+      balance: state.balance,
+      infinite: state.infinite,
+      history: state.history.slice(-200)
+    };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(to));
+  }
+  function fmt(n){
+    if (n === Infinity) return '∞';
+    return n >= 1000 ? n.toLocaleString() : '' + n;
   }
 
-  // Create card element HTML
-  function createCardElement(card) {
-    const el = document.createElement('div');
-    el.className = 'card';
-    el.title = card.description;
-    el.innerHTML = `
-      <img src="${card.img}" alt="${card.name}" />
-      <h3>${card.name}</h3>
-      <p>Damage: ${card.damage}</p>
-    `;
-    return el;
+  function renderBalance(){
+    balanceDisplay.textContent = state.infinite ? '∞' : fmt(state.balance);
   }
-
-  // Player plays a card
-  function playerPlayCard(deckIndex) {
-    if (playerDeck.length === 0) return;
-
-    const cardIndex = playerDeck[deckIndex];
-    const card = cards[cardIndex];
-
-    playCardAnimation(card, 'player');
-
-    botHP -= card.damage;
-    if (botHP < 0) botHP = 0;
-
-    playerDeck.splice(deckIndex, 1);
-    updateStats();
-
-    if (checkGameOver()) return;
-
-    messageEl.textContent = `You played ${card.name}! Bot HP is now ${botHP}. Bot's turn...`;
-
-    // Bot plays after delay
-    setTimeout(botPlayCard, 1500);
-  }
-
-  // Bot plays a card (random)
-  function botPlayCard() {
-    if (botDeck.length === 0) {
-      messageEl.textContent = "Bot has no cards left! Your turn.";
+  function renderHistory(){
+    historyEl.innerHTML = '';
+    const items = state.history.slice().reverse();
+    if (items.length === 0) {
+      historyEl.innerHTML = `<div class="small muted">No history yet.</div>`;
       return;
     }
-    const randIdx = Math.floor(Math.random() * botDeck.length);
-    const cardIndex = botDeck[randIdx];
-    const card = cards[cardIndex];
-
-    playCardAnimation(card, 'bot');
-
-    playerHP -= card.damage;
-    if (playerHP < 0) playerHP = 0;
-
-    botDeck.splice(randIdx, 1);
-    updateStats();
-
-    if (checkGameOver()) return;
-
-    messageEl.textContent = `Bot played ${card.name}! Your HP is now ${playerHP}. Your turn!`;
+    for (const it of items) {
+      const el = document.createElement('div');
+      el.className = 'history-item ' + (it.profit >= 0 ? 'win' : 'loss');
+      el.innerHTML = `
+        <div>${it.result}</div>
+        <div>${it.profit >= 0 ? '+' : ''}${fmt(it.profit)}</div>
+      `;
+      historyEl.appendChild(el);
+    }
   }
 
-  // Play card animation
-  function playCardAnimation(card, who) {
-    const cardEl = createCardElement(card);
-    cardEl.classList.add('played-card');
-    if (who === 'player') {
-      cardEl.style.bottom = '70px';
-      cardEl.style.left = '50%';
-      cardEl.style.transform = 'translateX(-50%)';
+  function resetGame(){
+    game = null;
+    gridEl.innerHTML = '';
+    cashoutBtn.disabled = true;
+    statusLabel.textContent = '';
+  }
+
+  function startGame(){
+    resetGame();
+    const bet = Math.floor(Number(betInput.value));
+    if (!Number.isFinite(bet) || bet < 1) {
+      alert('Enter a valid bet');
+      return;
+    }
+    if (!state.infinite && bet > state.balance) {
+      alert('Not enough balance');
+      return;
+    }
+    const mines = Math.floor(Number(mineCountInput.value));
+    if (!Number.isFinite(mines) || mines < 1 || mines >= 25) {
+      alert('Mines must be between 1 and 24');
+      return;
+    }
+    const total = 25;
+    const minePos = new Set();
+    while (minePos.size < mines) {
+      minePos.add(Math.floor(Math.random() * total));
+    }
+    game = { bet, mines, minePos, opened: new Set(), currentPayout: 0 };
+    if (!state.infinite) {
+      state.balance -= bet;
+    }
+    for (let i=0; i<25; i++){
+      const c = document.createElement('div');
+      c.className = 'cell';
+      c.dataset.idx = i;
+      c.addEventListener('click', cellClick);
+      const inner = document.createElement('div');
+      inner.className = 'inner';
+      c.appendChild(inner);
+      gridEl.appendChild(c);
+    }
+    cashoutBtn.disabled = false;
+    statusLabel.textContent = `Opened 0 safe / ${mines} mines`;
+    renderBalance();
+    saveState();
+  }
+
+  function cellClick(ev){
+    if (!game) return;
+    const idx = +ev.currentTarget.dataset.idx;
+    if (game.opened.has(idx)) return;
+    game.opened.add(idx);
+    const cell = ev.currentTarget;
+    const inner = cell.querySelector('.inner');
+    if (game.minePos.has(idx)) {
+      cell.classList.add('revealed', 'mine');
+      inner.textContent = '💣';
+      endGame(false);
     } else {
-      cardEl.style.top = '70px';
-      cardEl.style.left = '50%';
-      cardEl.style.transform = 'translateX(-50%)';
+      cell.classList.add('revealed', 'safe');
+      inner.textContent = '';
+      const safeCount = game.opened.size;
+      statusLabel.textContent = `Opened ${safeCount} safe / ${game.mines} mines`;
+
+      // Multiplier increases by 0.1 per safe tile
+      const multiplier = 1 + safeCount * 0.1;
+      game.currentPayout = game.bet * multiplier;
+
+      if (autoCashout.checked) {
+        cashOut();
+      }
     }
-    document.getElementById('arena').appendChild(cardEl);
-
-    setTimeout(() => {
-      cardEl.remove();
-    }, 800);
   }
 
-  // Update HP and UI
-  function updateStats() {
-    playerStats.textContent = `Player HP: ${playerHP}`;
-    botStats.textContent = `Bot HP: ${botHP}`;
-    renderDecks();
-  }
-
-  // Check for game over
-  function checkGameOver() {
-    if (playerHP <= 0) {
-      messageEl.textContent = 'You lost! The idiot bot wins! 😜';
-      restartBtn.style.display = 'inline-block';
-      disablePlayer();
-      return true;
+  function endGame(win){
+    for (const idx of game.minePos) {
+      const c = gridEl.querySelector(`.cell[data-idx='${idx}']`);
+      if (c && !c.classList.contains('revealed')) {
+        c.classList.add('revealed','mine');
+        c.querySelector('.inner').textContent = '💣';
+      }
     }
-    if (botHP <= 0) {
-      messageEl.textContent = 'You won! The idiot bot got destroyed! 🎉';
-      restartBtn.style.display = 'inline-block';
-      disablePlayer();
-      return true;
+    cashoutBtn.disabled = true;
+    if (!win) {
+      statusLabel.textContent = `💥 Boom! You lost -${fmt(game.bet)}`;
+      state.history.push({ result: 'Loss', profit: -game.bet });
     }
-    return false;
+    renderBalance();
+    saveState();
+    game = null;
   }
 
-  // Disable player cards when game over
-  function disablePlayer() {
-    playerCardsEl.querySelectorAll('.card').forEach(card => {
-      card.onclick = null;
-      card.style.cursor = 'default';
-      card.style.filter = 'grayscale(0.7)';
-    });
+  function cashOut(){
+    if (!game) return;
+    const profit = Math.floor(game.currentPayout) - game.bet;
+    if (!state.infinite) {
+      state.balance += Math.floor(game.currentPayout);
+    }
+    statusLabel.textContent = `Cashed out +${fmt(profit)}`;
+    state.history.push({ result: 'Win', profit });
+    saveState();
+    renderBalance();
+    endGame(true);
   }
 
-  // Restart game button
-  restartBtn.onclick = () => {
-    initGame();
-  };
+  startBtn.addEventListener('click', startGame);
+  cashoutBtn.addEventListener('click', cashOut);
+  infiniteToggle.addEventListener('change', () => {
+    state.infinite = infiniteToggle.checked;
+    renderBalance();
+    saveState();
+  });
 
-  initGame();
+  renderBalance();
+  infiniteToggle.checked = state.infinite;
+  renderHistory();
+})();
 </script>
-
 </body>
 </html>
