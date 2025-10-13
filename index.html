@@ -202,6 +202,7 @@
       <div class="grid" id="grid"></div>
       <div style="margin-top:12px; display:flex; gap:12px; align-items:center;">
         <button id="cashoutBtn" class="btn-primary" disabled>Cash Out</button>
+        <button id="resetMoneyBtn" class="btn-primary">Reset Money</button>
         <div id="statusLabel" class="small"></div>
       </div>
     </div>
@@ -246,6 +247,7 @@
   const autoCashout = $('#autoCashout');
   const gridEl = $('#grid');
   const cashoutBtn = $('#cashoutBtn');
+  const resetMoneyBtn = $('#resetMoneyBtn');
   const statusLabel = $('#statusLabel');
   const historyEl = $('#history');
 
@@ -370,7 +372,6 @@
       const safeCount = game.opened.size;
       statusLabel.textContent = `Opened ${safeCount} safe / ${game.mines} mines`;
 
-      // Multiplier increases by 0.1 per safe tile
       const multiplier = 1 + safeCount * 0.1;
       game.currentPayout = game.bet * multiplier;
 
@@ -417,6 +418,15 @@
     state.infinite = infiniteToggle.checked;
     renderBalance();
     saveState();
+  });
+
+  resetMoneyBtn.addEventListener('click', () => {
+    state.balance = defaultState.balance;
+    state.infinite = true;
+    infiniteToggle.checked = state.infinite;
+    renderBalance();
+    saveState();
+    statusLabel.textContent = 'Balance reset!';
   });
 
   renderBalance();
