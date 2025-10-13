@@ -58,8 +58,11 @@ button:hover {transform: translateY(-2px); box-shadow:0 8px 22px rgba(0,0,0,0.7)
   <h2>Login / Register</h2>
   <input type="text" id="loginName" placeholder="Username" />
   <input type="password" id="loginPassword" placeholder="Password" />
-  <button id="loginBtn">Login / Register</button>
-  <div id="loginStatus"></div>
+  <div style="display:flex; gap:8px; margin-top:8px;">
+    <button id="loginBtn">Login</button>
+    <button id="registerBtn">Register</button>
+  </div>
+  <div id="loginStatus" style="margin-top:8px;"></div>
 </div>
 
 <div id="gameScreen">
@@ -120,6 +123,7 @@ button:hover {transform: translateY(-2px); box-shadow:0 8px 22px rgba(0,0,0,0.7)
 const loginScreen = document.getElementById('loginScreen');
 const gameScreen = document.getElementById('gameScreen');
 const loginBtn = document.getElementById('loginBtn');
+const registerBtn = document.getElementById('registerBtn');
 const loginName = document.getElementById('loginName');
 const loginPassword = document.getElementById('loginPassword');
 const loginStatus = document.getElementById('loginStatus');
@@ -135,9 +139,7 @@ async function hashPassword(password){
   return hashArray.map(b=>b.toString(16).padStart(2,'0')).join('');
 }
 
-function loadUsers(){
-  try{ return JSON.parse(localStorage.getItem(USERS_KEY)||'{}'); } catch(e){ return {}; }
-}
+function loadUsers(){ try{ return JSON.parse(localStorage.getItem(USERS_KEY)||'{}'); } catch(e){ return {}; } }
 function saveUsers(users){ localStorage.setItem(USERS_KEY,JSON.stringify(users)); }
 
 loginBtn.addEventListener('click', async ()=>{
@@ -146,15 +148,23 @@ loginBtn.addEventListener('click', async ()=>{
   if(!name || !pass){ loginStatus.textContent="Enter username & password"; return; }
   const hashed = await hashPassword(pass);
   const users = loadUsers();
-  if(users[name]){
-    if(users[name].pass !== hashed){ loginStatus.textContent="Wrong password"; return; }
-  } else {
-    users[name] = { pass: hashed, balance:1000000, history:[] };
-    saveUsers(users);
-  }
+  if(!users[name]){ loginStatus.textContent="User not found. Please register."; return; }
+  if(users[name].pass !== hashed){ loginStatus.textContent="Wrong password"; return; }
   loginScreen.style.display='none';
   gameScreen.style.display='block';
   initGame(name,users[name]);
+});
+
+registerBtn.addEventListener('click', async ()=>{
+  const name = loginName.value.trim();
+  const pass = loginPassword.value;
+  if(!name || !pass){ loginStatus.textContent="Enter username & password"; return; }
+  const users = loadUsers();
+  if(users[name]){ loginStatus.textContent="User already exists"; return; }
+  const hashed = await hashPassword(pass);
+  users[name] = { pass: hashed, balance:1000000, history:[] };
+  saveUsers(users);
+  loginStatus.textContent = "Registered successfully! You can now login.";
 });
 
 // --- GAME SYSTEM ---
@@ -313,7 +323,7 @@ renderBalance(); renderHistory(); renderLeaderboard();
 
 // Auto-refresh leaderboard every 5 minutes
 setInterval(renderLeaderboard,300000);
-});
+}
 })();
 </script>
 </body>
