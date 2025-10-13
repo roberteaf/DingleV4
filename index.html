@@ -3,12 +3,11 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Space Mines — Gradient BG</title>
+  <title>Dinglev4BG</title>
   <style>
     :root {
       --bg1: #a0eaff;
       --bg2: #ff9aa2;
-      --stars: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjQiIGhlaWdodD0iNjQiIHZpZXdCb3g9IjAgMCA2NCA2NCIgc3R5bGU9ImJhY2tncm91bmQ6bm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBvcGFjaXR5PSIwLjQ1Ij48Y2lyY2xlIGN4PSIyMiIgY3k9IjE4IiByPSIxIiBmaWxsPSJ3aGl0ZSIvPjxjaXJjbGUgY3g9IjQiIGN5PSI0IiByPSIxIiBmaWxsPSJ3aGl0ZSIvPjxjaXJjbGUgY3g9IjU4IiBjeT0iNCIgcj0iMSIgZmlsbD0id2hpdGUiLz48Y2lyY2xlIGN4PSI1MCIgY3k9IjIwIiByPSIxIiBmaWxsPSJ3aGl0ZSIvPjxjaXJjbGUgY3g9IjMwIiBjeT0iNDgiIHI9IjEiIGZpbGw9IndoaXRlIi8+PC9nPjwvc3ZnPg==');
       --card-bg: #0b0d18;
       --card-overlay: rgba(255,255,255,0.04);
       --accent: #7af0c2;
@@ -98,22 +97,6 @@
       color:#0b0d18;
       box-shadow: 0 6px 18px rgba(122,240,194,0.2);
     }
-    .toggle {
-      display:inline-flex;
-      align-items:center;
-      gap:8px;
-      padding:6px;
-      border-radius:10px;
-      background: var(--glass);
-      border:1px solid rgba(255,255,255,0.02);
-    }
-    .toggle input {
-      width:16px; height:16px;
-    }
-    .toggle span {
-      color: var(--muted);
-      font-size:13px;
-    }
     .grid {
       display:grid;
       grid-template-columns: repeat(5,1fr);
@@ -189,12 +172,6 @@
           <div class="label">Balance</div>
           <div class="amount" id="balanceDisplay">1,000,000</div>
         </div>
-        <div>
-          <label class="toggle" title="Infinite money (fun mode)">
-            <input id="infiniteToggle" type="checkbox" />
-            <span class="small">Infinite</span>
-          </label>
-        </div>
       </div>
       <div class="small muted" style="margin-top:8px;">
         Reveal tiles — avoid mines! Cash out before you explode.
@@ -237,10 +214,8 @@
 <script>
 (() => {
   const $ = (s, ctx=document) => ctx.querySelector(s);
-  const $$ = (s, ctx=document) => Array.from(ctx.querySelectorAll(s));
 
   const balanceDisplay = $('#balanceDisplay');
-  const infiniteToggle = $('#infiniteToggle');
   const betInput = $('#betInput');
   const startBtn = $('#startBtn');
   const mineCountInput = $('#mineCount');
@@ -252,42 +227,28 @@
   const historyEl = $('#history');
 
   const STORAGE_KEY = 'mines_space_gradient_v1';
-  const defaultState = {
-    balance: 1_000_000,
-    infinite: true,
-    history: []
-  };
-  let state = loadState();
+  const DEFAULT_BALANCE = 1_000_000;
+  let state = { balance: DEFAULT_BALANCE, history: [] };
   let game = null;
 
+  function saveState(){
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  }
   function loadState(){
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
-      if (!raw) return {...defaultState};
+      if (!raw) return;
       const p = JSON.parse(raw);
-      p.balance = typeof p.balance === 'number' ? p.balance : defaultState.balance;
-      p.infinite = !!p.infinite;
-      p.history = Array.isArray(p.history) ? p.history : [];
-      return p;
-    } catch(e) {
-      return {...defaultState};
-    }
-  }
-  function saveState(){
-    const to = {
-      balance: state.balance,
-      infinite: state.infinite,
-      history: state.history.slice(-200)
-    };
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(to));
+      if (typeof p.balance === 'number') state.balance = p.balance;
+      if (Array.isArray(p.history)) state.history = p.history;
+    } catch(e){}
   }
   function fmt(n){
-    if (n === Infinity) return '∞';
     return n >= 1000 ? n.toLocaleString() : '' + n;
   }
 
   function renderBalance(){
-    balanceDisplay.textContent = state.infinite ? '∞' : fmt(state.balance);
+    balanceDisplay.textContent = fmt(state.balance);
   }
   function renderHistory(){
     historyEl.innerHTML = '';
@@ -317,29 +278,18 @@
   function startGame(){
     resetGame();
     const bet = Math.floor(Number(betInput.value));
-    if (!Number.isFinite(bet) || bet < 1) {
-      alert('Enter a valid bet');
-      return;
-    }
-    if (!state.infinite && bet > state.balance) {
-      alert('Not enough balance');
-      return;
-    }
+    if (!Number.isFinite(bet) || bet < 1) { alert('Enter valid bet'); return; }
+    if (bet > state.balance) { alert('Not enough balance'); return; }
     const mines = Math.floor(Number(mineCountInput.value));
-    if (!Number.isFinite(mines) || mines < 1 || mines >= 25) {
-      alert('Mines must be between 1 and 24');
-      return;
-    }
-    const total = 25;
+    if (!Number.isFinite(mines) || mines < 1 || mines >= 25) { alert('Mines must be 1-24'); return; }
+
     const minePos = new Set();
-    while (minePos.size < mines) {
-      minePos.add(Math.floor(Math.random() * total));
-    }
+    while (minePos.size < mines) minePos.add(Math.floor(Math.random() * 25));
+
     game = { bet, mines, minePos, opened: new Set(), currentPayout: 0 };
-    if (!state.infinite) {
-      state.balance -= bet;
-    }
-    for (let i=0; i<25; i++){
+    state.balance -= bet;
+
+    for (let i=0;i<25;i++){
       const c = document.createElement('div');
       c.className = 'cell';
       c.dataset.idx = i;
@@ -363,36 +313,31 @@
     const cell = ev.currentTarget;
     const inner = cell.querySelector('.inner');
     if (game.minePos.has(idx)) {
-      cell.classList.add('revealed', 'mine');
-      inner.textContent = '💣';
+      cell.classList.add('revealed','mine');
+      inner.textContent='💣';
       endGame(false);
     } else {
-      cell.classList.add('revealed', 'safe');
-      inner.textContent = '';
+      cell.classList.add('revealed','safe');
+      inner.textContent='';
       const safeCount = game.opened.size;
       statusLabel.textContent = `Opened ${safeCount} safe / ${game.mines} mines`;
-
-      const multiplier = 1 + safeCount * 0.1;
-      game.currentPayout = game.bet * multiplier;
-
-      if (autoCashout.checked) {
-        cashOut();
-      }
+      game.currentPayout = game.bet * (1 + safeCount*0.1);
+      if (autoCashout.checked) cashOut();
     }
   }
 
   function endGame(win){
-    for (const idx of game.minePos) {
+    for (const idx of game.minePos){
       const c = gridEl.querySelector(`.cell[data-idx='${idx}']`);
-      if (c && !c.classList.contains('revealed')) {
+      if (c && !c.classList.contains('revealed')){
         c.classList.add('revealed','mine');
-        c.querySelector('.inner').textContent = '💣';
+        c.querySelector('.inner').textContent='💣';
       }
     }
     cashoutBtn.disabled = true;
-    if (!win) {
+    if (!win){
       statusLabel.textContent = `💥 Boom! You lost -${fmt(game.bet)}`;
-      state.history.push({ result: 'Loss', profit: -game.bet });
+      state.history.push({ result:'Loss', profit:-game.bet });
     }
     renderBalance();
     saveState();
@@ -401,12 +346,10 @@
 
   function cashOut(){
     if (!game) return;
-    const profit = Math.floor(game.currentPayout) - game.bet;
-    if (!state.infinite) {
-      state.balance += Math.floor(game.currentPayout);
-    }
+    const profit = Math.floor(game.currentPayout);
+    state.balance += profit;
     statusLabel.textContent = `Cashed out +${fmt(profit)}`;
-    state.history.push({ result: 'Win', profit });
+    state.history.push({ result:'Win', profit });
     saveState();
     renderBalance();
     endGame(true);
@@ -414,23 +357,15 @@
 
   startBtn.addEventListener('click', startGame);
   cashoutBtn.addEventListener('click', cashOut);
-  infiniteToggle.addEventListener('change', () => {
-    state.infinite = infiniteToggle.checked;
-    renderBalance();
-    saveState();
-  });
-
   resetMoneyBtn.addEventListener('click', () => {
-    state.balance = defaultState.balance;
-    state.infinite = true;
-    infiniteToggle.checked = state.infinite;
+    state.balance = DEFAULT_BALANCE;
     renderBalance();
     saveState();
-    statusLabel.textContent = 'Balance reset!';
+    statusLabel.textContent='Balance reset to 1,000,000!';
   });
 
+  loadState();
   renderBalance();
-  infiniteToggle.checked = state.infinite;
   renderHistory();
 })();
 </script>
