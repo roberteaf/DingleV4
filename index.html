@@ -1,1 +1,82 @@
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { motion } from "framer-motion";
 
+export default function FortniteLeanCanvas() {
+  const sections = [
+    {
+      title: "Problem",
+      content:
+        "Players loved competitive survival games (like PUBG) but found them too realistic, slow-paced, and lacking creativity. There was demand for a more approachable, fast, and visually fun alternative."
+    },
+    {
+      title: "Solution",
+      content:
+        "Create a 100-player battle royale with fast-paced combat and a unique building mechanic that allows players to construct defenses and gain tactical advantages in real time."
+    },
+    {
+      title: "Unique Value Proposition",
+      content:
+        '“A last-player-standing shooter that blends fast combat with creative building.” Fun, expressive, and competitive.'
+    },
+    {
+      title: "Unfair Advantage",
+      content:
+        "Epic Games’ Unreal Engine tech enabled rapid updates, cross-platform play, and massive scalability. Their existing player base and developer tools accelerated iteration."
+    },
+    {
+      title: "Customer Segments",
+      content:
+        "Gamers aged 10–30; fans of competitive shooters; casual players drawn by art style and social play; streamers and eSports audiences."
+    },
+    {
+      title: "Key Metrics",
+      content:
+        "Daily active users, match completion rate, retention, average session time, battle pass purchases, and player engagement in limited-time events."
+    },
+    {
+      title: "Channels",
+      content:
+        "Epic Games Launcher, console stores, Twitch and YouTube influencers, social media, cross-promotions within Epic ecosystem."
+    },
+    {
+      title: "Cost Structure",
+      content:
+        "Server hosting and maintenance, continuous content production (skins, maps), marketing, and platform fees."
+    },
+    {
+      title: "Revenue Streams",
+      content:
+        "In-game cosmetic purchases, battle passes, partnerships, and cross-media events (concerts, brand collaborations)."
+    }
+  ];
+
+  return (
+    <div className="p-6 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 min-h-screen text-white">
+      <h1 className="text-4xl font-bold mb-8 text-center text-blue-400">
+        Fortnite MVP Lean Canvas
+      </h1>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {sections.map((section, idx) => (
+          <motion.div
+            key={idx}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: idx * 0.05 }}
+          >
+            <Card className="bg-slate-800/60 border-slate-700 rounded-2xl shadow-xl hover:shadow-blue-500/20 transition">
+              <CardHeader>
+                <CardTitle className="text-lg text-blue-300">
+                  {section.title}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="text-sm text-slate-200 leading-relaxed">
+                {section.content}
+              </CardContent>
+            </Card>
+          </motion.div>
+        ))}
+      </div>
+    </div>
+  );
+}
