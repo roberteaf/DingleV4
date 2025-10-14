@@ -1,82 +1,351 @@
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { motion } from "framer-motion";
+import React, { useRef, useEffect, useState } from 'react';
 
-export default function FortniteLeanCanvas() {
-  const sections = [
-    {
-      title: "Problem",
-      content:
-        "Players loved competitive survival games (like PUBG) but found them too realistic, slow-paced, and lacking creativity. There was demand for a more approachable, fast, and visually fun alternative."
-    },
-    {
-      title: "Solution",
-      content:
-        "Create a 100-player battle royale with fast-paced combat and a unique building mechanic that allows players to construct defenses and gain tactical advantages in real time."
-    },
-    {
-      title: "Unique Value Proposition",
-      content:
-        '“A last-player-standing shooter that blends fast combat with creative building.” Fun, expressive, and competitive.'
-    },
-    {
-      title: "Unfair Advantage",
-      content:
-        "Epic Games’ Unreal Engine tech enabled rapid updates, cross-platform play, and massive scalability. Their existing player base and developer tools accelerated iteration."
-    },
-    {
-      title: "Customer Segments",
-      content:
-        "Gamers aged 10–30; fans of competitive shooters; casual players drawn by art style and social play; streamers and eSports audiences."
-    },
-    {
-      title: "Key Metrics",
-      content:
-        "Daily active users, match completion rate, retention, average session time, battle pass purchases, and player engagement in limited-time events."
-    },
-    {
-      title: "Channels",
-      content:
-        "Epic Games Launcher, console stores, Twitch and YouTube influencers, social media, cross-promotions within Epic ecosystem."
-    },
-    {
-      title: "Cost Structure",
-      content:
-        "Server hosting and maintenance, continuous content production (skins, maps), marketing, and platform fees."
-    },
-    {
-      title: "Revenue Streams",
-      content:
-        "In-game cosmetic purchases, battle passes, partnerships, and cross-media events (concerts, brand collaborations)."
+// Single-file React component (default export) that provides:
+// - Explanation panel summarizing the Roblox MVP concepts
+// - A small playable in-browser game with an Edit (build) mode and Play mode
+// - Tailwind-friendly class names (assumes Tailwind is available in the host project)
+//
+// Usage: drop this file into a React + Tailwind project and render <RobloxMVPGame />.
+
+export default function RobloxMVPGame() {
+  const canvasRef = useRef(null);
+  const [mode, setMode] = useState('edit'); // 'edit' or 'play'
+  const [gridSize] = useState(20); // size of each block in pixels
+  const [cols] = useState(32);
+  const [rows] = useState(18);
+  const [blocks, setBlocks] = useState(() => createEmptyGrid(32, 18));
+  const [player, setPlayer] = useState({ x: 80, y: 80, vx: 0, vy: 0, w: 18, h: 32 });
+  const keys = useRef({});
+  const animationRef = useRef(null);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext('2d');
+    canvas.width = cols * gridSize;
+    canvas.height = rows * gridSize;
+
+    let last = performance.now();
+
+    function loop(t) {
+      const dt = Math.min(32, t - last) / 1000; // cap dt
+      last = t;
+
+      // clear
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // draw background
+      ctx.fillStyle = '#e6eef7';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // draw grid subtle
+      ctx.strokeStyle = 'rgba(0,0,0,0.03)';
+      for (let x = 0; x <= cols; x++) {
+        ctx.beginPath();
+        ctx.moveTo(x * gridSize, 0);
+        ctx.lineTo(x * gridSize, canvas.height);
+        ctx.stroke();
+      }
+      for (let y = 0; y <= rows; y++) {
+        ctx.beginPath();
+        ctx.moveTo(0, y * gridSize);
+        ctx.lineTo(canvas.width, y * gridSize);
+        ctx.stroke();
+      }
+
+      // draw blocks
+      for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+          if (blocks[r][c]) {
+            ctx.fillStyle = '#7b9acc';
+            ctx.fillRect(c * gridSize, r * gridSize, gridSize, gridSize);
+            ctx.strokeStyle = 'rgba(0,0,0,0.08)';
+            ctx.strokeRect(c * gridSize, r * gridSize, gridSize, gridSize);
+          }
+        }
+      }
+
+      // edit-mode hover highlight
+      if (mode === 'edit' && hoverRef.current) {
+        const { cx, cy } = hoverRef.current;
+        ctx.fillStyle = 'rgba(120,200,120,0.25)';
+        ctx.fillRect(cx * gridSize, cy * gridSize, gridSize, gridSize);
+      }
+
+      // play mode: simple physics
+      if (mode === 'play') {
+        // physics
+        let p = { ...player };
+        p.vy += 900 * dt; // gravity
+        p.x += p.vx * dt;
+        p.y += p.vy * dt;
+
+        // horizontal movement
+        if (keys.current.ArrowLeft || keys.current.KeyA) p.vx = -120;
+        else if (keys.current.ArrowRight || keys.current.KeyD) p.vx = 120;
+        else p.vx = 0;
+
+        // collisions with blocks (AABB, simple)
+        // clamp to canvas
+        if (p.x < 0) p.x = 0;
+        if (p.x + p.w > canvas.width) p.x = canvas.width - p.w;
+        if (p.y + p.h > canvas.height) {
+          p.y = canvas.height - p.h;
+          p.vy = 0;
+        }
+
+        // tile collisions
+        const collided = tileCollide(p, blocks, gridSize);
+        if (collided.onGround) {
+          p.vy = 0;
+        }
+
+        setPlayer(p);
+
+        // draw player
+        ctx.fillStyle = '#ff7b7b';
+        ctx.fillRect(p.x, p.y, p.w, p.h);
+        ctx.fillStyle = 'white';
+        ctx.fillRect(p.x + 4, p.y + 6, 4, 4); // eye
+      } else {
+        // draw a ghost player in edit mode
+        ctx.fillStyle = 'rgba(255,120,120,0.85)';
+        ctx.fillRect(player.x, player.y, player.w, player.h);
+      }
+
+      // HUD
+      ctx.fillStyle = 'rgba(0,0,0,0.6)';
+      ctx.font = '12px Inter, Arial';
+      ctx.fillText(`Mode: ${mode.toUpperCase()}`, 8, 14);
+
+      animationRef.current = requestAnimationFrame(loop);
     }
-  ];
+
+    animationRef.current = requestAnimationFrame(loop);
+
+    return () => cancelAnimationFrame(animationRef.current);
+  }, [blocks, mode]);
+
+  // hover for edit mode
+  const hoverRef = useRef(null);
+
+  function handleCanvasMove(e) {
+    const rect = canvasRef.current.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    const cx = Math.floor(x / gridSize);
+    const cy = Math.floor(y / gridSize);
+    hoverRef.current = { cx, cy };
+  }
+
+  function handleCanvasLeave() {
+    hoverRef.current = null;
+  }
+
+  function toggleBlock(e) {
+    if (mode !== 'edit') return;
+    const rect = canvasRef.current.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    const cx = Math.floor(x / gridSize);
+    const cy = Math.floor(y / gridSize);
+    if (cx < 0 || cy < 0 || cx >= cols || cy >= rows) return;
+    setBlocks(prev => {
+      const copy = prev.map(r => r.slice());
+      copy[cy][cx] = !copy[cy][cx];
+      return copy;
+    });
+  }
+
+  // keyboard controls
+  useEffect(() => {
+    function down(e) {
+      keys.current[e.code] = true;
+      // jump in play
+      if (mode === 'play' && (e.code === 'Space' || e.code === 'ArrowUp' || e.code === 'KeyW')) {
+        // can only jump if on ground
+        const onGround = tileCollide(player, blocks, gridSize).onGround || player.y + player.h >= rows * gridSize;
+        if (onGround) {
+          setPlayer(p => ({ ...p, vy: -320 }));
+        }
+      }
+    }
+    function up(e) {
+      keys.current[e.code] = false;
+    }
+    window.addEventListener('keydown', down);
+    window.addEventListener('keyup', up);
+    return () => {
+      window.removeEventListener('keydown', down);
+      window.removeEventListener('keyup', up);
+    };
+  }, [mode, player, blocks]);
+
+  // utilities
+  function resetLevel() {
+    setBlocks(createEmptyGrid(cols, rows));
+    setPlayer({ x: 80, y: 80, vx: 0, vy: 0, w: 18, h: 32 });
+  }
+
+  function exportLevel() {
+    const data = JSON.stringify({ cols, rows, blocks });
+    const blob = new Blob([data], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'level.json';
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  function importLevel(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => {
+      try {
+        const obj = JSON.parse(ev.target.result);
+        if (obj.blocks) setBlocks(obj.blocks);
+      } catch (err) {
+        alert('Invalid level file');
+      }
+    };
+    reader.readAsText(file);
+  }
 
   return (
-    <div className="p-6 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 min-h-screen text-white">
-      <h1 className="text-4xl font-bold mb-8 text-center text-blue-400">
-        Fortnite MVP Lean Canvas
-      </h1>
+    <div className="min-h-screen p-6 bg-gradient-to-b from-slate-50 to-white font-sans">
+      <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6">
+        <aside className="md:col-span-1 bg-white rounded-2xl shadow-lg p-6">
+          <h1 className="text-2xl font-bold mb-2">Roblox MVP — Build & Play</h1>
+          <p className="text-sm text-slate-600 mb-4">
+            This tiny web app demonstrates the MVP idea: a minimal create → share → play loop. Use
+            <strong className="ml-1">Edit</strong> to place blocks, then switch to <strong>Play</strong> to control the player.
+          </p>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {sections.map((section, idx) => (
-          <motion.div
-            key={idx}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: idx * 0.05 }}
-          >
-            <Card className="bg-slate-800/60 border-slate-700 rounded-2xl shadow-xl hover:shadow-blue-500/20 transition">
-              <CardHeader>
-                <CardTitle className="text-lg text-blue-300">
-                  {section.title}
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="text-sm text-slate-200 leading-relaxed">
-                {section.content}
-              </CardContent>
-            </Card>
-          </motion.div>
-        ))}
+          <div className="space-y-3 mb-4">
+            <div className="flex gap-2">
+              <button
+                onClick={() => setMode(mode === 'edit' ? 'play' : 'edit')}
+                className="px-3 py-2 bg-indigo-600 text-white rounded-xl shadow-sm hover:bg-indigo-700"
+              >
+                {mode === 'edit' ? 'Switch to Play' : 'Switch to Edit'}
+              </button>
+              <button onClick={resetLevel} className="px-3 py-2 bg-slate-100 rounded-xl">Reset</button>
+            </div>
+
+            <div className="flex gap-2">
+              <button onClick={exportLevel} className="px-3 py-2 bg-emerald-100 rounded-xl">Export Level</button>
+              <label className="px-3 py-2 bg-amber-100 rounded-xl cursor-pointer">
+                Import
+                <input type="file" accept="application/json" onChange={importLevel} className="hidden" />
+              </label>
+            </div>
+          </div>
+
+          <div className="bg-slate-50 rounded-lg p-3 text-sm text-slate-700">
+            <h3 className="font-semibold">How this ties to MVP</h3>
+            <ol className="mt-2 ml-4 list-decimal text-xs text-slate-600">
+              <li><strong>Core loop:</strong> Build a level → Play it.</li>
+              <li><strong>Minimal tools:</strong> Simple block placement and a player with physics.</li>
+              <li><strong>Iterate:</strong> Export/import levels to share with others.</li>
+            </ol>
+          </div>
+
+          <div className="mt-4 text-xs text-slate-500">
+            Controls: Arrow keys / A D to move. Space/W/Up to jump. Click to toggle blocks in Edit mode.
+          </div>
+        </aside>
+
+        <main className="md:col-span-2 bg-white rounded-2xl shadow-lg p-6">
+          <div className="flex items-start gap-6">
+            <div>
+              <canvas
+                ref={canvasRef}
+                onMouseMove={handleCanvasMove}
+                onMouseLeave={handleCanvasLeave}
+                onClick={toggleBlock}
+                className="rounded-md border"
+                style={{ imageRendering: 'pixelated', cursor: mode === 'edit' ? 'crosshair' : 'default' }}
+              />
+            </div>
+
+            <div className="flex-1">
+              <h2 className="text-lg font-medium">Level Editor & Playtest</h2>
+              <p className="text-sm text-slate-600 mt-2">Toggle blocks to create platforms — switch to Play to test physics.</p>
+
+              <div className="mt-4 grid grid-cols-2 gap-3">
+                <div className="p-3 bg-slate-50 rounded-lg">
+                  <h4 className="font-semibold text-sm">Current Mode</h4>
+                  <div className="mt-2 text-xs text-slate-700">{mode.toUpperCase()}</div>
+                </div>
+
+                <div className="p-3 bg-slate-50 rounded-lg">
+                  <h4 className="font-semibold text-sm">Player Pos</h4>
+                  <div className="mt-2 text-xs text-slate-700">x: {Math.round(player.x)} y: {Math.round(player.y)}</div>
+                </div>
+              </div>
+
+              <div className="mt-4 text-sm text-slate-700 leading-relaxed">
+                <strong>Design notes:</strong>
+                <ul className="list-disc ml-5 mt-2 text-xs text-slate-600">
+                  <li>This is intentionally minimal — an MVP that proves the create → play loop.</li>
+                  <li>To extend: add save-to-cloud, item economy (Robux-style), multiplayer playtest, scripting, and publishing.</li>
+                </ul>
+              </div>
+
+              <div className="mt-6">
+                <details className="p-3 bg-slate-50 rounded-lg">
+                  <summary className="font-medium">MVP Phases (click to expand)</summary>
+                  <div className="text-xs text-slate-600 mt-2">
+                    <strong>1. Core Creation:</strong> simple build & play. <br />
+                    <strong>2. Social:</strong> accounts, friends, multiplayer. <br />
+                    <strong>3. Economy:</strong> currency & creator monetization. <br />
+                    <strong>4. Platform:</strong> developer tools, publishing, analytics.
+                  </div>
+                </details>
+              </div>
+            </div>
+          </div>
+        </main>
       </div>
     </div>
   );
+}
+
+// Helper functions below (kept outside the component for clarity)
+
+function createEmptyGrid(cols, rows) {
+  const g = [];
+  for (let r = 0; r < rows; r++) {
+    const row = new Array(cols).fill(false);
+    // some starter ground on bottom row
+    if (r === rows - 1) {
+      for (let c = 0; c < cols; c++) row[c] = true;
+    }
+    g.push(row);
+  }
+  return g;
+}
+
+function tileCollide(p, blocks, tileSize) {
+  // Check approximate collisions to determine if the player stands on ground
+  const rows = blocks.length;
+  const cols = blocks[0].length;
+  let onGround = false;
+
+  // sample a few points under player's feet
+  const footY = p.y + p.h + 1;
+  const leftFootX = p.x + 2;
+  const rightFootX = p.x + p.w - 2;
+
+  const points = [leftFootX, rightFootX];
+  for (const px of points) {
+    const cx = Math.floor(px / tileSize);
+    const cy = Math.floor(footY / tileSize);
+    if (cy >= 0 && cy < rows && cx >= 0 && cx < cols) {
+      if (blocks[cy] && blocks[cy][cx]) onGround = true;
+    }
+  }
+
+  return { onGround };
 }
