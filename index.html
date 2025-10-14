@@ -1,61 +1,3 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Roblox Clone - Playable</title>
-<style>
-  body { margin:0; font-family:sans-serif; background:#f2f2f2; }
-  header { display:flex; justify-content:space-between; align-items:center; padding:10px 20px; background:#000; color:#fff; }
-  header .logo { font-weight:bold; font-size:24px; }
-  header nav a { color:#fff; margin-left:15px; text-decoration:none; }
-  .games { display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:20px; padding:40px 20px; }
-  .game { background:#fff; border-radius:12px; overflow:hidden; box-shadow:0 2px 6px rgba(0,0,0,0.1); cursor:pointer; text-align:center; padding-bottom:10px; }
-  .game img { width:100%; display:block; }
-  .game h3 { margin:10px 0; font-size:18px; }
-  #gameCanvas { display:none; background:#eef2f7; width:100%; height:100vh; }
-  #backBtn { position:absolute; top:10px; left:10px; padding:10px 15px; border:none; border-radius:6px; background:#f87171; color:#fff; cursor:pointer; display:none; z-index:100; }
-</style>
-</head>
-<body>
-
-<header>
-  <div class="logo">ROBLOX Clone</div>
-  <nav>
-    <a href="#">Games</a>
-    <a href="#">Avatar</a>
-    <a href="#">Catalog</a>
-    <a href="#">Robux</a>
-    <a href="#">Login</a>
-  </nav>
-</header>
-
-<div class="games" id="gameList">
-  <div class="game" data-game="0">
-    <img src="https://via.placeholder.com/400x200?text=Platformer" alt="Game 1">
-    <h3>Platformer Game</h3>
-  </div>
-  <div class="game" data-game="1">
-    <img src="https://via.placeholder.com/400x200?text=Racing" alt="Game 2">
-    <h3>Racing Game</h3>
-  </div>
-  <div class="game" data-game="2">
-    <img src="https://via.placeholder.com/400x200?text=Shooter" alt="Game 3">
-    <h3>Shooter Game</h3>
-  </div>
-  <div class="game" data-game="3">
-    <img src="https://via.placeholder.com/400x200?text=Collector" alt="Game 4">
-    <h3>Collector Game</h3>
-  </div>
-  <div class="game" data-game="4">
-    <img src="https://via.placeholder.com/400x200?text=Puzzle" alt="Game 5">
-    <h3>Puzzle Game</h3>
-  </div>
-</div>
-
-<canvas id="gameCanvas"></canvas>
-<button id="backBtn">Back</button>
-
 <script>
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
@@ -68,8 +10,13 @@ const backBtn = document.getElementById('backBtn');
 let currentGame = null;
 let keys = {};
 
-window.addEventListener('keydown', e => keys[e.code]=true);
-window.addEventListener('keyup', e => keys[e.code]=false);
+window.addEventListener('keydown', e => keys[e.code] = true);
+window.addEventListener('keyup', e => keys[e.code] = false);
+
+window.addEventListener('resize', () => {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+});
 
 const games = [
   platformerGame,
@@ -79,43 +26,43 @@ const games = [
   puzzleGame
 ];
 
-document.querySelectorAll('.game').forEach(el=>{
-  el.onclick=()=>{
+const initGames = [initPlatformer, initRacing, initShooter, initCollector, initPuzzle];
+
+document.querySelectorAll('.game').forEach(el => {
+  el.onclick = () => {
     const idx = parseInt(el.dataset.game);
     startGame(idx);
-  }
+  };
 });
 
-backBtn.onclick = ()=>{
+backBtn.onclick = () => {
   stopGame();
-  gameList.style.display='grid';
-  canvas.style.display='none';
-  backBtn.style.display='none';
-}
+  gameList.style.display = 'grid';
+  canvas.style.display = 'none';
+  backBtn.style.display = 'none';
+};
 
 // GAME LOOP
 let last = performance.now();
-function loop(time){
-  const dt = (time-last)/1000;
-  last=time;
-  if(currentGame) currentGame(dt);
+function loop(time) {
+  const dt = (time - last) / 1000;
+  last = time;
+  if (currentGame) currentGame(dt);
   requestAnimationFrame(loop);
 }
 requestAnimationFrame(loop);
 
 // START / STOP GAME
-function startGame(idx){
-  currentGameFunc = games[idx];
-  currentGame=()=>currentGameFunc(dt);
-  gameList.style.display='none';
-  canvas.style.display='block';
-  backBtn.style.display='block';
-  initGames[idx](); // init game state
+function startGame(idx) {
+  currentGame = games[idx]; // pass dt from loop
+  gameList.style.display = 'none';
+  canvas.style.display = 'block';
+  backBtn.style.display = 'block';
+  initGames[idx]();
 }
 
-// Stop game
-function stopGame(){
-  currentGame=null;
+function stopGame() {
+  currentGame = null;
 }
 
 // -----------------------
@@ -123,122 +70,119 @@ function stopGame(){
 // -----------------------
 
 // 0. Platformer
-let platPlayer={x:100,y:100,vx:0,vy:0,w:30,h:30,ground:false};
-let platBlocks=[];
-function initPlatformer(){
-  platPlayer={x:100,y:100,vx:0,vy:0,w:30,h:30,ground:false};
-  platBlocks=[];
-  for(let i=0;i<canvas.width;i+=50) platBlocks.push({x:i,y:canvas.height-50,w:50,h:50});
+let platPlayer = { x: 100, y: 100, vx: 0, vy: 0, w: 30, h: 30, ground: false };
+let platBlocks = [];
+function initPlatformer() {
+  platPlayer = { x: 100, y: 100, vx: 0, vy: 0, w: 30, h: 30, ground: false };
+  platBlocks = [];
+  for (let i = 0; i < canvas.width; i += 50) platBlocks.push({ x: i, y: canvas.height - 50, w: 50, h: 50 });
 }
-function platformerGame(dt){
-  // physics
-  platPlayer.vy+=800*dt;
-  platPlayer.x+=platPlayer.vx*dt;
-  platPlayer.y+=platPlayer.vy*dt;
+function platformerGame(dt) {
+  platPlayer.vy += 800 * dt;
+  platPlayer.x += platPlayer.vx * dt;
+  platPlayer.y += platPlayer.vy * dt;
 
-  // controls
-  platPlayer.vx=0;
-  if(keys['ArrowLeft']) platPlayer.vx=-200;
-  if(keys['ArrowRight']) platPlayer.vx=200;
-  if(keys['Space'] && platPlayer.ground){ platPlayer.vy=-400; platPlayer.ground=false;}
+  platPlayer.vx = 0;
+  if (keys['ArrowLeft']) platPlayer.vx = -200;
+  if (keys['ArrowRight']) platPlayer.vx = 200;
+  if (keys['Space'] && platPlayer.ground) { platPlayer.vy = -400; platPlayer.ground = false; }
 
-  // collision
-  platPlayer.ground=false;
-  platBlocks.forEach(b=>{
-    if(platPlayer.x+platPlayer.w>b.x && platPlayer.x<b.x+b.w &&
-       platPlayer.y+platPlayer.h>b.y && platPlayer.y<b.y+b.h){
-      platPlayer.y=b.y-platPlayer.h;
-      platPlayer.vy=0;
-      platPlayer.ground=true;
+  platPlayer.ground = false;
+  platBlocks.forEach(b => {
+    if (platPlayer.x + platPlayer.w > b.x && platPlayer.x < b.x + b.w &&
+        platPlayer.y + platPlayer.h > b.y && platPlayer.y < b.y + b.h) {
+      platPlayer.y = b.y - platPlayer.h;
+      platPlayer.vy = 0;
+      platPlayer.ground = true;
     }
   });
 
-  // draw
-  ctx.clearRect(0,0,canvas.width,canvas.height);
-  ctx.fillStyle='skyblue'; ctx.fillRect(0,0,canvas.width,canvas.height);
-  ctx.fillStyle='green';
-  platBlocks.forEach(b=>ctx.fillRect(b.x,b.y,b.w,b.h));
-  ctx.fillStyle='red';
-  ctx.fillRect(platPlayer.x,platPlayer.y,platPlayer.w,platPlayer.h);
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = 'skyblue'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = 'green'; platBlocks.forEach(b => ctx.fillRect(b.x, b.y, b.w, b.h));
+  ctx.fillStyle = 'red'; ctx.fillRect(platPlayer.x, platPlayer.y, platPlayer.w, platPlayer.h);
 }
 
 // 1. Racing
-let raceCar={x:100,y:canvas.height-100};
-function initRacing(){ raceCar={x:100,y:canvas.height-100}; }
-function racingGame(dt){
-  if(keys['ArrowLeft']) raceCar.x-=300*dt;
-  if(keys['ArrowRight']) raceCar.x+=300*dt;
-  ctx.clearRect(0,0,canvas.width,canvas.height);
-  ctx.fillStyle='gray'; ctx.fillRect(0,0,canvas.width,canvas.height);
-  ctx.fillStyle='blue'; ctx.fillRect(raceCar.x,raceCar.y,50,30);
+let raceCar = { x: 100, y: canvas.height - 100 };
+function initRacing() { raceCar = { x: 100, y: canvas.height - 100 }; }
+function racingGame(dt) {
+  if (keys['ArrowLeft']) raceCar.x -= 300 * dt;
+  if (keys['ArrowRight']) raceCar.x += 300 * dt;
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = 'gray'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = 'blue'; ctx.fillRect(raceCar.x, raceCar.y, 50, 30);
 }
 
 // 2. Shooter
-let bullets=[];
-let shooterPlayer={x:canvas.width/2,y:canvas.height-50};
-function initShooter(){ bullets=[]; shooterPlayer={x:canvas.width/2,y:canvas.height-50}; }
-function shooterGame(dt){
-  if(keys['ArrowLeft']) shooterPlayer.x-=200*dt;
-  if(keys['ArrowRight']) shooterPlayer.x+=200*dt;
-  if(keys['Space']) bullets.push({x:shooterPlayer.x+15,y:shooterPlayer.y-10});
-  bullets.forEach(b=>b.y-=400*dt);
-  bullets.filter(b=>b.y>0);
-  ctx.clearRect(0,0,canvas.width,canvas.height);
-  ctx.fillStyle='black'; ctx.fillRect(0,0,canvas.width,canvas.height);
-  ctx.fillStyle='yellow';
-  bullets.forEach(b=>ctx.fillRect(b.x,b.y,5,10));
-  ctx.fillStyle='green';
-  ctx.fillRect(shooterPlayer.x,shooterPlayer.y,30,30);
+let bullets = [];
+let shooterPlayer = { x: canvas.width / 2, y: canvas.height - 50 };
+function initShooter() { bullets = []; shooterPlayer = { x: canvas.width / 2, y: canvas.height - 50 }; }
+function shooterGame(dt) {
+  if (keys['ArrowLeft']) shooterPlayer.x -= 200 * dt;
+  if (keys['ArrowRight']) shooterPlayer.x += 200 * dt;
+  if (keys['Space']) bullets.push({ x: shooterPlayer.x + 15, y: shooterPlayer.y - 10 });
+  bullets.forEach(b => b.y -= 400 * dt);
+  bullets = bullets.filter(b => b.y > 0);
+
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = 'black'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = 'yellow'; bullets.forEach(b => ctx.fillRect(b.x, b.y, 5, 10));
+  ctx.fillStyle = 'green'; ctx.fillRect(shooterPlayer.x, shooterPlayer.y, 30, 30);
 }
 
 // 3. Collector
-let items=[], collectorPlayer={x:100,y:100,w:30,h:30}, score=0;
-function initCollector(){ collectorPlayer={x:100,y:100,w:30,h:30}; items=[]; score=0; for(let i=0;i<10;i++) items.push({x:Math.random()*canvas.width,y:Math.random()*canvas.height}); }
-function collectorGame(dt){
-  if(keys['ArrowLeft']) collectorPlayer.x-=200*dt;
-  if(keys['ArrowRight']) collectorPlayer.x+=200*dt;
-  if(keys['ArrowUp']) collectorPlayer.y-=200*dt;
-  if(keys['ArrowDown']) collectorPlayer.y+=200*dt;
-  items.forEach(it=>{
-    if(Math.abs(it.x-collectorPlayer.x)<collectorPlayer.w && Math.abs(it.y-collectorPlayer.y)<collectorPlayer.h){
-      it.x=-1000; score++;
+let items = [], collectorPlayer = { x: 100, y: 100, w: 30, h: 30 }, score = 0;
+function initCollector() {
+  collectorPlayer = { x: 100, y: 100, w: 30, h: 30 };
+  items = []; score = 0;
+  for (let i = 0; i < 10; i++) items.push({ x: Math.random() * canvas.width, y: Math.random() * canvas.height });
+}
+function collectorGame(dt) {
+  if (keys['ArrowLeft']) collectorPlayer.x -= 200 * dt;
+  if (keys['ArrowRight']) collectorPlayer.x += 200 * dt;
+  if (keys['ArrowUp']) collectorPlayer.y -= 200 * dt;
+  if (keys['ArrowDown']) collectorPlayer.y += 200 * dt;
+
+  items.forEach(it => {
+    if (Math.abs(it.x - collectorPlayer.x) < collectorPlayer.w && Math.abs(it.y - collectorPlayer.y) < collectorPlayer.h) {
+      it.x = -1000; score++;
     }
   });
-  ctx.clearRect(0,0,canvas.width,canvas.height);
-  ctx.fillStyle='lightgray'; ctx.fillRect(0,0,canvas.width,canvas.height);
-  ctx.fillStyle='blue'; ctx.fillRect(collectorPlayer.x,collectorPlayer.y,collectorPlayer.w,collectorPlayer.h);
-  ctx.fillStyle='orange'; items.forEach(it=>ctx.fillRect(it.x,it.y,20,20));
-  ctx.fillStyle='black'; ctx.font='20px sans-serif'; ctx.fillText('Score: '+score,20,30);
+
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = 'lightgray'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = 'blue'; ctx.fillRect(collectorPlayer.x, collectorPlayer.y, collectorPlayer.w, collectorPlayer.h);
+  ctx.fillStyle = 'orange'; items.forEach(it => ctx.fillRect(it.x, it.y, 20, 20));
+  ctx.fillStyle = 'black'; ctx.font = '20px sans-serif'; ctx.fillText('Score: ' + score, 20, 30);
 }
 
 // 4. Puzzle (click squares)
-let squares=[], puzzleScore=0;
-function initPuzzle(){ squares=[]; puzzleScore=0; for(let i=0;i<5;i++) for(let j=0;j<5;j++) squares.push({x:100+i*60,y:100+j*60,size:50,active:false}); }
-canvas.addEventListener('click',e=>{
-  if(currentGame!==puzzleGame) return;
-  const rect=canvas.getBoundingClientRect();
-  const mx=e.clientX-rect.left, my=e.clientY-rect.top;
-  squares.forEach(s=>{
-    if(mx>s.x && mx<s.x+s.size && my>s.y && my<s.y+s.size){
-      s.active=!s.active;
-      puzzleScore+=s.active?1:-1;
+let squares = [], puzzleScore = 0;
+function initPuzzle() {
+  squares = []; puzzleScore = 0;
+  for (let i = 0; i < 5; i++) for (let j = 0; j < 5; j++) squares.push({ x: 100 + i * 60, y: 100 + j * 60, size: 50, active: false });
+}
+canvas.addEventListener('click', e => {
+  if (currentGame !== puzzleGame) return;
+  const rect = canvas.getBoundingClientRect();
+  const mx = e.clientX - rect.left, my = e.clientY - rect.top;
+  squares.forEach(s => {
+    if (mx > s.x && mx < s.x + s.size && my > s.y && my < s.y + s.size) {
+      s.active = !s.active;
+      puzzleScore += s.active ? 1 : -1;
     }
   });
 });
-function puzzleGame(dt){
-  ctx.clearRect(0,0,canvas.width,canvas.height);
-  ctx.fillStyle='white'; ctx.fillRect(0,0,canvas.width,canvas.height);
-  squares.forEach(s=>{
-    ctx.fillStyle=s.active?'purple':'lightblue';
-    ctx.fillRect(s.x,s.y,s.size,s.size);
-    ctx.strokeStyle='black'; ctx.strokeRect(s.x,s.y,s.size,s.size);
+function puzzleGame(dt) {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = 'white'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+  squares.forEach(s => {
+    ctx.fillStyle = s.active ? 'purple' : 'lightblue';
+    ctx.fillRect(s.x, s.y, s.size, s.size);
+    ctx.strokeStyle = 'black'; ctx.strokeRect(s.x, s.y, s.size, s.size);
   });
-  ctx.fillStyle='black'; ctx.font='20px sans-serif'; ctx.fillText('Activated: '+puzzleScore,20,30);
+  ctx.fillStyle = 'black'; ctx.font = '20px sans-serif';
+  ctx.fillText('Activated: ' + puzzleScore, 20, 30);
 }
-
-// INIT FUNCTIONS
-const initGames=[initPlatformer,initRacing,initShooter,initCollector,initPuzzle];
 </script>
-
-</body>
-</html>
