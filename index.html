@@ -1,259 +1,240 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Roblox MVP – Build & Play</title>
-  <style>
-    body {
-      margin: 0;
-      font-family: 'Segoe UI', Tahoma, sans-serif;
-      background: linear-gradient(to bottom, #f9fafb, #eef2f7);
-      color: #222;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      min-height: 100vh;
-    }
-    header {
-      text-align: center;
-      padding: 1em;
-    }
-    .subtitle {
-      color: #666;
-      font-size: 0.9em;
-    }
-    main {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 1em;
-    }
-    #ui {
-      background: white;
-      border-radius: 12px;
-      padding: 10px 15px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-    }
-    .controls button {
-      margin-right: 5px;
-      background: #3b82f6;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      padding: 5px 10px;
-      cursor: pointer;
-    }
-    .controls button:hover {
-      background: #2563eb;
-    }
-    canvas {
-      border: 1px solid #ccc;
-      border-radius: 8px;
-      image-rendering: pixelated;
-      background: #eef2f7;
-    }
-    #auth {
-      margin-top: 1em;
-    }
-    #auth input {
-      padding: 6px 10px;
-      border-radius: 6px;
-      border: 1px solid #ccc;
-    }
-    #auth button {
-      margin-left: 5px;
-      background: #10b981;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      padding: 6px 10px;
-    }
-    footer {
-      text-align: center;
-      font-size: 0.8em;
-      color: #555;
-      margin-top: 2em;
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Roblox MVP – Mobile Play</title>
+<style>
+body, html {
+  margin: 0; padding: 0; overflow: hidden;
+  font-family: 'Segoe UI', Tahoma, sans-serif;
+  background: #eef2f7;
+}
+canvas {
+  display: block;
+  background: #eef2f7;
+  touch-action: none;
+}
+#ui {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 100;
+  background: rgba(255,255,255,0.9);
+  padding: 8px;
+  border-radius: 8px;
+}
+button, input {
+  margin: 3px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  border: none;
+}
+#mobileControls {
+  position: absolute;
+  bottom: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 100;
+  display: flex;
+  gap: 10px;
+}
+.mobile-btn {
+  width: 60px; height: 60px;
+  border-radius: 50%;
+  background: rgba(59,130,246,0.7);
+  color: white;
+  font-size: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+}
+.mobile-btn:active {
+  background: rgba(37,99,235,0.9);
+}
+</style>
 </head>
 <body>
-  <header>
-    <h1>Roblox MVP – Build & Play</h1>
-    <p class="subtitle">
-      A minimal demo of the Roblox-style <strong>create → share → play</strong> loop.
-    </p>
-  </header>
 
-  <main>
-    <section id="ui">
-      <div class="controls">
-        <button id="toggleMode">Switch to Play</button>
-        <button id="resetBtn">Reset Level</button>
-        <button id="exportBtn">Export Level</button>
-        <input type="file" id="importFile" accept="application/json" />
-      </div>
-      <div class="info">
-        <span id="modeLabel">Mode: EDIT</span>
-        <span id="playerLabel">Player: (0, 0)</span>
-      </div>
-    </section>
+<div id="ui">
+  <button id="toggleMode">Play Mode</button>
+  <button id="fullscreenBtn">Full Screen</button>
+  <span id="modeLabel">Mode: EDIT</span>
+</div>
 
-    <canvas id="gameCanvas" width="640" height="360"></canvas>
+<canvas id="gameCanvas"></canvas>
 
-    <section id="auth">
-      <input id="username" placeholder="Enter name..." />
-      <button id="loginBtn">Join</button>
-    </section>
-  </main>
+<div id="mobileControls">
+  <div class="mobile-btn" id="leftBtn">&#8592;</div>
+  <div class="mobile-btn" id="jumpBtn">&#8593;</div>
+  <div class="mobile-btn" id="rightBtn">&#8594;</div>
+</div>
 
-  <footer>
-    <p>
-      Built as a <strong>Minimum Viable Product</strong> demonstration — edit and play your own 2D world.
-      <br />
-      Movement: <code>← → ↑</code> or <code>A D W</code> | Space to jump
-    </p>
-  </footer>
+<script>
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
 
-  <script>
-    const canvas = document.getElementById('gameCanvas');
-    const ctx = canvas.getContext('2d');
-    const gridSize = 20;
-    const cols = canvas.width / gridSize;
-    const rows = canvas.height / gridSize;
+let gridSize = 20;
+let cols, rows;
+let blocks = [];
+let player = { x: 80, y: 80, vx: 0, vy: 0, w: 18, h: 32 };
+let keys = {};
+let mode = 'edit';
+let username = 'Player';
 
-    let mode = 'edit';
-    let blocks = createGrid(cols, rows);
-    let player = { x: 80, y: 80, vx: 0, vy: 0, w: 18, h: 32 };
-    let keys = {};
-    let username = 'Guest';
-    let others = {}; // placeholder for multiplayer later
+const modeLabel = document.getElementById('modeLabel');
+const toggleModeBtn = document.getElementById('toggleMode');
+const fullscreenBtn = document.getElementById('fullscreenBtn');
 
-    // ----- AUTH -----
-    document.getElementById('loginBtn').onclick = () => {
-      const name = document.getElementById('username').value.trim();
-      if (name) username = name;
-      alert(`Welcome, ${username}!`);
-    };
+// Mobile buttons
+const leftBtn = document.getElementById('leftBtn');
+const rightBtn = document.getElementById('rightBtn');
+const jumpBtn = document.getElementById('jumpBtn');
 
-    // ----- UI -----
-    const modeLabel = document.getElementById('modeLabel');
-    document.getElementById('toggleMode').onclick = () => {
-      mode = mode === 'edit' ? 'play' : 'edit';
-      modeLabel.textContent = \`Mode: \${mode.toUpperCase()}\`;
-      document.getElementById('toggleMode').innerText =
-        mode === 'edit' ? 'Switch to Play' : 'Switch to Edit';
-    };
+// Resize canvas full screen
+function resizeCanvas() {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  cols = Math.floor(canvas.width / gridSize);
+  rows = Math.floor(canvas.height / gridSize);
+  if (blocks.length === 0) {
+    blocks = createGrid(cols, rows);
+  }
+}
+window.addEventListener('resize', resizeCanvas);
+resizeCanvas();
 
-    document.getElementById('resetBtn').onclick = () => {
-      blocks = createGrid(cols, rows);
-    };
+// Create empty grid with floor
+function createGrid(cols, rows) {
+  const g = [];
+  for(let y=0;y<rows;y++){
+    const row = new Array(cols).fill(false);
+    if(y===rows-1) row.fill(true);
+    g.push(row);
+  }
+  return g;
+}
 
-    document.getElementById('exportBtn').onclick = () => {
-      const data = JSON.stringify({ blocks });
-      const blob = new Blob([data], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'level.json';
-      a.click();
-      URL.revokeObjectURL(url);
-    };
+// Toggle mode
+toggleModeBtn.onclick = () => {
+  mode = mode==='edit' ? 'play':'edit';
+  modeLabel.textContent = 'Mode: ' + mode.toUpperCase();
+  toggleModeBtn.textContent = mode==='edit' ? 'Play Mode':'Edit Mode';
+}
 
-    document.getElementById('importFile').onchange = e => {
-      const file = e.target.files[0];
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = ev => {
-        try {
-          const obj = JSON.parse(ev.target.result);
-          if (obj.blocks) blocks = obj.blocks;
-        } catch {
-          alert('Invalid level file.');
-        }
-      };
-      reader.readAsText(file);
-    };
+// Fullscreen
+fullscreenBtn.onclick = () => {
+  if (canvas.requestFullscreen) canvas.requestFullscreen();
+  else if (canvas.webkitRequestFullscreen) canvas.webkitRequestFullscreen();
+}
 
-    // ----- INPUT -----
-    window.addEventListener('keydown', e => (keys[e.code] = true));
-    window.addEventListener('keyup', e => (keys[e.code] = false));
-    canvas.addEventListener('click', e => {
-      if (mode !== 'edit') return;
-      const rect = canvas.getBoundingClientRect();
-      const cx = Math.floor((e.clientX - rect.left) / gridSize);
-      const cy = Math.floor((e.clientY - rect.top) / gridSize);
-      blocks[cy][cx] = !blocks[cy][cx];
-    });
+// Keyboard controls
+window.addEventListener('keydown', e => keys[e.code]=true);
+window.addEventListener('keyup', e => keys[e.code]=false);
 
-    // ----- GAME LOOP -----
-    let last = performance.now();
-    function loop(t) {
-      const dt = (t - last) / 1000;
-      last = t;
-      update(dt);
-      draw();
-      requestAnimationFrame(loop);
-    }
-    requestAnimationFrame(loop);
+// Mobile buttons
+leftBtn.addEventListener('touchstart', e => {keys['ArrowLeft']=true; e.preventDefault();});
+leftBtn.addEventListener('touchend', e => {keys['ArrowLeft']=false; e.preventDefault();});
+rightBtn.addEventListener('touchstart', e => {keys['ArrowRight']=true; e.preventDefault();});
+rightBtn.addEventListener('touchend', e => {keys['ArrowRight']=false; e.preventDefault();});
+jumpBtn.addEventListener('touchstart', e => {keys['Space']=true; e.preventDefault();});
+jumpBtn.addEventListener('touchend', e => {keys['Space']=false; e.preventDefault();});
 
-    // ----- UPDATE -----
-    function update(dt) {
-      if (mode === 'play') {
-        player.vy += 900 * dt;
-        player.x += player.vx * dt;
-        player.y += player.vy * dt;
+// Edit mode: tap to toggle block
+canvas.addEventListener('click', e => {
+  if(mode!=='edit') return;
+  const rect = canvas.getBoundingClientRect();
+  const x = e.clientX - rect.left;
+  const y = e.clientY - rect.top;
+  const cx = Math.floor(x / gridSize);
+  const cy = Math.floor(y / gridSize);
+  if(cx>=0 && cx<cols && cy>=0 && cy<rows) blocks[cy][cx]=!blocks[cy][cx];
+});
 
-        if (keys['ArrowLeft'] || keys['KeyA']) player.vx = -120;
-        else if (keys['ArrowRight'] || keys['KeyD']) player.vx = 120;
-        else player.vx = 0;
+// Touch for edit mode
+canvas.addEventListener('touchstart', e=>{
+  if(mode!=='edit') return;
+  const t = e.touches[0];
+  const rect = canvas.getBoundingClientRect();
+  const x = t.clientX - rect.left;
+  const y = t.clientY - rect.top;
+  const cx = Math.floor(x / gridSize);
+  const cy = Math.floor(y / gridSize);
+  if(cx>=0 && cx<cols && cy>=0 && cy<rows) blocks[cy][cx]=!blocks[cy][cx];
+});
 
-        // collision / ground
-        if (player.y + player.h > canvas.height) {
-          player.y = canvas.height - player.h;
-          player.vy = 0;
-        }
+// Game loop
+let last = performance.now();
+function loop(time){
+  const dt = (time-last)/1000;
+  last = time;
+  update(dt);
+  draw();
+  requestAnimationFrame(loop);
+}
+requestAnimationFrame(loop);
 
-        // jump
-        if ((keys['Space'] || keys['ArrowUp'] || keys['KeyW']) && player.vy === 0)
-          player.vy = -320;
+// Update player physics
+function update(dt){
+  if(mode==='play'){
+    player.vy += 900*dt;
+    player.x += player.vx*dt;
+    player.y += player.vy*dt;
+
+    if(keys['ArrowLeft']||keys['KeyA']) player.vx=-200;
+    else if(keys['ArrowRight']||keys['KeyD']) player.vx=200;
+    else player.vx=0;
+
+    // jump
+    const onGround = checkGround();
+    if((keys['Space']||keys['ArrowUp']||keys['KeyW']) && onGround) player.vy=-400;
+
+    // bounds
+    if(player.x<0) player.x=0;
+    if(player.x+player.w>canvas.width) player.x=canvas.width-player.w;
+    if(player.y+player.h>canvas.height){player.y=canvas.height-player.h; player.vy=0;}
+  }
+}
+
+// Check if standing on block
+function checkGround(){
+  const footY = player.y + player.h + 1;
+  const leftX = player.x+2;
+  const rightX = player.x+player.w-2;
+  for(let x of [leftX,rightX]){
+    const cx = Math.floor(x/gridSize);
+    const cy = Math.floor(footY/gridSize);
+    if(cy>=0 && cy<rows && cx>=0 && cx<cols && blocks[cy][cx]) return true;
+  }
+  return player.y + player.h >= canvas.height;
+}
+
+// Draw everything
+function draw(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  // Draw blocks
+  for(let y=0;y<rows;y++){
+    for(let x=0;x<cols;x++){
+      if(blocks[y][x]){
+        ctx.fillStyle='#93c5fd';
+        ctx.fillRect(x*gridSize, y*gridSize, gridSize, gridSize);
+        ctx.strokeStyle='#bfdbfe';
+        ctx.strokeRect(x*gridSize, y*gridSize, gridSize, gridSize);
       }
     }
-
-    // ----- DRAW -----
-    function draw() {
-      ctx.fillStyle = '#eef2f7';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-      for (let y = 0; y < rows; y++) {
-        for (let x = 0; x < cols; x++) {
-          if (blocks[y][x]) {
-            ctx.fillStyle = '#93c5fd';
-            ctx.fillRect(x * gridSize, y * gridSize, gridSize, gridSize);
-            ctx.strokeStyle = '#bfdbfe';
-            ctx.strokeRect(x * gridSize, y * gridSize, gridSize, gridSize);
-          }
-        }
-      }
-
-      ctx.fillStyle = '#f87171';
-      ctx.fillRect(player.x, player.y, player.w, player.h);
-      ctx.fillStyle = 'white';
-      ctx.fillRect(player.x + 4, player.y + 6, 4, 4);
-
-      ctx.fillStyle = '#111';
-      ctx.font = '12px sans-serif';
-      ctx.fillText(\`Mode: \${mode}\`, 10, 15);
-      ctx.fillText(\`Player: \${username}\`, 10, 30);
-    }
-
-    function createGrid(cols, rows) {
-      const grid = [];
-      for (let y = 0; y < rows; y++) {
-        grid.push(new Array(cols).fill(y === rows - 1)); // floor
-      }
-      return grid;
-    }
-  </script>
+  }
+  // Player
+  ctx.fillStyle='#f87171';
+  ctx.fillRect(player.x, player.y, player.w, player.h);
+  ctx.fillStyle='white';
+  ctx.fillRect(player.x+4, player.y+6, 4,4);
+  // HUD
+  ctx.fillStyle='#111';
+  ctx.font='16px sans-serif';
+  ctx.fillText('Mode: '+mode.toUpperCase(),10,20);
+  ctx.fillText('Player: '+username,10,40);
+}
+</script>
 </body>
 </html>
