@@ -3,187 +3,63 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Steal a Brainrot – MVP</title>
+<title>Roblox Clone</title>
 <style>
-  body, html { margin:0; padding:0; overflow:hidden; background:#eef2f7; font-family:sans-serif; }
-  canvas { display:block; background:#eef2f7; }
-  #ui { position:absolute; top:10px; left:10px; z-index:100; background:rgba(255,255,255,0.9); padding:8px; border-radius:8px;}
-  button { margin:3px; padding:6px 8px; border-radius:6px; border:none; }
+  body { margin:0; font-family: Arial, sans-serif; background:#f2f2f2; }
+  header { display:flex; align-items:center; justify-content:space-between; padding:10px 20px; background:#000; color:#fff; }
+  header .logo { font-weight:bold; font-size:24px; }
+  header nav a { color:#fff; text-decoration:none; margin-left:15px; }
+  .hero { display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:80px 20px; background:#1e40af; color:#fff; }
+  .hero h1 { font-size:48px; margin-bottom:20px; }
+  .hero button { padding:12px 24px; font-size:18px; border:none; border-radius:6px; background:#facc15; color:#000; cursor:pointer; }
+  .games { display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:20px; padding:40px 20px; }
+  .game { background:#fff; border-radius:12px; overflow:hidden; box-shadow:0 2px 6px rgba(0,0,0,0.1); cursor:pointer; }
+  .game img { width:100%; display:block; }
+  .game h3 { margin:10px; font-size:18px; }
+  footer { background:#000; color:#fff; text-align:center; padding:20px; margin-top:40px; }
 </style>
 </head>
 <body>
-<div id="ui">
-  <button id="toggleMode">Play Mode</button>
-  <span id="modeLabel">Mode: EDIT</span>
-</div>
 
-<canvas id="gameCanvas"></canvas>
+<header>
+  <div class="logo">ROBLOX</div>
+  <nav>
+    <a href="#">Games</a>
+    <a href="#">Avatar</a>
+    <a href="#">Catalog</a>
+    <a href="#">Robux</a>
+    <a href="#">Login</a>
+  </nav>
+</header>
 
-<script>
-const canvas = document.getElementById('gameCanvas');
-const ctx = canvas.getContext('2d');
+<section class="hero">
+  <h1>Play, Create, Imagine</h1>
+  <p>Join millions of players in a world full of games and adventures!</p>
+  <button>Start Creating</button>
+</section>
 
-let gridSize = 20;
-let cols, rows;
-let blocks = [];
-let players = {};
-let playerID = 'player'+Math.floor(Math.random()*1000);
-let player = {id:playerID,x:80,y:80,vx:0,vy:0,w:18,h:32,name:'You',brainrots:[]};
-players[playerID] = player;
+<section class="games">
+  <div class="game">
+    <img src="https://via.placeholder.com/400x200?text=Game+1" alt="Game 1">
+    <h3>Awesome Game 1</h3>
+  </div>
+  <div class="game">
+    <img src="https://via.placeholder.com/400x200?text=Game+2" alt="Game 2">
+    <h3>Adventure Game 2</h3>
+  </div>
+  <div class="game">
+    <img src="https://via.placeholder.com/400x200?text=Game+3" alt="Game 3">
+    <h3>Racing Game 3</h3>
+  </div>
+  <div class="game">
+    <img src="https://via.placeholder.com/400x200?text=Game+4" alt="Game 4">
+    <h3>Puzzle Game 4</h3>
+  </div>
+</section>
 
-let brainrots = []; // items on map
+<footer>
+  <p>© 2025 ROBLOX Clone. All rights reserved.</p>
+</footer>
 
-let mode = 'edit';
-let keys = {};
-
-const modeLabel = document.getElementById('modeLabel');
-const toggleModeBtn = document.getElementById('toggleMode');
-
-toggleModeBtn.onclick = () => {
-  mode = mode==='edit'?'play':'edit';
-  modeLabel.textContent = 'Mode: '+mode.toUpperCase();
-  toggleModeBtn.textContent = mode==='edit'?'Play Mode':'Edit Mode';
-};
-
-// Resize canvas full screen
-function resizeCanvas(){
-  canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight;
-  cols = Math.floor(canvas.width/gridSize);
-  rows = Math.floor(canvas.height/gridSize);
-  if(blocks.length===0) blocks=createGrid(cols,rows);
-}
-window.addEventListener('resize',resizeCanvas);
-resizeCanvas();
-
-// Create empty grid
-function createGrid(cols,rows){
-  const g=[];
-  for(let y=0;y<rows;y++){
-    const row = new Array(cols).fill(false);
-    if(y===rows-1) row.fill(true); // floor
-    g.push(row);
-  }
-  return g;
-}
-
-// Keyboard
-window.addEventListener('keydown',e=>keys[e.code]=true);
-window.addEventListener('keyup',e=>keys[e.code]=false);
-
-// Edit mode click
-canvas.addEventListener('click',e=>{
-  if(mode!=='edit') return;
-  const rect=canvas.getBoundingClientRect();
-  const x=Math.floor((e.clientX-rect.left)/gridSize);
-  const y=Math.floor((e.clientY-rect.top)/gridSize);
-  if(x>=0 && x<cols && y>=0 && y<rows) blocks[y][x]=!blocks[y][x];
-});
-
-// Spawn brainrots randomly
-function spawnBrainrots(num=5){
-  brainrots=[];
-  for(let i=0;i<num;i++){
-    brainrots.push({x:Math.random()*canvas.width, y:Math.random()*canvas.height, owner:null});
-  }
-}
-spawnBrainrots(5);
-
-// Game loop
-let last = performance.now();
-function loop(time){
-  const dt = (time-last)/1000;
-  last = time;
-  update(dt);
-  draw();
-  requestAnimationFrame(loop);
-}
-requestAnimationFrame(loop);
-
-// Update physics
-function update(dt){
-  if(mode==='play'){
-    player.vy += 900*dt;
-    player.x += player.vx*dt;
-    player.y += player.vy*dt;
-
-    if(keys['ArrowLeft']||keys['KeyA']) player.vx=-200;
-    else if(keys['ArrowRight']||keys['KeyD']) player.vx=200;
-    else player.vx=0;
-
-    // jump
-    const onGround = checkGround(player);
-    if((keys['Space']||keys['ArrowUp']||keys['KeyW']) && onGround) player.vy=-400;
-
-    // bounds
-    if(player.x<0) player.x=0;
-    if(player.x+player.w>canvas.width) player.x=canvas.width-player.w;
-    if(player.y+player.h>canvas.height){player.y=canvas.height-player.h; player.vy=0;}
-    
-    // Collect brainrots
-    brainrots.forEach(b=>{
-      if(Math.abs(player.x-b.x)<player.w && Math.abs(player.y-b.y)<player.h){
-        b.owner=player.id;
-        if(!player.brainrots.includes(b)) player.brainrots.push(b);
-      }
-    });
-  }
-}
-
-// Check ground collision
-function checkGround(p){
-  const footY=p.y+p.h+1;
-  const leftX=p.x+2;
-  const rightX=p.x+p.w-2;
-  for(let x of [leftX,rightX]){
-    const cx=Math.floor(x/gridSize);
-    const cy=Math.floor(footY/gridSize);
-    if(cy>=0 && cy<rows && cx>=0 && cx<cols && blocks[cy][cx]) return true;
-  }
-  return p.y+p.h>=canvas.height;
-}
-
-// Draw everything
-function draw(){
-  ctx.clearRect(0,0,canvas.width,canvas.height);
-  // blocks
-  for(let y=0;y<rows;y++){
-    for(let x=0;x<cols;x++){
-      if(blocks[y][x]){
-        ctx.fillStyle='#93c5fd';
-        ctx.fillRect(x*gridSize,y*gridSize,gridSize,gridSize);
-        ctx.strokeStyle='#bfdbfe';
-        ctx.strokeRect(x*gridSize,y*gridSize,gridSize,gridSize);
-      }
-    }
-  }
-
-  // brainrots
-  brainrots.forEach(b=>{
-    ctx.fillStyle=b.owner===null?'#facc15':'#f472b6';
-    ctx.beginPath();
-    ctx.arc(b.x,b.y,10,0,Math.PI*2);
-    ctx.fill();
-  });
-
-  // players
-  for(let id in players){
-    const p = players[id];
-    ctx.fillStyle = (id===playerID)?'#f87171':'#34d399';
-    ctx.fillRect(p.x,p.y,p.w,p.h);
-    ctx.fillStyle='white';
-    ctx.fillRect(p.x+4,p.y+6,4,4);
-    ctx.fillStyle='#111';
-    ctx.font='12px sans-serif';
-    ctx.fillText(p.name,p.x,p.y-6);
-  }
-
-  // HUD
-  ctx.fillStyle='#111';
-  ctx.font='16px sans-serif';
-  ctx.fillText('Mode: '+mode.toUpperCase(),10,20);
-  ctx.fillText('Your Brainrots: '+player.brainrots.length,10,40);
-}
-</script>
 </body>
 </html>
