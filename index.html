@@ -2,74 +2,22 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>Roblox MVP – Mobile Play</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Steal a Brainrot – MVP</title>
 <style>
-body, html {
-  margin: 0; padding: 0; overflow: hidden;
-  font-family: 'Segoe UI', Tahoma, sans-serif;
-  background: #eef2f7;
-}
-canvas {
-  display: block;
-  background: #eef2f7;
-  touch-action: none;
-}
-#ui {
-  position: absolute;
-  top: 10px;
-  left: 10px;
-  z-index: 100;
-  background: rgba(255,255,255,0.9);
-  padding: 8px;
-  border-radius: 8px;
-}
-button, input {
-  margin: 3px;
-  padding: 6px 8px;
-  border-radius: 6px;
-  border: none;
-}
-#mobileControls {
-  position: absolute;
-  bottom: 10px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 100;
-  display: flex;
-  gap: 10px;
-}
-.mobile-btn {
-  width: 60px; height: 60px;
-  border-radius: 50%;
-  background: rgba(59,130,246,0.7);
-  color: white;
-  font-size: 24px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  user-select: none;
-}
-.mobile-btn:active {
-  background: rgba(37,99,235,0.9);
-}
+  body, html { margin:0; padding:0; overflow:hidden; background:#eef2f7; font-family:sans-serif; }
+  canvas { display:block; background:#eef2f7; }
+  #ui { position:absolute; top:10px; left:10px; z-index:100; background:rgba(255,255,255,0.9); padding:8px; border-radius:8px;}
+  button { margin:3px; padding:6px 8px; border-radius:6px; border:none; }
 </style>
 </head>
 <body>
-
 <div id="ui">
   <button id="toggleMode">Play Mode</button>
-  <button id="fullscreenBtn">Full Screen</button>
   <span id="modeLabel">Mode: EDIT</span>
 </div>
 
 <canvas id="gameCanvas"></canvas>
-
-<div id="mobileControls">
-  <div class="mobile-btn" id="leftBtn">&#8592;</div>
-  <div class="mobile-btn" id="jumpBtn">&#8593;</div>
-  <div class="mobile-btn" id="rightBtn">&#8594;</div>
-</div>
 
 <script>
 const canvas = document.getElementById('gameCanvas');
@@ -78,91 +26,68 @@ const ctx = canvas.getContext('2d');
 let gridSize = 20;
 let cols, rows;
 let blocks = [];
-let player = { x: 80, y: 80, vx: 0, vy: 0, w: 18, h: 32 };
-let keys = {};
+let players = {};
+let playerID = 'player'+Math.floor(Math.random()*1000);
+let player = {id:playerID,x:80,y:80,vx:0,vy:0,w:18,h:32,name:'You',brainrots:[]};
+players[playerID] = player;
+
+let brainrots = []; // items on map
+
 let mode = 'edit';
-let username = 'Player';
+let keys = {};
 
 const modeLabel = document.getElementById('modeLabel');
 const toggleModeBtn = document.getElementById('toggleMode');
-const fullscreenBtn = document.getElementById('fullscreenBtn');
 
-// Mobile buttons
-const leftBtn = document.getElementById('leftBtn');
-const rightBtn = document.getElementById('rightBtn');
-const jumpBtn = document.getElementById('jumpBtn');
+toggleModeBtn.onclick = () => {
+  mode = mode==='edit'?'play':'edit';
+  modeLabel.textContent = 'Mode: '+mode.toUpperCase();
+  toggleModeBtn.textContent = mode==='edit'?'Play Mode':'Edit Mode';
+};
 
 // Resize canvas full screen
-function resizeCanvas() {
+function resizeCanvas(){
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight;
-  cols = Math.floor(canvas.width / gridSize);
-  rows = Math.floor(canvas.height / gridSize);
-  if (blocks.length === 0) {
-    blocks = createGrid(cols, rows);
-  }
+  cols = Math.floor(canvas.width/gridSize);
+  rows = Math.floor(canvas.height/gridSize);
+  if(blocks.length===0) blocks=createGrid(cols,rows);
 }
-window.addEventListener('resize', resizeCanvas);
+window.addEventListener('resize',resizeCanvas);
 resizeCanvas();
 
-// Create empty grid with floor
-function createGrid(cols, rows) {
-  const g = [];
+// Create empty grid
+function createGrid(cols,rows){
+  const g=[];
   for(let y=0;y<rows;y++){
     const row = new Array(cols).fill(false);
-    if(y===rows-1) row.fill(true);
+    if(y===rows-1) row.fill(true); // floor
     g.push(row);
   }
   return g;
 }
 
-// Toggle mode
-toggleModeBtn.onclick = () => {
-  mode = mode==='edit' ? 'play':'edit';
-  modeLabel.textContent = 'Mode: ' + mode.toUpperCase();
-  toggleModeBtn.textContent = mode==='edit' ? 'Play Mode':'Edit Mode';
-}
+// Keyboard
+window.addEventListener('keydown',e=>keys[e.code]=true);
+window.addEventListener('keyup',e=>keys[e.code]=false);
 
-// Fullscreen
-fullscreenBtn.onclick = () => {
-  if (canvas.requestFullscreen) canvas.requestFullscreen();
-  else if (canvas.webkitRequestFullscreen) canvas.webkitRequestFullscreen();
-}
-
-// Keyboard controls
-window.addEventListener('keydown', e => keys[e.code]=true);
-window.addEventListener('keyup', e => keys[e.code]=false);
-
-// Mobile buttons
-leftBtn.addEventListener('touchstart', e => {keys['ArrowLeft']=true; e.preventDefault();});
-leftBtn.addEventListener('touchend', e => {keys['ArrowLeft']=false; e.preventDefault();});
-rightBtn.addEventListener('touchstart', e => {keys['ArrowRight']=true; e.preventDefault();});
-rightBtn.addEventListener('touchend', e => {keys['ArrowRight']=false; e.preventDefault();});
-jumpBtn.addEventListener('touchstart', e => {keys['Space']=true; e.preventDefault();});
-jumpBtn.addEventListener('touchend', e => {keys['Space']=false; e.preventDefault();});
-
-// Edit mode: tap to toggle block
-canvas.addEventListener('click', e => {
+// Edit mode click
+canvas.addEventListener('click',e=>{
   if(mode!=='edit') return;
-  const rect = canvas.getBoundingClientRect();
-  const x = e.clientX - rect.left;
-  const y = e.clientY - rect.top;
-  const cx = Math.floor(x / gridSize);
-  const cy = Math.floor(y / gridSize);
-  if(cx>=0 && cx<cols && cy>=0 && cy<rows) blocks[cy][cx]=!blocks[cy][cx];
+  const rect=canvas.getBoundingClientRect();
+  const x=Math.floor((e.clientX-rect.left)/gridSize);
+  const y=Math.floor((e.clientY-rect.top)/gridSize);
+  if(x>=0 && x<cols && y>=0 && y<rows) blocks[y][x]=!blocks[y][x];
 });
 
-// Touch for edit mode
-canvas.addEventListener('touchstart', e=>{
-  if(mode!=='edit') return;
-  const t = e.touches[0];
-  const rect = canvas.getBoundingClientRect();
-  const x = t.clientX - rect.left;
-  const y = t.clientY - rect.top;
-  const cx = Math.floor(x / gridSize);
-  const cy = Math.floor(y / gridSize);
-  if(cx>=0 && cx<cols && cy>=0 && cy<rows) blocks[cy][cx]=!blocks[cy][cx];
-});
+// Spawn brainrots randomly
+function spawnBrainrots(num=5){
+  brainrots=[];
+  for(let i=0;i<num;i++){
+    brainrots.push({x:Math.random()*canvas.width, y:Math.random()*canvas.height, owner:null});
+  }
+}
+spawnBrainrots(5);
 
 // Game loop
 let last = performance.now();
@@ -175,7 +100,7 @@ function loop(time){
 }
 requestAnimationFrame(loop);
 
-// Update player physics
+// Update physics
 function update(dt){
   if(mode==='play'){
     player.vy += 900*dt;
@@ -187,53 +112,77 @@ function update(dt){
     else player.vx=0;
 
     // jump
-    const onGround = checkGround();
+    const onGround = checkGround(player);
     if((keys['Space']||keys['ArrowUp']||keys['KeyW']) && onGround) player.vy=-400;
 
     // bounds
     if(player.x<0) player.x=0;
     if(player.x+player.w>canvas.width) player.x=canvas.width-player.w;
     if(player.y+player.h>canvas.height){player.y=canvas.height-player.h; player.vy=0;}
+    
+    // Collect brainrots
+    brainrots.forEach(b=>{
+      if(Math.abs(player.x-b.x)<player.w && Math.abs(player.y-b.y)<player.h){
+        b.owner=player.id;
+        if(!player.brainrots.includes(b)) player.brainrots.push(b);
+      }
+    });
   }
 }
 
-// Check if standing on block
-function checkGround(){
-  const footY = player.y + player.h + 1;
-  const leftX = player.x+2;
-  const rightX = player.x+player.w-2;
+// Check ground collision
+function checkGround(p){
+  const footY=p.y+p.h+1;
+  const leftX=p.x+2;
+  const rightX=p.x+p.w-2;
   for(let x of [leftX,rightX]){
-    const cx = Math.floor(x/gridSize);
-    const cy = Math.floor(footY/gridSize);
+    const cx=Math.floor(x/gridSize);
+    const cy=Math.floor(footY/gridSize);
     if(cy>=0 && cy<rows && cx>=0 && cx<cols && blocks[cy][cx]) return true;
   }
-  return player.y + player.h >= canvas.height;
+  return p.y+p.h>=canvas.height;
 }
 
 // Draw everything
 function draw(){
   ctx.clearRect(0,0,canvas.width,canvas.height);
-  // Draw blocks
+  // blocks
   for(let y=0;y<rows;y++){
     for(let x=0;x<cols;x++){
       if(blocks[y][x]){
         ctx.fillStyle='#93c5fd';
-        ctx.fillRect(x*gridSize, y*gridSize, gridSize, gridSize);
+        ctx.fillRect(x*gridSize,y*gridSize,gridSize,gridSize);
         ctx.strokeStyle='#bfdbfe';
-        ctx.strokeRect(x*gridSize, y*gridSize, gridSize, gridSize);
+        ctx.strokeRect(x*gridSize,y*gridSize,gridSize,gridSize);
       }
     }
   }
-  // Player
-  ctx.fillStyle='#f87171';
-  ctx.fillRect(player.x, player.y, player.w, player.h);
-  ctx.fillStyle='white';
-  ctx.fillRect(player.x+4, player.y+6, 4,4);
+
+  // brainrots
+  brainrots.forEach(b=>{
+    ctx.fillStyle=b.owner===null?'#facc15':'#f472b6';
+    ctx.beginPath();
+    ctx.arc(b.x,b.y,10,0,Math.PI*2);
+    ctx.fill();
+  });
+
+  // players
+  for(let id in players){
+    const p = players[id];
+    ctx.fillStyle = (id===playerID)?'#f87171':'#34d399';
+    ctx.fillRect(p.x,p.y,p.w,p.h);
+    ctx.fillStyle='white';
+    ctx.fillRect(p.x+4,p.y+6,4,4);
+    ctx.fillStyle='#111';
+    ctx.font='12px sans-serif';
+    ctx.fillText(p.name,p.x,p.y-6);
+  }
+
   // HUD
   ctx.fillStyle='#111';
   ctx.font='16px sans-serif';
   ctx.fillText('Mode: '+mode.toUpperCase(),10,20);
-  ctx.fillText('Player: '+username,10,40);
+  ctx.fillText('Your Brainrots: '+player.brainrots.length,10,40);
 }
 </script>
 </body>
