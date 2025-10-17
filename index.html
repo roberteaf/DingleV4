@@ -14,7 +14,7 @@
 </head>
 <body>
     <h1>Money Management Website</h1>
-    <p><strong>Note:</strong> This is a client-side only version using localStorage. It's not secure for real use as data and passwords can be accessed via browser tools. For demonstration purposes only. Initial users: 'lpx' (admin, password: 'adminpass'), 'user' (password: 'userpass').</p>
+    <p><strong>Note:</strong> This is a client-side only version using localStorage. It's not secure for real use as data and passwords can be accessed via browser tools. For demonstration purposes only. Initial admin: 'burst' (password: 'passcx'). You can register new users.</p>
 
     <!-- Login Form -->
     <div id="login-section">
@@ -26,6 +26,20 @@
             <input type="password" id="password" required>
             <button type="submit">Login</button>
         </form>
+        <button id="show-register">Register New Account</button>
+    </div>
+
+    <!-- Register Form -->
+    <div id="register-section" class="hidden">
+        <h2>Register</h2>
+        <form id="register-form">
+            <label for="reg-username">Username:</label>
+            <input type="text" id="reg-username" required>
+            <label for="reg-password">Password:</label>
+            <input type="password" id="reg-password" required>
+            <button type="submit">Register</button>
+        </form>
+        <button id="back-to-login">Back to Login</button>
     </div>
 
     <!-- User Dashboard -->
@@ -64,8 +78,7 @@
         // Initialize users if not present
         if (!localStorage.getItem('users')) {
             const users = [
-                { username: 'lpx', password: simpleHash('adminpass'), balance: 0, isAdmin: true },
-                { username: 'user', password: simpleHash('userpass'), balance: 0, isAdmin: false }
+                { username: 'burst', password: simpleHash('passcx'), balance: 0, isAdmin: true }
             ];
             localStorage.setItem('users', JSON.stringify(users));
         }
@@ -97,9 +110,28 @@
             }
         });
 
+        // Handle Register
+        document.getElementById('register-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const username = document.getElementById('reg-username').value;
+            const password = simpleHash(document.getElementById('reg-password').value);
+
+            const users = getUsers();
+            if (users.find(u => u.username === username)) {
+                alert('Username already exists');
+                return;
+            }
+
+            users.push({ username, password, balance: 0, isAdmin: false });
+            saveUsers(users);
+            alert('Registration successful! You can now login.');
+            showLogin();
+        });
+
         // Show Dashboard
         function showDashboard(user) {
             document.getElementById('login-section').classList.add('hidden');
+            document.getElementById('register-section').classList.add('hidden');
             document.getElementById('user-dashboard').classList.remove('hidden');
             document.getElementById('user-name').textContent = user.username;
             document.getElementById('user-balance').textContent = user.balance;
@@ -148,6 +180,7 @@
                 target.balance += amount;
             } else if (action === 'remove') {
                 target.balance -= amount;
+                if (target.balance < 0) target.balance = 0; // Prevent negative balance, optional
             }
 
             saveUsers(users);
@@ -157,6 +190,22 @@
             if (currentUser === targetUser) {
                 document.getElementById('user-balance').textContent = target.balance;
             }
+        }
+
+        // Show Register
+        document.getElementById('show-register').addEventListener('click', () => {
+            document.getElementById('login-section').classList.add('hidden');
+            document.getElementById('register-section').classList.remove('hidden');
+        });
+
+        // Back to Login
+        document.getElementById('back-to-login').addEventListener('click', () => {
+            showLogin();
+        });
+
+        function showLogin() {
+            document.getElementById('register-section').classList.add('hidden');
+            document.getElementById('login-section').classList.remove('hidden');
         }
 
         // Check if already logged in
