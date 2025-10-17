@@ -755,8 +755,8 @@
             <div style="max-width: 800px; width: 100%;">
                 <h2 style="text-align: center; margin-bottom: 20px;">User Management</h2>
                 <div style="margin-bottom: 20px; display: flex; align-items: center; justify-content: center; gap: 10px;">
-                    <input type="text" id="userSearch" placeholder="Search users..." style="width: 300px; padding: 10px; border-radius: 10px; background: rgba(255,255,255,0.1); border: 1px solid #7b2cbf; color: white;">
-                    <button class="btn" onclick="loadUsers('')">Refresh 🔄</button>
+                    <input type="text" id="userSearch" placeholder="Search users..." style="width: 300px; padding: 10px; border-radius: 10px; background: rgba(255,255,255,0.1); border: 1px solid #7b2cbf; color: white;" oninput="loadUsers(this.value)">
+                    <button class="btn" onclick="loadUsers(document.getElementById('userSearch').value)">Refresh 🔄</button>
                 </div>
                 <div id="usersTable" style="overflow-y: auto; max-height: 400px; background: rgba(0,0,0,0.3); border-radius: 10px; padding: 10px;"></div>
                 <div style="margin-top: 20px; padding: 20px; background: rgba(0,0,0,0.5); border-radius: 15px; display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 10px;">
@@ -1024,6 +1024,9 @@
                     }
                 });
                 isAdmin = currentUser === ADMIN_USERNAME && currentEdition === 'Java';
+                if (isAdmin) {
+                    // Show admin button or screen if needed
+                }
             } catch (error) {
                 console.error('Load user data error:', error);
                 showNotification('Failed to load user data! ⚠️', 'error');
@@ -1040,7 +1043,7 @@
 
         function updateUserWins(newWins) {
             wins = newWins;
-            document.getElementById('wins').textContent = wins;
+            document.getElementById('wins').textContent = newWins;
             if (userDoc) {
                 updateDoc(userDoc, { wins: newWins });
             }
@@ -1261,27 +1264,26 @@
                 const userSnap = await getDoc(userRef);
                 if (userSnap.exists()) {
                     showNotification('User already exists! Please login instead. ⚠️', 'error');
-                    return;
-                }
-                await setDoc(userRef, { balance: 0, wins: 0, edition: edition, password: password });
-                currentUser = username;
-                currentEdition = edition;
-                localStorage.setItem('currentUser', currentUser);
-                localStorage.setItem('currentEdition', currentEdition);
-                await loadUserData();
-                document.body.classList.add('logged-in');
-                showScreen('dashboard');
-                document.getElementById('user').textContent = currentUser;
-                document.getElementById('ed').textContent = currentEdition;
-                addAdminButton();
-                loadMessages();
-                showNotification(`Welcome, ${username}! Edition: ${edition} 🎮`, 'success');
-                if (isAdmin) {
-                    showNotification('Admin mode active! Access the Admin Panel 🔧', 'success');
+                } else {
+                    await setDoc(userRef, {
+                        balance: 0,
+                        wins: 0,
+                        edition: edition,
+                        password: password  // Note: Storing plain text passwords is insecure; consider hashing in production
+                    });
+                    showNotification('Sign up successful! Logging in... 🎉', 'success');
+                    currentUser = username;
+                    currentEdition = edition;
+                    document.getElementById('user').textContent = currentUser;
+                    document.getElementById('ed').textContent = currentEdition;
+                    loadUserData();
+                    loadMessages();
+                    showScreen(isAdmin ? 'admin' : 'dashboard');
+                    document.body.classList.add('logged-in');
                 }
             } catch (error) {
                 console.error('Sign up error:', error);
-                showNotification('Sign up failed! Check console for details. ⚠️', 'error');
+                showNotification('Failed to sign up! ⚠️', 'error');
             }
         }
 
@@ -1296,701 +1298,435 @@
                 }
                 const userRef = doc(db, 'users', username);
                 const userSnap = await getDoc(userRef);
-                if (!userSnap.exists()) {
-                    showNotification('User not found! Please sign up. ⚠️', 'error');
-                    return;
-                }
-                const data = userSnap.data();
-                if (data.edition && data.edition !== edition) {
-                    showNotification('Edition mismatch! Logout and try again. ⚠️', 'error');
-                    return;
-                }
-                let passwordMatch = false;
-                if (username === ADMIN_USERNAME) {
-                    if (password === ADMIN_PASSWORD) {
-                        passwordMatch = true;
-                        if (!data.password) {
-                            await updateDoc(userRef, { password: ADMIN_PASSWORD });
+                if (userSnap.exists()) {
+                    const data = userSnap.data();
+                    if (data.password === password && (data.edition === edition || !data.edition)) {
+                        currentUser = username;
+                        currentEdition = edition;
+                        document.getElementById('user').textContent = currentUser;
+                        document.getElementById('ed').textContent = currentEdition;
+                        loadUserData();
+                        loadMessages();
+                        showScreen(isAdmin ? 'admin' : 'dashboard');
+                        document.body.classList.add('logged-in');
+                        showNotification('Login successful! Welcome back 🎉', 'success');
+                        if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
+                            isAdmin = true;
+                            showScreen('admin');
                         }
+                    } else {
+                        showNotification('Invalid password or edition! ⚠️', 'error');
                     }
                 } else {
-                    passwordMatch = data.password === password;
-                }
-                if (!passwordMatch) {
-                    showNotification('Incorrect password! ⚠️', 'error');
-                    return;
-                }
-                currentUser = username;
-                currentEdition = edition;
-                localStorage.setItem('currentUser', currentUser);
-                localStorage.setItem('currentEdition', currentEdition);
-                await loadUserData();
-                document.body.classList.add('logged-in');
-                showScreen('dashboard');
-                document.getElementById('user').textContent = currentUser;
-                document.getElementById('ed').textContent = currentEdition;
-                addAdminButton();
-                loadMessages();
-                showNotification(`Welcome back, ${username}! Edition: ${edition} 🎮`, 'success');
-                if (isAdmin) {
-                    showNotification('Admin mode active! Access the Admin Panel 🔧', 'success');
+                    showNotification('User not found! Please sign up. ⚠️', 'error');
                 }
             } catch (error) {
                 console.error('Login error:', error);
-                showNotification('Login failed! Check console for details. ⚠️', 'error');
+                showNotification('Failed to login! ⚠️', 'error');
             }
         }
 
         function logout() {
-            if (messagesUnsub) messagesUnsub();
-            if (leaderboardUnsub) leaderboardUnsub();
-            if (usersUnsub) usersUnsub();
-            if (userUnsub) userUnsub();
-            const adminBtn = document.querySelector('.admin-btn');
-            if (adminBtn) adminBtn.remove();
-            localStorage.removeItem('currentUser');
-            localStorage.removeItem('currentEdition');
-            document.body.classList.remove('logged-in');
-            document.querySelectorAll('.screen').forEach(s => {
-                s.classList.remove('visible');
-                s.classList.add('hidden');
-            });
-            document.getElementById('login').classList.remove('hidden');
-            document.getElementById('login').classList.add('visible');
-            document.getElementById('username').value = '';
-            document.getElementById('login-password').value = '';
-            document.getElementById('signup-username').value = '';
-            document.getElementById('signup-password').value = '';
-            document.getElementById('confirm-password').value = '';
             currentUser = '';
             currentEdition = '';
             balance = 0;
             wins = 0;
             isAdmin = false;
-            userDoc = null;
-            showNotification('Logged out safely! 👋', 'info');
-            currentScreen = 'login';
-            document.getElementById('leaderboard').style.display = 'none';
+            if (userUnsub) userUnsub();
+            if (messagesUnsub) messagesUnsub();
+            if (leaderboardUnsub) leaderboardUnsub();
+            if (usersUnsub) usersUnsub();
+            document.body.classList.remove('logged-in');
+            showScreen('login');
+            showNotification('Logged out successfully! 👋', 'success');
         }
 
-        function addAdminButton() {
-            if (!isAdmin) return;
-            const headerButtons = document.querySelector('#dashboard .header-buttons');
-            if (headerButtons.querySelector('.admin-btn')) return;
-            const adminBtn = document.createElement('button');
-            adminBtn.className = 'btn admin-btn';
-            adminBtn.textContent = 'Admin Panel 🔧';
-            adminBtn.onclick = () => showScreen('admin');
-            headerButtons.insertBefore(adminBtn, headerButtons.firstChild);
+        function deposit() {
+            const amtStr = prompt('Enter deposit amount (e.g., 100 or 1k):');
+            const amt = parseBet(amtStr);
+            if (isNaN(amt) || amt <= 0) return showNotification('Invalid amount! ⚠️', 'error');
+            updateUserBalance(balance + amt);
+            showNotification(`Deposited $${formatBalance(amt)} 💳`, 'success');
+        }
+
+        function withdraw() {
+            const amtStr = prompt('Enter withdraw amount (e.g., 100 or 1k):');
+            const amt = parseBet(amtStr);
+            if (isNaN(amt) || amt <= 0 || amt > balance) return showNotification('Invalid or insufficient amount! ⚠️', 'error');
+            updateUserBalance(balance - amt);
+            showNotification(`Withdrew $${formatBalance(amt)} 🏦`, 'success');
+        }
+
+        function showComingSoon() {
+            showNotification('This game is coming soon! ⏳', 'info');
         }
 
         function showNotification(message, type = 'info') {
             const notif = document.getElementById('notification');
-            notif.textContent = message;
-            notif.style.background = type === 'error' ? 'rgba(255,0,0,0.95)' : type === 'success' ? 'rgba(0,255,0,0.95)' : 'rgba(0,31,63,0.95)';
-            notif.style.borderLeftColor = type === 'error' ? '#ff0000' : type === 'success' ? '#00ff00' : '#7b2cbf';
-            notif.classList.add('notification');
-            setTimeout(() => {
-                notif.classList.remove('notification');
-            }, 3000);
-        }
-
-        function deposit() {
-            showNotification(`Contact Admin on Discord (ID: 1057661388157362277) to deposit! 📩 Provide amount & proof.`, 'info');
-        }
-
-        function withdraw() {
-            if (balance <= 0) {
-                showNotification('Insufficient balance! 💸', 'error');
-                return;
-            }
-            showNotification(`Contact Admin on Discord (ID: 1057661388157362277) to withdraw $${formatBalance(balance)}! 🏦 Provide details.`, 'info');
-        }
-
-        function showComingSoon() {
-            showNotification('Coming Soon! Stay tuned ⏳', 'info');
+            notif.innerHTML = message;
+            notif.className = 'notification ' + type;
+            notif.style.display = 'block';
+            setTimeout(() => { notif.style.display = 'none'; }, 3000);
         }
 
         function downloadLog() {
-            // Fallback to local if needed; could sync logs to Firestore
-            showNotification('Logs synced to Firestore! Check console for export. 📊', 'info');
-            console.log('Full user data:', users);
+            // Dummy function; implement logging if needed
+            showNotification('Log download not implemented yet! 📥', 'info');
         }
 
-        // Reset functions (unchanged)
-        function resetBlackjack() {
-            playerHand = [];
-            dealerHand = [];
-            bjBet = 0;
-            document.getElementById('bj-hand-player').innerHTML = '';
-            document.getElementById('bj-hand-dealer').innerHTML = '';
-            document.getElementById('bj-result').textContent = '';
-            document.querySelectorAll('#blackjack-screen .controls button').forEach(btn => btn.disabled = false);
-        }
+        // Game Functions (Mines, Dice, Towers, Blackjack, Crash)
+        // These are local state but update server balance on win/loss
 
         function resetMines() {
             gameActive = false;
+            minesGrid = [];
             minesRevealed = 0;
-            document.getElementById('cashout-btn').style.display = 'none';
             document.getElementById('mine-grid').innerHTML = '';
-            document.getElementById('mines-result').textContent = '';
+            document.getElementById('mines-result').innerHTML = '';
+            document.getElementById('cashout-btn').style.display = 'none';
         }
 
-        function resetTowers() {
-            towersGameActive = false;
-            currentTowerRow = 0;
-            towersRevealed = 0;
-            document.getElementById('cashout-btn-towers').style.display = 'none';
-            document.getElementById('towers-display').innerHTML = '';
-            document.getElementById('towers-result').textContent = '';
-        }
-
-        function resetCrash() {
-            const inputGroup = document.getElementById('crash-input');
-            if (inputGroup) inputGroup.style.display = 'flex';
-            document.getElementById('crash-area').style.display = 'block';
-            document.getElementById('cashout-btn-crash').style.display = 'none';
-            document.getElementById('crash-result').textContent = '';
-            const rocket = document.getElementById('rocket');
-            if (rocket) {
-                rocket.innerHTML = '🚀';
-                rocket.style.transform = 'translateX(-50%) translateY(0px)';
-            }
-            userCrashBet = 0;
-            userCashedOut = false;
-            globalBettingActive = false;
-            globalCrashActive = false;
-        }
-
-        // Game functions (updated to use updateUserBalance with win flag)
-        function computeMinesMultiplier(revealed, mines) {
-            const total = 25;
-            const safe = total - mines;
-            if (revealed === 0) return 1.0;
-            let prob = 1.0;
-            for (let i = 0; i < revealed; i++) {
-                prob *= (safe - i) / (total - i);
-            }
-            return 1.0 / prob;
-        }
-
-        async function startMines() {
-            const betStr = document.getElementById('minesbet').value;
-            minesBet = parseBet(betStr);
+        function startMines() {
+            if (gameActive) return;
+            minesBet = parseBet(document.getElementById('minesbet').value);
             minesNum = parseInt(document.getElementById('minesnum').value);
-            if (minesBet > balance || minesBet <= 0) {
-                showNotification('Invalid bet! ⚠️', 'error');
-                return;
-            }
+            if (minesBet <= 0 || minesBet > balance) return showNotification('Invalid bet! ⚠️', 'error');
             updateUserBalance(balance - minesBet);
-            
-            minesGrid = Array(25).fill(false);
-            for (let i = 0; i < minesNum; i++) {
-                let pos;
-                do { pos = Math.floor(Math.random() * 25); } while (minesGrid[pos]);
-                minesGrid[pos] = true;
-            }
-            minesRevealed = 0;
             gameActive = true;
-            renderMines();
-            const multiplier = computeMinesMultiplier(minesRevealed, minesNum);
-            document.getElementById('mines-result').textContent = `Revealed: ${minesRevealed}/${25 - minesNum} | Potential Payout: x${multiplier.toFixed(2)}`;
-            document.getElementById('cashout-btn').style.display = 'block';
-        }
-
-        function renderMines() {
+            minesGrid = Array(25).fill('diamond').fill('bomb', 0, minesNum);
+            minesGrid = minesGrid.sort(() => Math.random() - 0.5);
             const grid = document.getElementById('mine-grid');
             grid.innerHTML = '';
             for (let i = 0; i < 25; i++) {
                 const cell = document.createElement('div');
-                cell.classList.add('mine-cell');
-                cell.textContent = '?';
+                cell.className = 'mine-cell';
                 cell.onclick = () => revealMine(i);
                 grid.appendChild(cell);
             }
+            document.getElementById('mines-result').innerHTML = '';
+            document.getElementById('cashout-btn').style.display = 'block';
         }
 
-        function revealMine(idx) {
+        function revealMine(index) {
             if (!gameActive) return;
-            const cells = document.querySelectorAll('#mine-grid .mine-cell');
-            const cell = cells[idx];
-            cell.classList.add('disabled');
-            if (minesGrid[idx]) {
+            const cell = document.getElementById('mine-grid').children[index];
+            if (cell.classList.contains('revealed')) return;
+            cell.classList.add('revealed');
+            if (minesGrid[index] === 'bomb') {
                 cell.textContent = '💣';
                 cell.classList.add('boom');
+                showNotification('Boom! You lost. 💥', 'error');
                 gameActive = false;
-                document.getElementById('cashout-btn').style.display = 'none';
-                endMines(false);
+                disableMinesGrid();
             } else {
                 cell.textContent = '💎';
                 minesRevealed++;
-                const multiplier = computeMinesMultiplier(minesRevealed, minesNum);
-                document.getElementById('mines-result').textContent = `Revealed: ${minesRevealed}/${25 - minesNum} | Potential Payout: x${multiplier.toFixed(2)}`;
                 if (minesRevealed === 25 - minesNum) {
+                    const payout = minesBet * (25 / (25 - minesNum));
+                    updateUserBalance(balance + payout, true);
+                    showNotification(`You won $${formatBalance(payout)}! 🎉`, 'success');
                     gameActive = false;
-                    document.getElementById('cashout-btn').style.display = 'none';
-                    endMines(true);
                 }
             }
         }
 
         function cashOutMines() {
             if (!gameActive) return;
-            gameActive = false;
-            document.getElementById('cashout-btn').style.display = 'none';
-            const multiplier = computeMinesMultiplier(minesRevealed, minesNum);
+            const multiplier = getMinesMultiplier(minesRevealed, minesNum);
             const payout = minesBet * multiplier;
             updateUserBalance(balance + payout, true);
-            document.getElementById('mines-result').textContent += ` | Cashed out! +$${formatBalance(payout)} 💰`;
-            document.querySelectorAll('.mine-cell').forEach(cell => cell.classList.add('disabled'));
+            showNotification(`Cashed out $${formatBalance(payout)} at ${multiplier}x! 💰`, 'success');
+            gameActive = false;
+            disableMinesGrid();
         }
 
-        function endMines(win) {
-            if (win) {
-                const multiplier = computeMinesMultiplier(minesRevealed, minesNum);
-                const payout = minesBet * multiplier;
-                updateUserBalance(balance + payout, true);
-                document.getElementById('mines-result').textContent += ` | Win! +$${formatBalance(payout)} 🎉`;
-            } else {
-                document.getElementById('mines-result').textContent += ` | Boom! Loss 💥`;
-            }
-            document.querySelectorAll('.mine-cell').forEach(cell => cell.classList.add('disabled'));
+        function getMinesMultiplier(revealed, numMines) {
+            // Simple multiplier calculation
+            return (25 / (25 - numMines)) * (revealed / (25 - numMines));
         }
 
-        async function playDice() {
-            const betStr = document.getElementById('dicebet').value;
-            diceBet = parseBet(betStr);
-            const choice = document.getElementById('dicechoice').value;
-            if (diceBet > balance || diceBet <= 0) {
-                showNotification('Invalid bet! ⚠️', 'error');
-                return;
-            }
+        function disableMinesGrid() {
+            Array.from(document.getElementById('mine-grid').children).forEach(cell => {
+                cell.classList.add('disabled');
+            });
+            document.getElementById('cashout-btn').style.display = 'none';
+        }
+
+        function playDice() {
+            diceBet = parseBet(document.getElementById('dicebet').value);
+            if (diceBet <= 0 || diceBet > balance) return showNotification('Invalid bet! ⚠️', 'error');
             updateUserBalance(balance - diceBet);
-            
+            const choice = document.getElementById('dicechoice').value;
             const die1 = Math.floor(Math.random() * 6) + 1;
             const die2 = Math.floor(Math.random() * 6) + 1;
-            const sum = die1 + die2;
-            document.getElementById('dice-display').innerHTML = `🎲 ${die1} + 🎲 ${die2} = ${sum}`;
-            
+            const total = die1 + die2;
+            document.getElementById('dice-display').textContent = `🎲 ${die1} + ${die2} = ${total}`;
             let win = false;
-            if (choice === 'over' && sum > 7) win = true;
-            else if (choice === 'under' && sum < 7) win = true;
-            else if (sum === 7) {
-                updateUserBalance(balance + diceBet);
-                document.getElementById('dice-result').textContent = `Push on 7! Refund: $${formatBalance(diceBet)} 💤`;
-            }
-            
+            if (choice === 'over' && total > 7) win = true;
+            if (choice === 'under' && total < 7) win = true;
             if (win) {
                 const payout = diceBet * 2;
                 updateUserBalance(balance + payout, true);
-                document.getElementById('dice-result').textContent = `You win! 🎉 Payout: $${formatBalance(payout)}`;
+                document.getElementById('dice-result').textContent = `You win $${formatBalance(payout)}! 🎉`;
+            } else if (total === 7) {
+                updateUserBalance(balance + diceBet);
+                document.getElementById('dice-result').textContent = 'Push (tie). Bet returned.';
             } else {
-                document.getElementById('dice-result').textContent = `You lose! 😤`;
+                document.getElementById('dice-result').textContent = 'You lose. 😞';
             }
         }
 
-        async function startTowers() {
-            const betStr = document.getElementById('towersbet').value;
-            towersBet = parseBet(betStr);
-            if (towersBet > balance || towersBet <= 0) {
-                showNotification('Invalid bet! ⚠️', 'error');
-                return;
-            }
-            updateUserBalance(balance - towersBet);
-            
+        function resetTowers() {
+            towersGameActive = false;
             towersGrid = [];
-            for (let row = 0; row < 5; row++) {
-                const rowCells = ['safe', 'safe', 'safe'];
-                const skullPos = Math.floor(Math.random() * 3);
-                rowCells[skullPos] = 'skull';
-                towersGrid.push(rowCells);
-            }
             currentTowerRow = 0;
             towersRevealed = 0;
-            towersGameActive = true;
-            renderTowers();
-            document.getElementById('towers-result').textContent = 'Choose a cell in the bottom row to start climbing! Only one per row.';
-            document.getElementById('cashout-btn-towers').style.display = 'block';
-            updateTowerMultiplier();
+            document.getElementById('towers-display').innerHTML = '';
+            document.getElementById('towers-result').innerHTML = '';
+            document.getElementById('cashout-btn-towers').style.display = 'none';
         }
 
-        function renderTowers() {
+        function startTowers() {
+            if (towersGameActive) return;
+            towersBet = parseBet(document.getElementById('towersbet').value);
+            if (towersBet <= 0 || towersBet > balance) return showNotification('Invalid bet! ⚠️', 'error');
+            updateUserBalance(balance - towersBet);
+            towersGameActive = true;
+            towersGrid = Array.from({length: 10}, () => {
+                const row = Array(3).fill('safe');
+                row[Math.floor(Math.random() * 3)] = 'skull';
+                return row;
+            });
             const display = document.getElementById('towers-display');
             display.innerHTML = '';
-            for (let r = 4; r >= 0; r--) {
-                const rowDiv = document.createElement('div');
-                rowDiv.classList.add('tower-row');
-                for (let c = 0; c < 3; c++) {
+            for (let i = 9; i >= 0; i--) {
+                const row = document.createElement('div');
+                row.className = 'tower-row';
+                for (let j = 0; j  < 3; j++) {
                     const cell = document.createElement('div');
-                    cell.classList.add('tower-cell');
-                    cell.dataset.row = r;
-                    cell.dataset.col = c;
-                    cell.textContent = '?';
-                    cell.onclick = () => revealTowerCell(r, c);
-                    rowDiv.appendChild(cell);
+                    cell.className = 'tower-cell';
+                    cell.onclick = () => revealTower(i, j);
+                    row.appendChild(cell);
                 }
-                display.appendChild(rowDiv);
+                display.appendChild(row);
             }
-            updateTowerRows();
+            document.getElementById('towers-result').innerHTML = '';
+            document.getElementById('cashout-btn-towers').style.display = 'block';
+            enableTowerRow(9);
         }
 
-        function updateTowerRows() {
-            const cells = document.querySelectorAll('.tower-cell');
-            cells.forEach(cell => {
-                const r = parseInt(cell.dataset.row);
-                if (r < currentTowerRow) {
-                    // Past rows already revealed
-                } else if (r > currentTowerRow) {
-                    cell.style.opacity = '0.5';
-                    cell.style.pointerEvents = 'none';
-                } else {
-                    cell.style.opacity = '1';
-                    cell.style.pointerEvents = 'auto';
-                }
+        function enableTowerRow(rowIndex) {
+            const rows = document.getElementById('towers-display').children;
+            Array.from(rows).forEach((row, i) => {
+                Array.from(row.children).forEach(cell => {
+                    cell.style.pointerEvents = (9 - i === rowIndex) ? 'auto' : 'none';
+                });
             });
         }
 
-        function revealTowerCell(row, col) {
-            if (row !== currentTowerRow || !towersGameActive) return;
-            const cells = document.querySelectorAll('.tower-cell');
-            const cell = Array.from(cells).find(c => parseInt(c.dataset.row) === row && parseInt(c.dataset.col) === col);
-            if (!cell) return;
+        function revealTower(row, col) {
+            if (!towersGameActive || row !== 9 - currentTowerRow) return;
+            const rows = document.getElementById('towers-display').children;
+            const cell = rows[currentTowerRow].children[col];
             cell.classList.add('revealed');
-            if (towersGrid[row][col] === 'skull') {
+            if (towersGrid[9 - row][col] === 'skull') {
                 cell.textContent = '💀';
                 cell.classList.add('skull');
+                showNotification('Hit a skull! You lost. 💥', 'error');
                 towersGameActive = false;
                 document.getElementById('cashout-btn-towers').style.display = 'none';
-                endTowers(false);
             } else {
-                cell.textContent = '💎';
+                cell.textContent = '✅';
                 cell.classList.add('safe');
-                towersRevealed++;
                 currentTowerRow++;
-                if (currentTowerRow === 5) {
+                towersRevealed++;
+                if (currentTowerRow === 10) {
+                    const payout = towersBet * 10; // Example payout
+                    updateUserBalance(balance + payout, true);
+                    showNotification(`Cleared the tower! Won $${formatBalance(payout)} 🎉`, 'success');
                     towersGameActive = false;
                     document.getElementById('cashout-btn-towers').style.display = 'none';
-                    endTowers(true);
-                    return;
+                } else {
+                    enableTowerRow(9 - currentTowerRow);
                 }
-                updateTowerMultiplier();
-                updateTowerRows();
             }
-            const currentRowCells = Array.from(cells).filter(c => parseInt(c.dataset.row) === row);
-            currentRowCells.forEach(c => {
-                c.classList.add('revealed');
-                c.style.pointerEvents = 'none';
-            });
-        }
-
-        function updateTowerMultiplier() {
-            const multiplier = 1 + 0.5 * towersRevealed;
-            document.getElementById('towers-result').textContent = `Revealed: ${towersRevealed}/5 | Potential Payout: x${multiplier.toFixed(2)}`;
         }
 
         function cashOutTowers() {
             if (!towersGameActive) return;
-            towersGameActive = false;
-            document.getElementById('cashout-btn-towers').style.display = 'none';
-            const multiplier = 1 + 0.5 * towersRevealed;
+            const multiplier = currentTowerRow + 1; // Example
             const payout = towersBet * multiplier;
             updateUserBalance(balance + payout, true);
-            document.getElementById('towers-result').textContent += ` | Cashed out! +$${formatBalance(payout)} 💰`;
-            document.querySelectorAll('.tower-cell').forEach(c => c.style.pointerEvents = 'none');
+            showNotification(`Cashed out $${formatBalance(payout)} at level ${currentTowerRow + 1}! 💰`, 'success');
+            towersGameActive = false;
+            document.getElementById('cashout-btn-towers').style.display = 'none';
         }
 
-        function endTowers(win) {
-            if (win) {
-                const multiplier = 1 + 0.5 * 5;
-                const payout = towersBet * multiplier;
-                updateUserBalance(balance + payout, true);
-                document.getElementById('towers-result').textContent += ` | Full climb! +$${formatBalance(payout)} 🎉`;
-            } else {
-                document.getElementById('towers-result').textContent += ` | Skull! Loss 💥`;
-            }
-            document.querySelectorAll('.tower-cell').forEach(c => c.style.pointerEvents = 'none');
-        }
-
-        // Blackjack (updated payouts)
-        function handValue(hand) {
-            let val = hand.reduce((a, c) => a + c.value, 0);
-            let aces = hand.filter(c => c.rank === 'A').length;
-            while (val > 21 && aces > 0) {
-                val -= 10;
-                aces--;
-            }
-            return val;
-        }
-
-        async function playBlackjack() {
-            document.querySelectorAll('#blackjack-screen .controls button').forEach(btn => btn.disabled = false);
-            document.getElementById('bj-hand-player').innerHTML = '';
-            document.getElementById('bj-hand-dealer').innerHTML = '';
-            document.getElementById('bj-result').textContent = '';
+        function resetBlackjack() {
             playerHand = [];
             dealerHand = [];
-            
-            const betStr = document.getElementById('bet').value;
-            bjBet = parseBet(betStr);
-            if (bjBet > balance || bjBet <= 0) {
-                showNotification('Invalid bet! ⚠️', 'error');
-                return;
-            }
+            bjBet = 0;
+            document.getElementById('bj-hand-player').innerHTML = '';
+            document.getElementById('bj-hand-dealer').innerHTML = '';
+            document.getElementById('bj-result').innerHTML = '';
+        }
+
+        function playBlackjack() {
+            bjBet = parseBet(document.getElementById('bet').value);
+            if (bjBet <= 0 || bjBet > balance) return showNotification('Invalid bet! ⚠️', 'error');
             updateUserBalance(balance - bjBet);
-            
-            const suits = ['♠', '♥', '♦', '♣'];
-            const ranks = ['2','3','4','5','6','7','8','9','10','J','Q','K','A'];
-            function getCard() {
-                const suit = suits[Math.floor(Math.random() * suits.length)];
-                const rank = ranks[Math.floor(Math.random() * ranks.length)];
-                const value = rank === 'A' ? 11 : ['J','Q','K'].includes(rank) ? 10 : parseInt(rank);
-                return { rank, suit, value };
+            playerHand = [drawCard(), drawCard()];
+            dealerHand = [drawCard(), drawCard()];
+            renderHands();
+            if (getHandValue(playerHand) === 21) {
+                const payout = bjBet * 2.5;
+                updateUserBalance(balance + payout, true);
+                document.getElementById('bj-result').textContent = 'Blackjack! You win. 🎉';
             }
-            
-            playerHand = [getCard(), getCard()];
-            dealerHand = [getCard(), getCard()];
-            
-            document.getElementById('bj-hand-player').innerHTML = playerHand.map(c => `<span class="card">${c.rank}${c.suit}</span>`).join('');
-            document.getElementById('bj-hand-dealer').innerHTML = `<span class="card">${dealerHand[0].rank}${dealerHand[0].suit}</span> <span class="card">?</span>`;
-            
-            document.getElementById('bj-result').textContent = `Hand Value: ${handValue(playerHand)}`;
         }
 
         function bjHit() {
-            if (playerHand.length >= 5) return;
-            const suits = ['♠', '♥', '♦', '♣'];
-            const ranks = ['2','3','4','5','6','7','8','9','10','J','Q','K','A'];
-            const suit = suits[Math.floor(Math.random() * suits.length)];
-            const rank = ranks[Math.floor(Math.random() * ranks.length)];
-            const value = rank === 'A' ? 11 : ['J','Q','K'].includes(rank) ? 10 : parseInt(rank);
-            playerHand.push({ rank, suit, value });
-            document.getElementById('bj-hand-player').innerHTML = playerHand.map(c => `<span class="card">${c.rank}${c.suit}</span>`).join('');
-            const pv = handValue(playerHand);
-            document.getElementById('bj-result').textContent = `Hand Value: ${pv}`;
-            if (pv > 21) endBlackjack();
+            playerHand.push(drawCard());
+            renderHands();
+            if (getHandValue(playerHand) > 21) {
+                document.getElementById('bj-result').textContent = 'Bust! You lose. 😞';
+            }
         }
 
         function bjStand() {
-            while (handValue(dealerHand) < 17) {
-                const suits = ['♠', '♥', '♦', '♣'];
-                const ranks = ['2','3','4','5','6','7','8','9','10','J','Q','K','A'];
-                const suit = suits[Math.floor(Math.random() * suits.length)];
-                const rank = ranks[Math.floor(Math.random() * ranks.length)];
-                const value = rank === 'A' ? 11 : ['J','Q','K'].includes(rank) ? 10 : parseInt(rank);
-                dealerHand.push({ rank, suit, value });
+            while (getHandValue(dealerHand) < 17) {
+                dealerHand.push(drawCard());
             }
-            document.getElementById('bj-hand-dealer').innerHTML = dealerHand.map(c => `<span class="card">${c.rank}${c.suit}</span>`).join('');
-            endBlackjack();
-        }
-
-        function endBlackjack() {
-            const pv = handValue(playerHand);
-            const dv = handValue(dealerHand);
-            if (pv > 21) {
-                document.getElementById('bj-result').textContent = `Bust! You lose. 😵 Dealer: ${dv}`;
-            } else if (dv > 21) {
-                updateUserBalance(balance + bjBet * 2, true);
-                document.getElementById('bj-result').textContent = `Dealer busts! You win! 🎉 Payout: $${formatBalance(bjBet * 2)}`;
-            } else if (pv > dv) {
-                updateUserBalance(balance + bjBet * 2, true);
-                document.getElementById('bj-result').textContent = `You win! 🎉 Payout: $${formatBalance(bjBet * 2)}`;
-            } else if (pv === dv) {
+            renderHands(true);
+            const playerValue = getHandValue(playerHand);
+            const dealerValue = getHandValue(dealerHand);
+            if (playerValue > 21) {
+                document.getElementById('bj-result').textContent = 'You bust! Lose. 😞';
+            } else if (dealerValue > 21 || playerValue > dealerValue) {
+                const payout = bjBet * 2;
+                updateUserBalance(balance + payout, true);
+                document.getElementById('bj-result').textContent = 'You win! 🎉';
+            } else if (playerValue === dealerValue) {
                 updateUserBalance(balance + bjBet);
-                document.getElementById('bj-result').textContent = `Push! 💤 Refund: $${formatBalance(bjBet)}`;
+                document.getElementById('bj-result').textContent = 'Push (tie).';
             } else {
-                document.getElementById('bj-result').textContent = `Dealer wins! 😤 Dealer: ${dv}`;
+                document.getElementById('bj-result').textContent = 'Dealer wins. 😞';
             }
-            document.querySelectorAll('#blackjack-screen .controls button').forEach(btn => btn.disabled = true);
         }
 
-        // Crash (updated bet/payout)
+        function drawCard() {
+            const suits = ['♥', '♦', '♣', '♠'];
+            const values = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A'];
+            return values[Math.floor(Math.random() * values.length)] + suits[Math.floor(Math.random() * suits.length)];
+        }
+
+        function getHandValue(hand) {
+            let value = 0;
+            let aces = 0;
+            hand.forEach(card => {
+                const v = card.slice(0, -1);
+                if (v === 'A') aces++;
+                else value += isNaN(v) ? 10 : parseInt(v);
+            });
+            for (let i = 0; i < aces; i++) {
+                value += (value + 11 <= 21) ? 11 : 1;
+            }
+            return value;
+        }
+
+        function renderHands(showDealer = false) {
+            const playerDiv = document.getElementById('bj-hand-player');
+            playerDiv.innerHTML = '';
+            playerHand.forEach(card => {
+                const c = document.createElement('div');
+                c.className = 'card';
+                c.textContent = card;
+                playerDiv.appendChild(c);
+            });
+            const dealerDiv = document.getElementById('bj-hand-dealer');
+            dealerDiv.innerHTML = '';
+            dealerHand.forEach((card, i) => {
+                const c = document.createElement('div');
+                c.className = 'card';
+                c.textContent = (showDealer || i > 0) ? card : '?';
+                dealerDiv.appendChild(c);
+            });
+        }
+
+        function resetCrash() {
+            userCrashBet = 0;
+            userCashedOut = false;
+            document.getElementById('crash-input').style.display = 'flex';
+            document.getElementById('crash-area').style.display = 'none';
+            document.getElementById('cashout-btn-crash').style.display = 'none';
+            document.getElementById('crash-result').innerHTML = '';
+        }
+
         function startBettingPhase() {
             globalBettingActive = true;
             globalCrashActive = false;
-            globalLaunchTime = Date.now() + 15000;
-            document.getElementById('crash-area').style.display = 'block';
             document.getElementById('crash-input').style.display = 'flex';
+            document.getElementById('crash-area').style.display = 'block';
             document.getElementById('multiplier').textContent = '1.00x';
-            const rocket = document.getElementById('rocket');
-            if (rocket) {
-                rocket.innerHTML = '🚀';
-                rocket.style.transform = 'translateX(-50%) translateY(0px)';
-            }
-            document.getElementById('countdown').textContent = 'Launch in 15s';
-            document.getElementById('cashout-btn-crash').style.display = 'none';
-            updateCountdown();
+            document.getElementById('rocket').style.transform = 'translateX(-50%)';
+            countdown(10, () => launchRocket());
         }
 
-        function updateCountdown() {
-            if (!globalBettingActive) return;
-            const elapsed = (Date.now() - (globalLaunchTime - 15000)) / 1000;
-            const remaining = 15 - elapsed;
-            if (remaining <= 0) {
-                launchRocket();
-                return;
-            }
-            document.getElementById('countdown').textContent = `Launch in ${Math.ceil(remaining)}s`;
-            requestAnimationFrame(updateCountdown);
+        function countdown(seconds, callback) {
+            document.getElementById('countdown').textContent = `Launch in ${seconds}s`;
+            const interval = setInterval(() => {
+                seconds--;
+                document.getElementById('countdown').textContent = `Launch in ${seconds}s`;
+                if (seconds <= 0) {
+                    clearInterval(interval);
+                    document.getElementById('countdown').textContent = '';
+                    callback();
+                }
+            }, 1000);
+        }
+
+        function betOnCrash() {
+            userCrashBet = parseBet(document.getElementById('crashbet').value);
+            if (userCrashBet <= 0 || userCrashBet > balance || !globalBettingActive) return showNotification('Invalid bet or betting closed! ⚠️', 'error');
+            updateUserBalance(balance - userCrashBet);
+            showNotification(`Bet placed: $${formatBalance(userCrashBet)} 🚀`, 'success');
+            document.getElementById('crash-input').style.display = 'none';
+            document.getElementById('cashout-btn-crash').style.display = 'block';
         }
 
         function launchRocket() {
             globalBettingActive = false;
             globalCrashActive = true;
-            globalStartTime = Date.now();
-            const lambda = 0.05;
-            const crashSeconds = -Math.log(1 - Math.random()) / lambda;
-            globalCrashMultiplier = 1 + 0.01 * crashSeconds;
-            document.getElementById('countdown').textContent = '';
-            document.getElementById('crash-input').style.display = 'none';
-            if (userCrashBet > 0 && !userCashedOut) {
-                document.getElementById('cashout-btn-crash').style.display = 'block';
-            }
-            const rocket = document.getElementById('rocket');
-            if (rocket) {
-                rocket.style.transform = 'translateX(-50%) translateY(0px)';
-            }
-            updateGlobalCrash();
-        }
-
-        function updateGlobalCrash() {
-            if (!globalCrashActive) return;
-            const elapsed = (Date.now() - globalStartTime) / 1000;
-            globalCurrentMultiplier = 1 + 0.01 * elapsed;
-            document.getElementById('multiplier').textContent = globalCurrentMultiplier.toFixed(2) + 'x';
-            const rocket = document.getElementById('rocket');
-            if (rocket) {
-                rocket.style.transform = `translateX(-50%) translateY(${-elapsed * 50}px)`;
-            }
-            if (globalCurrentMultiplier >= globalCrashMultiplier) {
-                globalCrash();
-                return;
-            }
-            requestAnimationFrame(updateGlobalCrash);
-        }
-
-        function globalCrash() {
-            globalCrashActive = false;
-            const elapsed = (Date.now() - globalStartTime) / 1000;
-            globalCurrentMultiplier = 1 + 0.01 * elapsed;
-            document.getElementById('multiplier').textContent = globalCurrentMultiplier.toFixed(2) + 'x';
-            const rocket = document.getElementById('rocket');
-            if (rocket) {
-                rocket.innerHTML = '💥';
-                rocket.style.transform += ' scale(2)';
-            }
-            if (userCrashBet > 0 && !userCashedOut) {
-                document.getElementById('crash-result').textContent = `Crashed at ${globalCurrentMultiplier.toFixed(2)}x! Lost $${formatBalance(userCrashBet)} 😵`;
-                userCrashBet = 0;
-            }
-            document.getElementById('cashout-btn-crash').style.display = 'none';
-            setTimeout(() => {
-                const rocket = document.getElementById('rocket');
-                if (rocket) {
-                    rocket.innerHTML = '🚀';
-                    rocket.style.transform = 'translateX(-50%) translateY(0px)';
+            globalCurrentMultiplier = 1.00;
+            globalCrashMultiplier = Math.random() * 10 + 1.1; // Random crash point
+            const interval = setInterval(() => {
+                globalCurrentMultiplier += 0.01;
+                document.getElementById('multiplier').textContent = `${globalCurrentMultiplier.toFixed(2)}x`;
+                document.getElementById('rocket').style.bottom = `${globalCurrentMultiplier * 10}px`;
+                if (globalCurrentMultiplier >= globalCrashMultiplier) {
+                    clearInterval(interval);
+                    showNotification('Crash! 💥', 'error');
+                    if (!userCashedOut && userCrashBet > 0) {
+                        document.getElementById('crash-result').textContent = 'You lost your bet.';
+                    }
+                    globalCrashActive = false;
+                    setTimeout(startBettingPhase, 5000);
                 }
-                document.getElementById('crash-result').textContent = `Crashed at ${globalCurrentMultiplier.toFixed(2)}x! Next round soon...`;
-                setTimeout(() => {
-                    startBettingPhase();
-                }, 2000);
-            }, 3000);
-        }
-
-        async function betOnCrash() {
-            const betStr = document.getElementById('crashbet').value;
-            const betAmount = parseBet(betStr);
-            if (betAmount > balance || betAmount <= 0 || userCrashBet > 0) {
-                showNotification('Invalid bet or already bet this round! ⚠️', 'error');
-                return;
-            }
-            if (!globalBettingActive) {
-                showNotification('Bets closed! Wait for next round. ⚠️', 'error');
-                return;
-            }
-            updateUserBalance(balance - betAmount);
-            userCrashBet = betAmount;
-            userCashedOut = false;
-            document.getElementById('cashout-btn-crash').style.display = 'block';
-            showNotification(`Bet $${formatBalance(userCrashBet)} on crash! Cash out anytime. 🚀`, 'success');
+            }, 100);
         }
 
         function cashOutCrash() {
-            if (userCrashBet <= 0 || userCashedOut || !globalCrashActive) return;
+            if (!globalCrashActive || userCashedOut || userCrashBet <= 0) return;
             userCashedOut = true;
             const payout = userCrashBet * globalCurrentMultiplier;
             updateUserBalance(balance + payout, true);
-            document.getElementById('crash-result').textContent = `Cashed out at ${globalCurrentMultiplier.toFixed(2)}x! +$${formatBalance(payout)} 💰`;
+            showNotification(`Cashed out $${formatBalance(payout)} at ${globalCurrentMultiplier.toFixed(2)}x! 💰`, 'success');
             document.getElementById('cashout-btn-crash').style.display = 'none';
-            userCrashBet = 0;
-            showNotification(`Cashed out successfully! 🎉`, 'success');
+            document.getElementById('crash-result').textContent = 'Waiting for next round...';
         }
 
-        // Search listener
-        document.addEventListener('DOMContentLoaded', () => {
-            const searchInput = document.getElementById('userSearch');
-            if (searchInput) {
-                searchInput.addEventListener('input', (e) => {
-                    loadUsers(e.target.value);
-                });
-            }
-            // Auto-login check
-            const storedUser = localStorage.getItem('currentUser');
-            const storedEdition = localStorage.getItem('currentEdition');
-            if (storedUser && storedEdition) {
-                currentUser = storedUser;
-                currentEdition = storedEdition;
-                document.getElementById('user').textContent = currentUser;
-                document.getElementById('ed').textContent = currentEdition;
-                document.body.classList.add('logged-in');
-                isAdmin = currentUser === ADMIN_USERNAME && currentEdition === 'Java';
-                loadUserData();
-                addAdminButton();
-                showScreen('dashboard');
-                loadMessages();
-                if (isAdmin) {
-                    showNotification('Admin mode active! Access the Admin Panel 🔧', 'success');
-                }
-            }
-        });
-
-        // Enter key for login and chat
-        document.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter' && currentScreen === 'login') {
-                if (document.getElementById('signup-form').style.display !== 'none') {
-                    signUp();
-                } else {
-                    login();
-                }
-            } else if (e.key === 'Enter' && document.body.classList.contains('logged-in')) {
-                sendMessage();
-            }
-        });
-
-        // Expose functions to global scope for onclick handlers
-        window.setMode = setMode;
-        window.login = login;
-        window.signUp = signUp;
-        window.sendMessage = sendMessage;
-        window.showLeaderboard = showLeaderboard;
-        window.deposit = deposit;
-        window.withdraw = withdraw;
-        window.logout = logout;
-        window.showScreen = showScreen;
-        window.showComingSoon = showComingSoon;
-        window.downloadLog = downloadLog;
-        window.loadUsers = loadUsers;
-        window.doDeposit = doDeposit;
-        window.doWithdraw = doWithdraw;
-        window.startMines = startMines;
-        window.playDice = playDice;
-        window.startTowers = startTowers;
-        window.playBlackjack = playBlackjack;
-        window.bjHit = bjHit;
-        window.bjStand = bjStand;
-        window.betOnCrash = betOnCrash;
-        window.cashOutCrash = cashOutCrash;
-        window.cashOutMines = cashOutMines;
-        window.cashOutTowers = cashOutTowers;
+        // Initial setup
+        setMode('login');
     </script>
 </body>
 </html>
