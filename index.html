@@ -210,7 +210,7 @@
       box-shadow: 0 8px 30px rgba(0,0,0,0.7);
       display: block;
       margin: 0 auto;
-      border: 1px solid rgba(255,255,255,0.04);
+      border:1px solid rgba(255,255,255,0.04);
     }
     .plinko-payouts {
       display: flex;
@@ -420,7 +420,7 @@
   const supabaseUrl = 'https://fbkilskrxglthluhohgg.supabase.co';
   const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZia2lsc2tyeGdsdGhsdWhvaGdnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA3MDA3MTUsImV4cCI6MjA3NjI3NjcxNX0.lUrXiIQIDMB8ZqljZhmWXLsppUvOAd3ec7IJGvepkhQ';
   const FAKE_DOMAIN = '@spaceminesplinko.com';
-  const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+  const supabase = supabase.createClient(supabaseUrl, supabaseKey);
 
   // --- Shared Economy State ---
   const defaultState = {
@@ -434,6 +434,8 @@
 
   async function loadState() {
     if (!currentUser) return;
+    // Small delay to let trigger fire if new user
+    await new Promise(resolve => setTimeout(resolve, 500));
     const { data, error } = await supabase
       .from('profiles')
       .select('*')
@@ -535,19 +537,7 @@
       registerError.textContent = error.message;
       return;
     }
-    const { error: profileError } = await supabase
-      .from('profiles')
-      .insert({
-        id: data.user.id,
-        username,
-        balance: defaultState.balance,
-        history: defaultState.history,
-        plinko_history: defaultState.plinkoHistory
-      });
-    if (profileError) {
-      registerError.textContent = profileError.message;
-      return;
-    }
+    // No manual insert—trigger handles it!
     currentUser = data.user;
     await loadState();
     hideModals();
@@ -996,7 +986,7 @@
     drawPlinko();
   }
 
-  // --- Check session on load ---
+  // --- Check Check session on load ---
   (async () => {
     const { data: { session } } = await supabase.auth.getSession();
     if (session) {
