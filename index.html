@@ -16,7 +16,7 @@
     - Secure user authentication with username/password (fake email domain).
     - Persistent user data: balance, game histories stored in Supabase.
     - Mines Game: 5x5 grid, avoid mines, cash out multiplier.
-    - Plinko Game: Physics-based ball drop with peg bounces and payouts.
+    - Plinko game with physics-based ball drop.
     - Admin Panel: Exclusive for 'burst' user to manage all accounts (view/set balances).
     - Real-time updates, validation, error handling, and responsive design.
     - Pre-configured: 'burst' account with password '445566' – Register it once in Supabase.
@@ -25,8 +25,8 @@
     1. Create 'burst' user manually if needed:
        INSERT INTO auth.users (id, email, encrypted_password, email_confirmed_at, created_at)
        VALUES (gen_random_uuid(), 'burst@spaceminesplinko.com', crypt('445566', gen_salt('bf')), NOW(), NOW());
-    2. Trigger for auto-profile: (As provided before)
-    3. Profiles table and RLS: (As provided before)
+    2. Trigger for auto-profile: (as provided before)
+    3. Profiles table and RLS: (as provided before)
     
     To Fix Login/Register Issues:
     - Ensure 'Confirm email' is DISABLED in Supabase Auth > Settings.
@@ -176,14 +176,10 @@
     }
     /* Card Component - Reusable */
     .card {
-      background: linear-gradient(180deg, 
-        rgba(255, 255, 255, 0.02), 
-        rgba(255, 255, 255, 0.01)
-      ), var(--card-bg);
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0.01)), var(--card-bg);
       border-radius: var(--radius-xl);
       padding: var(--spacing-lg);
-      box-shadow: 0 8px 30px var(--shadow-light), 
-                  inset 0 1px 0 rgba(255, 255, 255, 0.04); /* Inner glow */
+      box-shadow: 0 8px 30px var(--shadow-light), inset 0 1px 0 rgba(255, 255, 255, 0.04); /* Inner glow */
       border: 1px solid var(--border-light);
       display: flex;
       flex-direction: column;
@@ -798,9 +794,9 @@
   <!-- =================================================================================
        MAIN APPLICATION STRUCTURE
        ================================================================================= -->
-  <!-- Navigation Topbar -->
+  <!-- Game Navigation Topbar -->
   <div class="topbar">
-    <!-- Game Navigation Buttons -->
+    <!-- Game Switch Buttons -->
     <button class="switch-btn active" id="btnMines" aria-label="Switch to Mines Game">
       Mines
     </button>
@@ -817,7 +813,7 @@
     </button>
   </div>
   
-  <!-- Main Game Container - Hidden Until Authenticated -->
+  <!-- Game Container - Hidden Until Logged In -->
   <div class="container hidden" id="gameContainer" role="main">
     <!-- Mines Game: Left Panel -->
     <div class="card left-col" id="minesGame" role="region" aria-label="Mines Game">
@@ -886,7 +882,7 @@
       </div>
       <!-- Game Instructions -->
       <div class="small muted" style="margin-top: var(--spacing-sm);">
-        Drop the ball and watch it bounce! Aim for the edges for massive payouts.
+        Drop the ball and watch it bounce! Aim for the edges for big wins.
       </div>
       <!-- Plinko Canvas -->
       <canvas class="plinko-canvas" id="plinkoCanvas" width="420" height="500" aria-label="Plinko Board"></canvas>
@@ -911,13 +907,10 @@
       <div class="small muted">Plinko Guide</div>
       <div style="margin-top: var(--spacing-md);">
         <div class="small">
-          Payouts increase as you go outwards from the center. Middle slot pays 0.2x, 
-          adjacent 0.5x, then 1x, 2x, and up to 10x at the edges. Physics simulation 
-          adds randomness—every drop is unique!
+          Payouts increase outwards: Center 0.2x, then 0.5x, 1x, 2x, 10x edges.
         </div>
         <div class="small" style="margin-top: var(--spacing-md);">
-          Pro Tip: Higher bets amplify wins, but play smart. The ball bounces off pegs 
-          based on gravity and momentum. Watch the path!
+          The ball bounces randomly—higher bets mean higher risks/rewards!
         </div>
       </div>
     </div>
@@ -984,7 +977,7 @@
     // =================================================================================
     // This Immediately Invoked Function Expression (IIFE) encapsulates the entire
     // application, preventing global namespace pollution and ensuring clean scope.
-    // All variables and functions are local unless explicitly exposed (e.g., window.setBalance).
+    // All variables and functions are local unless explicitly exposed (e.g., window.updateUserBalance).
     (() => {
       // =================================================================================
       // 1. SUPABASE CONFIGURATION AND INITIALIZATION
@@ -996,12 +989,8 @@
       const FAKE_EMAIL_DOMAIN = '@spaceminesplinko.com'; // Fake domain for username@domain emails
       
       // Initialize Supabase client from global CDN load
-      // Destructure createClient from the supabase global object
-      const { createClient } = supabase;
-      const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-      
-      // Alias for convenience and consistency
-      const supabase = supabaseClient;
+      // Use global createClient since CDN exposes it directly
+      const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
       
       // Debug log for initialization
       console.log('[App Init] Supabase client initialized successfully:', {
@@ -1041,7 +1030,7 @@
        * Handles edge cases like NaN, Infinity, and negatives.
        * @param {number|string} numValue - The number to format.
        * @returns {string} Formatted number string.
-       * @example fmt(1000000) // '1,000,000'
+       * @example formatNumber(1000000) // '1,000,000'
        */
       function formatNumber(numValue) {
         const num = Number(numValue);
@@ -1507,7 +1496,7 @@
           
           // Refresh Games
           await initializeGames();
-          displayGame('mines'); // Default to mines
+          displayGame('mines');
           
         } catch (authErr) {
           logEvent('Auth', 'Unexpected login error', authErr);
@@ -1775,7 +1764,7 @@
           renderPlinkoBalanceDisplay();
           renderPlinkoHistory();
           renderPlinkoPayouts();
-          drawPlinkoBoard();
+          drawPlinkoStaticElements();
         }
         
         logEvent('Navigation', `Switched to ${gameType}`);
@@ -2036,7 +2025,7 @@
       
       // Plinko Constants - Tuned for smooth play
       const PLINKO_BOARD_ROWS = 8;
-      const PLINKO_BOARD_COLS = plinkoPayoutArr.length; // 9 slots
+      const PLINKO_BOARD_COLS = PLINKO_PAYOUTS.length; // 9 slots
       const PEG_COLLISION_RADIUS = 7;
       const BALL_COLLISION_RADIUS = 10;
       const SLOT_DROP_HEIGHT = 40;
@@ -2199,7 +2188,7 @@
         }
         if (plinkoActiveBall.x > BOARD_CANVAS_WIDTH - BALL_COLLISION_RADIUS) {
           plinkoActiveBall.x = BOARD_CANVAS_WIDTH - BALL_COLLISION_RADIUS;
-          plinkoActiveBall.vx = -Math.abs(plinkoActiveBall.vx) * 0.3;
+          plinkoActiveBall.vx = -Math.abs(plinkoActiveBall.vx) * 0.7;
         }
         
         // Land in slot
@@ -2306,7 +2295,7 @@
       }
       
       /**
-       * Draws static plinko elements (pegs/slots only).
+       * Draws plinko static elements (pegs/slots only).
        */
       function drawPlinkoStaticElements() {
         if (!DOM_ELEMENTS.plinkoCanvas) return;
