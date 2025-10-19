@@ -18,6 +18,10 @@
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
         }
         
         body {
@@ -647,7 +651,7 @@
         }
     </style>
 </head>
-<body>
+<body oncontextmenu="return false">
     <div id="chat-sidebar" class="chat-sidebar">
         <div id="messages"></div>
         <div id="chat-input-container">
@@ -937,6 +941,29 @@
     </div>
     
     <div id="notification"></div>
+
+    <script>
+        document.addEventListener('contextmenu', function(e) {
+            e.preventDefault();
+        });
+        document.addEventListener('keydown', function(e) {
+            if (e.keyCode === 123) {
+                e.preventDefault();
+            }
+            if (e.ctrlKey && e.shiftKey && e.keyCode === 'I'.charCodeAt(0)) {
+                e.preventDefault();
+            }
+            if (e.ctrlKey && e.shiftKey && e.keyCode === 'C'.charCodeAt(0)) {
+                e.preventDefault();
+            }
+            if (e.ctrlKey && e.shiftKey && e.keyCode === 'J'.charCodeAt(0)) {
+                e.preventDefault();
+            }
+            if (e.ctrlKey && e.keyCode === 'U'.charCodeAt(0)) {
+                e.preventDefault();
+            }
+        });
+    </script>
 
     <script type="module">
         console.log('Minecraft Gamble Hub v2 - Global Sync Loaded! 🎮💎');
@@ -1891,7 +1918,6 @@
             document.getElementById('multiplier').textContent = '1.00x';
             const rocket = document.getElementById('rocket');
             if (rocket) {
-                rocket.innerHTML = '🚀';
                 rocket.style.transform = 'translateX(-50%) translateY(0px)';
             }
             document.getElementById('countdown').textContent = 'Launch in 15s';
