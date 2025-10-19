@@ -8,8 +8,8 @@
     <!-- Firebase SDK v12.4.0 -->
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js';
-        import { getFirestore, collection, doc, getDoc, setDoc, updateDoc, addDoc, onSnapshot, query, orderBy, limit, deleteDoc, runTransaction } from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js';
-        window.firebaseApp = { initializeApp, getFirestore, collection, doc, getDoc, setDoc, updateDoc, addDoc, onSnapshot, query, orderBy, limit, deleteDoc, runTransaction };
+        import { getFirestore, collection, doc, getDoc, setDoc, updateDoc, addDoc, onSnapshot, query, orderBy, limit, deleteDoc } from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js';
+        window.firebaseApp = { initializeApp, getFirestore, collection, doc, getDoc, setDoc, updateDoc, addDoc, onSnapshot, query, orderBy, limit, deleteDoc };
     </script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Roboto:wght@300;400&display=swap');
@@ -18,6 +18,10 @@
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
         }
         
         body {
@@ -79,12 +83,6 @@
             border-radius: 10px;
             word-wrap: break-word;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
-        }
-
-        .message.big {
-            font-size: 1.5em;
-            background: rgba(255,215,0,0.3);
-            border: 2px solid #ffff00;
         }
         
         .message small {
@@ -653,7 +651,7 @@
         }
     </style>
 </head>
-<body>
+<body oncontextmenu="return false">
     <div id="chat-sidebar" class="chat-sidebar">
         <div id="messages"></div>
         <div id="chat-input-container">
@@ -731,9 +729,9 @@
                     <div class="game-icon">🚀</div>
                     <h3 class="game-title">Crash</h3>
                 </div>
-                <div class="game-card" onclick="showScreen('pot')">
-                    <div class="game-icon">🏆</div>
-                    <h3 class="game-title">Pot Game</h3>
+                <div class="game-card coming-soon" onclick="showComingSoon()">
+                    <div class="game-icon">⏳</div>
+                    <h3 class="game-title">Coming Soon</h3>
                 </div>
             </div>
             <div id="leaderboard" class="leaderboard" style="display: none;">
@@ -773,11 +771,6 @@
                     <button class="btn" onclick="doDeposit()" style="background: linear-gradient(145deg, rgba(0,255,0,0.3), rgba(0,200,0,0.2));">Deposit 💳</button>
                     <button class="btn" onclick="doWithdraw()" style="background: linear-gradient(145deg, rgba(255,0,0,0.3), rgba(200,0,0,0.2));">Withdraw 🏦</button>
                     <button class="btn" onclick="doDelete()" style="background: linear-gradient(145deg, rgba(255,0,0,0.3), rgba(200,0,0,0.2));">Delete 🗑️</button>
-                </div>
-                <div style="margin-top: 20px; padding: 20px; background: rgba(0,0,0,0.5); border-radius: 15px; display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 10px;">
-                    <h3 style="margin: 0; flex-basis: 100%; text-align: center;">Global Announcement</h3>
-                    <input type="text" id="announcement-message" placeholder="Enter message" style="width: 300px; padding: 10px; border-radius: 10px; background: rgba(255,255,255,0.1); border: 1px solid #7b2cbf; color: white;">
-                    <button class="btn" onclick="sendAnnouncement()">Send 📢</button>
                 </div>
                 <div id="admin-logs" style="display: none; margin-top: 20px; overflow-y: auto; max-height: 400px; background: rgba(0,0,0,0.3); border-radius: 10px; padding: 10px;"></div>
             </div>
@@ -946,37 +939,31 @@
             </div>
         </div>
     </div>
-
-    <div id="pot-screen" class="screen hidden">
-        <div class="header">
-            <div class="header-left">
-                <button class="btn back-btn" onclick="showScreen('dashboard')">← Back</button>
-                <h1>Pot Game 🏆</h1>
-            </div>
-            <div class="header-right">
-                <div class="balance">Balance: $<span id="balance-pot">0.00</span> 💰</div>
-                <div class="header-buttons">
-                    <button class="btn" onclick="deposit()">💳 Deposit</button>
-                    <button class="btn" onclick="withdraw()">🏦 Withdraw</button>
-                    <button class="btn logout" onclick="logout()">🚪 Logout</button>
-                </div>
-            </div>
-        </div>
-        <div class="main-content">
-            <div class="game-area">
-                <div id="pot-status" class="result"></div>
-                <div class="input-group">
-                    <label>Contribution: $</label>
-                    <input type="text" id="potbet" placeholder="10 or 1k" value="10">
-                    <button class="btn" onclick="contributeToPot()">Contribute</button>
-                </div>
-                <div id="pot-contributions"></div>
-                <button class="btn" id="roll-btn" onclick="rollPotWinner()" style="display: none;">Roll Winner</button>
-            </div>
-        </div>
-    </div>
     
     <div id="notification"></div>
+
+    <script>
+        document.addEventListener('contextmenu', function(e) {
+            e.preventDefault();
+        });
+        document.addEventListener('keydown', function(e) {
+            if (e.keyCode === 123) {
+                e.preventDefault();
+            }
+            if (e.ctrlKey && e.shiftKey && e.keyCode === 'I'.charCodeAt(0)) {
+                e.preventDefault();
+            }
+            if (e.ctrlKey && e.shiftKey && e.keyCode === 'C'.charCodeAt(0)) {
+                e.preventDefault();
+            }
+            if (e.ctrlKey && e.shiftKey && e.keyCode === 'J'.charCodeAt(0)) {
+                e.preventDefault();
+            }
+            if (e.ctrlKey && e.keyCode === 'U'.charCodeAt(0)) {
+                e.preventDefault();
+            }
+        });
+    </script>
 
     <script type="module">
         console.log('Minecraft Gamble Hub v2 - Global Sync Loaded! 🎮💎');
@@ -993,7 +980,7 @@
           measurementId: "G-50NYC4TXYB"
         };
         
-        const { initializeApp, getFirestore, collection, doc, getDoc, setDoc, updateDoc, addDoc, onSnapshot, query, orderBy, limit, deleteDoc, runTransaction } = window.firebaseApp;
+        const { initializeApp, getFirestore, collection, doc, getDoc, setDoc, updateDoc, addDoc, onSnapshot, query, orderBy, limit, deleteDoc } = window.firebaseApp;
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         
@@ -1009,10 +996,6 @@
         let usersUnsub = null;
         let userUnsub = null;
         let logsUnsub = null;
-        let potUnsub = null;
-        let potInterval = null;
-        let potData = {status: 'open', contributions: {}, pot_total: 0, last_end_time: 0};
-        const potDoc = doc(db, 'pot_game', 'current');
         
         // Game state variables (local for gameplay)
         let playerHand = [], dealerHand = [], bjBet = 0;
@@ -1084,7 +1067,7 @@
 
         function updateAllBalances() {
             const formatted = formatBalance(balance);
-            ['balance', 'balance-mines', 'balance-dice', 'balance-towers', 'balance-blackjack', 'balance-crash', 'balance-pot'].forEach(id => {
+            ['balance', 'balance-mines', 'balance-dice', 'balance-towers', 'balance-blackjack', 'balance-crash'].forEach(id => {
                 const el = document.getElementById(id);
                 if (el) el.textContent = formatted;
             });
@@ -1121,9 +1104,6 @@
                     const data = doc.data();
                     const div = document.createElement('div');
                     div.className = 'message';
-                    if (data.is_announcement) {
-                        div.classList.add('big');
-                    }
                     div.innerHTML = `<small>${new Date(data.time.toDate()).toLocaleTimeString()} - ${data.username}</small><br>${data.text}`;
                     messagesDiv.appendChild(div);
                 });
@@ -1141,19 +1121,6 @@
                 time: new Date()
             });
             input.value = '';
-        }
-
-        async function sendAnnouncement() {
-            const msg = document.getElementById('announcement-message').value.trim();
-            if (!msg) return;
-            await addDoc(collection(db, 'messages'), {
-                text: msg,
-                username: 'Admin',
-                time: new Date(),
-                is_announcement: true
-            });
-            document.getElementById('announcement-message').value = '';
-            showNotification('Announcement sent!', 'success');
         }
 
         // Global Leaderboard (by wins)
@@ -1365,13 +1332,6 @@
                         startBettingPhase();
                     }
                 }
-                if (screen === 'pot') {
-                    loadPot();
-                    potInterval = setInterval(updatePotTimer, 1000);
-                } else {
-                    if (potInterval) clearInterval(potInterval);
-                    if (potUnsub) potUnsub();
-                }
             }
         }
 
@@ -1491,8 +1451,6 @@
             if (usersUnsub) usersUnsub();
             if (userUnsub) userUnsub();
             if (logsUnsub) logsUnsub();
-            if (potUnsub) potUnsub();
-            if (potInterval) clearInterval(potInterval);
             const adminBtn = document.querySelector('.admin-btn');
             if (adminBtn) adminBtn.remove();
             localStorage.removeItem('currentUser');
@@ -2071,115 +2029,6 @@
             showNotification(`Cashed out successfully! 🎉`, 'success');
         }
 
-        function loadPot() {
-            if (potUnsub) potUnsub();
-            potUnsub = onSnapshot(potDoc, (snap) => {
-                potData = snap.data() || {status: 'open', contributions: {}, pot_total: 0, last_end_time: 0};
-                updatePotUI();
-            });
-        }
-
-        function updatePotUI() {
-            const players = Object.keys(potData.contributions);
-            const statusText = potData.status === 'cooldown' ? 'Cooldown' : `Pot: $${formatBalance(potData.pot_total)} (Commission 10%)`;
-            document.getElementById('pot-status').textContent = statusText;
-            let contribHtml = '<ul>';
-            for (const u in potData.contributions) {
-                contribHtml += `<li>${u}: $${formatBalance(potData.contributions[u])}</li>`;
-            }
-            contribHtml += '</ul>';
-            document.getElementById('pot-contributions').innerHTML = contribHtml;
-            document.getElementById('roll-btn').style.display = (potData.status === 'open' && players.length >= 2) ? 'block' : 'none';
-        }
-
-        function updatePotTimer() {
-            if (potData.status === 'cooldown') {
-                const remaining = potData.last_end_time + 120000 - Date.now();
-                if (remaining <= 0) {
-                    updateDoc(potDoc, {status: 'open'});
-                } else {
-                    document.getElementById('pot-status').textContent = `Cooldown: ${Math.ceil(remaining / 1000)}s`;
-                }
-            }
-        }
-
-        async function contributeToPot() {
-            const amount = parseBet(document.getElementById('potbet').value);
-            if (amount > balance || amount <= 0) {
-                showNotification('Invalid contribution! ⚠️', 'error');
-                return;
-            }
-            try {
-                await runTransaction(db, async (transaction) => {
-                    const snap = await transaction.get(potDoc);
-                    const data = snap.data() || {status: 'open', contributions: {}, pot_total: 0, last_end_time: 0};
-                    if (data.status !== 'open') {
-                        throw new Error('Pot not open for contributions');
-                    }
-                    const userContrib = data.contributions[currentUser] || 0;
-                    transaction.update(potDoc, {
-                        contributions: {...data.contributions, [currentUser]: userContrib + amount},
-                        pot_total: data.pot_total + amount
-                    });
-                });
-                updateUserBalance(balance - amount);
-                showNotification('Contribution added!', 'success');
-            } catch (error) {
-                console.error('Contribution error:', error);
-                showNotification('Failed to contribute! ⚠️', 'error');
-            }
-        }
-
-        async function rollPotWinner() {
-            try {
-                await runTransaction(db, async (transaction) => {
-                    const snap = await transaction.get(potDoc);
-                    const data = snap.data();
-                    if (data.status !== 'open') {
-                        throw new Error('Pot not open');
-                    }
-                    const players = Object.keys(data.contributions);
-                    if (players.length < 2) {
-                        throw new Error('Need at least 2 players');
-                    }
-                    if (data.last_end_time + 120000 > Date.now()) {
-                        throw new Error('Cooldown active');
-                    }
-                    const total = data.pot_total;
-                    const commission = total * 0.1;
-                    const payout = total - commission;
-                    let cumulative = 0;
-                    const r = Math.random() * total;
-                    let winner = null;
-                    for (const user in data.contributions) {
-                        cumulative += data.contributions[user];
-                        if (r <= cumulative) {
-                            winner = user;
-                            break;
-                        }
-                    }
-                    if (winner) {
-                        const winnerRef = doc(db, 'users', winner);
-                        const winnerSnap = await transaction.get(winnerRef);
-                        const winnerBal = winnerSnap.data().balance || 0;
-                        transaction.update(winnerRef, {balance: winnerBal + payout});
-                        transaction.update(potDoc, {status: 'cooldown', contributions: {}, pot_total: 0, last_end_time: Date.now()});
-                        await addDoc(collection(db, 'adminLogs'), {
-                            type: 'pot_win',
-                            user: winner,
-                            amount: payout,
-                            time: new Date(),
-                            by: 'system'
-                        });
-                        showNotification(`${winner} wins $${formatBalance(payout)}! 🎉`, 'success');
-                    }
-                });
-            } catch (error) {
-                console.error('Roll error:', error);
-                showNotification('Failed to roll winner! ⚠️', 'error');
-            }
-        }
-
         // Automatically create/update admin users on load
         async function ensureAdminUsers() {
             const admins = [
@@ -2281,9 +2130,6 @@
         window.cashOutCrash = cashOutCrash;
         window.cashOutMines = cashOutMines;
         window.cashOutTowers = cashOutTowers;
-        window.sendAnnouncement = sendAnnouncement;
-        window.contributeToPot = contributeToPot;
-        window.rollPotWinner = rollPotWinner;
     </script>
 </body>
 </html>
