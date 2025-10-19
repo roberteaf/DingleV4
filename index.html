@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎮</text></svg>">
-    <title>Bursts Gambling Site</title>
+    <title>Minecraft Gamble Hub 🎮💎</title>
     <!-- Firebase SDK v12.4.0 -->
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js';
@@ -946,7 +946,7 @@
           authDomain: "idkdikdi-57db9.firebaseapp.com",
           databaseURL: "https://idkdikdi-57db9-default-rtdb.europe-west1.firebasedatabase.app",
           projectId: "idkdikdi-57db9",
-          storageBucket: "idkdikdi-57db9.appspot.com",
+          storageBucket: "idkdikdi-57db9.firebasestorage.app",
           messagingSenderId: "316879269067",
           appId: "1:316879269067:web:f69397e5cd00892cebbf4e",
           measurementId: "G-50NYC4TXYB"
@@ -986,8 +986,10 @@
         let userCrashBet = 0;
         let userCashedOut = false;
         
-        const ADMIN_USERNAME = 'burst';
-        const ADMIN_PASSWORD = 'burst123';
+        const ADMIN_USERS = [
+            { username: 'burst', password: 'burst123' },
+            { username: '2metech77', password: '2metech77special' } // Special password for 2metech77; change as needed
+        ];
         
         function formatBalance(bal) {
             if (bal >= 1e9) return (bal / 1e9).toFixed(1) + 'B';
@@ -1027,7 +1029,8 @@
                         showNotification('User data not found! ⚠️', 'error');
                     }
                 });
-                isAdmin = currentUser === ADMIN_USERNAME && currentEdition === 'Java';
+                const adminUser = ADMIN_USERS.find(admin => admin.username === currentUser && currentEdition === 'Java');
+                isAdmin = !!adminUser;
             } catch (error) {
                 console.error('Load user data error:', error);
                 showNotification('Failed to load user data! ⚠️', 'error');
@@ -1294,7 +1297,8 @@
                     showNotification('Please fill all fields and ensure passwords match! ⚠️', 'error');
                     return;
                 }
-                if (username === ADMIN_USERNAME) {
+                const adminUser = ADMIN_USERS.find(admin => admin.username === username);
+                if (adminUser) {
                     showNotification('Admin username cannot be registered! Use login. ⚠️', 'error');
                     return;
                 }
@@ -1337,35 +1341,30 @@
                 }
                 const userRef = doc(db, 'users', username);
                 const userSnap = await getDoc(userRef);
-                let passwordMatch = false;
                 if (!userSnap.exists()) {
-                    if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD && edition === 'Java') {
-                        await setDoc(userRef, { balance: 0, wins: 0, edition: 'Java', password: ADMIN_PASSWORD });
+                    showNotification('User not found! Please sign up. ⚠️', 'error');
+                    return;
+                }
+                const data = userSnap.data();
+                if (data.edition && data.edition !== edition) {
+                    showNotification('Edition mismatch! Logout and try again. ⚠️', 'error');
+                    return;
+                }
+                let passwordMatch = false;
+                const adminUser = ADMIN_USERS.find(admin => admin.username === username);
+                if (adminUser) {
+                    if (password === adminUser.password) {
                         passwordMatch = true;
-                    } else {
-                        showNotification('User not found! Please sign up. ⚠️', 'error');
-                        return;
+                        if (!data.password) {
+                            await updateDoc(userRef, { password: adminUser.password });
+                        }
                     }
                 } else {
-                    const data = userSnap.data();
-                    if (data.edition && data.edition !== edition) {
-                        showNotification('Edition mismatch! Logout and try again. ⚠️', 'error');
-                        return;
-                    }
-                    if (username === ADMIN_USERNAME) {
-                        if (password === ADMIN_PASSWORD) {
-                            passwordMatch = true;
-                            if (!data.password) {
-                                await updateDoc(userRef, { password: ADMIN_PASSWORD });
-                            }
-                        }
-                    } else {
-                        passwordMatch = data.password === password;
-                    }
-                    if (!passwordMatch) {
-                        showNotification('Incorrect password! ⚠️', 'error');
-                        return;
-                    }
+                    passwordMatch = data.password === password;
+                }
+                if (!passwordMatch) {
+                    showNotification('Incorrect password! ⚠️', 'error');
+                    return;
                 }
                 currentUser = username;
                 currentEdition = edition;
@@ -1990,7 +1989,8 @@
                 document.getElementById('user').textContent = currentUser;
                 document.getElementById('ed').textContent = currentEdition;
                 document.body.classList.add('logged-in');
-                isAdmin = currentUser === ADMIN_USERNAME && currentEdition === 'Java';
+                const adminUser = ADMIN_USERS.find(admin => admin.username === currentUser && currentEdition === 'Java');
+                isAdmin = !!adminUser;
                 loadUserData();
                 addAdminButton();
                 showScreen('dashboard');
