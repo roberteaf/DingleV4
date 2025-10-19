@@ -3,411 +3,2037 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mines Game</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎮</text></svg>">
+    <title>Minecraft Gamble Hub 🎮💎</title>
+    <!-- Firebase SDK v12.4.0 -->
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js';
+        import { getFirestore, collection, doc, getDoc, setDoc, updateDoc, addDoc, onSnapshot, query, orderBy, limit } from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js';
+        window.firebaseApp = { initializeApp, getFirestore, collection, doc, getDoc, setDoc, updateDoc, addDoc, onSnapshot, query, orderBy, limit };
+    </script>
     <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #1c1c1c, #333333);
-            color: #e0e0e0;
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Roboto:wght@300;400&display=swap');
+        
+        * {
             margin: 0;
-            padding: 20px;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Orbitron', monospace;
+            background: linear-gradient(135deg, #000000 0%, #001f3f 50%, #7b2cbf 100%);
+            background-size: 400% 400%;
+            animation: gradientShift 15s ease infinite;
+            color: #ffffff;
+            overflow-x: hidden;
+            min-height: 100vh;
+            position: relative;
+        }
+        
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        
+        body.logged-in .screen {
+            left: 300px;
+            width: calc(100% - 300px);
+        }
+        
+        body:not(.logged-in) .screen {
+            left: 0;
+            width: 100%;
+        }
+        
+        .chat-sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 300px;
+            height: 100vh;
+            background: linear-gradient(145deg, rgba(0, 0, 0, 0.8), rgba(123, 44, 191, 0.2));
+            backdrop-filter: blur(10px);
+            z-index: 5;
+            display: none;
+            flex-direction: column;
+            box-shadow: 2px 0 20px rgba(0, 0, 0, 0.5);
+        }
+        
+        body.logged-in .chat-sidebar {
+            display: flex;
+        }
+        
+        #messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 15px;
+            margin-bottom: 10px;
+        }
+        
+        .message {
+            padding: 10px;
+            margin: 8px 0;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            word-wrap: break-word;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        }
+        
+        .message small {
+            opacity: 0.7;
+            font-size: 0.8em;
+            display: block;
+            margin-bottom: 5px;
+        }
+        
+        #chat-input-container {
+            padding: 15px;
+            border-top: 1px solid rgba(123, 44, 191, 0.3);
+            display: flex;
+            gap: 10px;
+        }
+        
+        #chat-input {
+            flex: 1;
+            padding: 10px;
+            border-radius: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(123, 44, 191, 0.3);
+            color: #fff;
+            font-family: 'Roboto', sans-serif;
+        }
+        
+        #chat-input:focus {
+            outline: none;
+            box-shadow: 0 0 10px #7b2cbf;
+        }
+        
+        .screen {
+            position: absolute;
+            top: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            transition: opacity 0.5s ease-in-out;
+            z-index: 1;
+        }
+        
+        .hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+        
+        .visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        
+        .header {
+            width: 100%;
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(123, 44, 191, 0.5);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+            z-index: 10;
+            position: relative;
+        }
+        
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .header-left h1 {
+            font-size: 1.8em;
+            text-shadow: 0 0 10px #7b2cbf;
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+        
+        @keyframes glow {
+            from { text-shadow: 0 0 10px #7b2cbf; }
+            to { text-shadow: 0 0 20px #7b2cbf, 0 0 30px #7b2cbf; }
+        }
+        
+        .header-right {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 10px;
+        }
+        
+        .balance {
+            font-size: 1.3em;
+            padding: 8px 15px;
+            background: linear-gradient(145deg, rgba(0, 31, 63, 0.9), rgba(123, 44, 191, 0.3));
+            border-radius: 20px;
+            animation: pulse 2s ease-in-out infinite;
+            box-shadow: 0 4px 15px rgba(123, 44, 191, 0.4);
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.03); }
+        }
+        
+        .header-buttons {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .btn {
+            font-family: 'Roboto', sans-serif;
+            padding: 8px 15px;
+            border: none;
+            border-radius: 20px;
+            background: linear-gradient(145deg, rgba(255, 255, 255, 0.1), rgba(123, 44, 191, 0.3));
+            color: #ffffff;
+            font-size: 0.9em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 20px rgba(123, 44, 191, 0.5);
+            background: linear-gradient(145deg, rgba(255, 255, 255, 0.2), rgba(123, 44, 191, 0.4));
+        }
+        
+        .logout {
+            background: linear-gradient(145deg, rgba(255, 0, 0, 0.3), rgba(123, 44, 191, 0.2)) !important;
+        }
+        
+        .logout:hover {
+            background: linear-gradient(145deg, rgba(255, 0, 0, 0.5), rgba(123, 44, 191, 0.3)) !important;
+        }
+        
+        .main-content {
+            flex: 1;
             display: flex;
             justify-content: center;
             align-items: center;
-            min-height: 100vh;
-            overflow: auto;
+            padding: 40px;
         }
-        .container {
+        
+        .games-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+            width: 100%;
             max-width: 900px;
-            background: rgba(0, 0, 0, 0.7);
-            padding: 30px;
-            border-radius: 15px;
+            padding: 20px;
+        }
+        
+        .game-card {
+            aspect-ratio: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(145deg, rgba(0, 0, 0, 0.6), rgba(123, 44, 191, 0.2));
+            border-radius: 20px;
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
-            backdrop-filter: blur(10px);
+            transition: all 0.4s ease;
+            border: 2px solid transparent;
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+        }
+        
+        .game-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+            transition: left 0.5s;
+        }
+        
+        .game-card:hover::before {
+            left: 100%;
+        }
+        
+        .game-card:hover {
+            transform: translateY(-10px) scale(1.05);
+            border-color: #7b2cbf;
+            box-shadow: 0 12px 40px rgba(123, 44, 191, 0.6);
+        }
+        
+        .game-icon {
+            font-size: 4em;
+            margin-bottom: 15px;
+            filter: drop-shadow(0 0 10px rgba(123, 44, 191, 0.5));
             transition: transform 0.3s ease;
         }
-        .container:hover {
-            transform: scale(1.02);
+        
+        .game-card:hover .game-icon {
+            transform: scale(1.2);
         }
-        h1, h2, h3 {
-            color: #ffffff;
-            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+        
+        .game-title {
+            font-size: 1.4em;
+            font-weight: 700;
+            text-align: center;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
         }
-        #auth-section, #game-section {
-            animation: fadeIn 0.5s ease;
+        
+        .coming-soon {
+            opacity: 0.6;
+            cursor: not-allowed;
         }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-20px); }
+        
+        .coming-soon:hover {
+            transform: none;
+            border-color: transparent;
+            box-shadow: none;
+        }
+        
+        .game-area {
+            width: 100%;
+            max-width: 800px;
+            padding: 40px;
+            background: linear-gradient(145deg, rgba(0, 0, 0, 0.7), rgba(123, 44, 191, 0.1));
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+            animation: slideIn 0.6s ease-out;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(30px); }
             to { opacity: 1; transform: translateY(0); }
         }
-        form {
-            margin-bottom: 20px;
+        
+        .back-btn {
+            align-self: flex-start;
+            background: linear-gradient(145deg, rgba(123, 44, 191, 0.3), rgba(0, 0, 0, 0.5));
         }
+        
+        .input-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        
         input, select {
-            display: block;
-            margin: 10px 0;
-            padding: 12px;
-            width: 100%;
-            box-sizing: border-box;
-            border: 1px solid #555;
-            border-radius: 8px;
-            background: #2a2a2a;
-            color: #e0e0e0;
-            transition: border-color 0.3s ease;
+            padding: 12px 18px;
+            border-radius: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(123, 44, 191, 0.3);
+            color: #fff;
+            font-size: 1em;
+            min-width: 80px;
         }
+        
         input:focus, select:focus {
-            border-color: #007bff;
             outline: none;
+            box-shadow: 0 0 15px #7b2cbf;
+            border-color: #7b2cbf;
         }
-        button {
-            padding: 12px;
-            background: linear-gradient(135deg, #007bff, #0056b3);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            width: 100%;
-            font-weight: bold;
-            transition: background 0.3s ease, transform 0.2s ease;
+        
+        .controls {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            justify-content: center;
         }
-        button:hover {
-            background: linear-gradient(135deg, #0056b3, #004085);
-            transform: translateY(-2px);
+        
+        .controls button {
+            padding: 12px 20px;
+            font-size: 1em;
+            border-radius: 15px;
+            background: linear-gradient(145deg, rgba(0, 255, 0, 0.2), rgba(123, 44, 191, 0.3));
         }
-        #grid {
+        
+        .result {
+            font-size: 1.2em;
+            text-align: center;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 10px;
+            min-height: 20px;
+        }
+        
+        .mine-grid {
             display: grid;
             grid-template-columns: repeat(5, 1fr);
             gap: 8px;
             margin: 20px 0;
         }
-        .tile {
-            width: 100%;
-            aspect-ratio: 1;
-            background: #444444;
+        
+        .mine-cell {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(145deg, rgba(255,255,255,0.1), rgba(123, 44, 191, 0.2));
+            border-radius: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            font-size: 24px;
-            border-radius: 8px;
-            transition: background 0.3s ease, transform 0.2s ease;
+            transition: all 0.3s ease;
+            font-size: 1.5em;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
         }
-        .tile:hover {
-            transform: scale(1.05);
+        
+        .mine-cell:hover {
+            transform: scale(1.1);
+            box-shadow: 0 4px 20px rgba(123, 44, 191, 0.5);
+            background: linear-gradient(145deg, rgba(255,255,255,0.2), rgba(123, 44, 191, 0.3));
         }
-        .safe {
-            background: linear-gradient(135deg, #28a745, #1e7e34);
-            color: white;
+        
+        .mine-cell.boom {
+            background: linear-gradient(145deg, #ff0000, #cc0000);
+            animation: explode 0.5s ease;
+            transform: scale(1.2);
         }
-        .bomb {
-            background: linear-gradient(135deg, #dc3545, #bd2130);
-            color: white;
+        
+        .mine-cell.disabled {
+            pointer-events: none;
+            opacity: 0.5;
+            cursor: not-allowed;
         }
-        .hidden {
-            background: #444444;
+        
+        @keyframes explode {
+            0% { transform: scale(1); }
+            100% { transform: scale(1.5); opacity: 0; }
         }
-        #message {
-            font-weight: bold;
-            margin: 10px 0;
-            color: #ffd700;
-            text-align: center;
+        
+        .dice-display {
+            font-size: 4em;
+            margin: 20px 0;
+            text-shadow: 0 0 10px #ffff00;
         }
-        #switch-auth {
-            text-align: center;
+        
+        .tower-display {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            margin: 20px 0;
+        }
+        
+        .tower-row {
+            display: flex;
+            gap: 5px;
+            justify-content: center;
+        }
+        
+        .tower-cell {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(145deg, rgba(255,255,255,0.1), rgba(123, 44, 191, 0.2));
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             cursor: pointer;
-            color: #007bff;
-            transition: color 0.3s ease;
+            transition: all 0.3s ease;
+            font-size: 1.2em;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
         }
-        #switch-auth:hover {
-            color: #0056b3;
+        
+        .tower-cell:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 15px rgba(123, 44, 191, 0.5);
+            background: linear-gradient(145deg, rgba(255,255,255,0.2), rgba(123, 44, 191, 0.3));
         }
-        p {
-            margin: 10px 0;
+        
+        .tower-cell.revealed {
+            pointer-events: none;
+        }
+        
+        .tower-cell.safe {
+            background: linear-gradient(145deg, #00ff00, #00cc00);
+        }
+        
+        .tower-cell.skull {
+            background: linear-gradient(145deg, #ff0000, #cc0000);
+            animation: explode 0.5s ease;
+        }
+        
+        .card-display {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+            margin: 20px 0;
+        }
+        
+        .card {
+            display: inline-block;
+            background: linear-gradient(145deg, #001f3f, #7b2cbf);
+            padding: 10px 15px;
+            border-radius: 10px;
+            font-weight: bold;
+            font-size: 1.2em;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            animation: flip 0.6s ease;
+            min-width: 50px;
+            text-align: center;
+        }
+        
+        @keyframes flip {
+            0% { transform: rotateY(0); }
+            50% { transform: rotateY(90deg); }
+            100% { transform: rotateY(0); }
+        }
+        
+        #crash-area {
+            position: relative;
+            height: 400px;
+            width: 100%;
+            background: linear-gradient(to top, #001f3f, #000);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        
+        #rocket {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 3em;
+            transition: transform 0.1s ease-out;
+            z-index: 2;
+        }
+        
+        #multiplier {
+            position: absolute;
+            top: 60px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 2em;
+            color: #00ff00;
+            text-shadow: 0 0 10px #00ff00;
+            z-index: 2;
+        }
+
+        #countdown {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 2em;
+            color: #ffff00;
+            text-shadow: 0 0 10px #ffff00;
+            z-index: 2;
+        }
+        
+        .notification {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            padding: 15px 20px;
+            background: rgba(0, 31, 63, 0.95);
+            border-radius: 15px;
+            box-shadow: 0 8px 25px rgba(123, 44, 191, 0.5);
+            animation: slideInRight 0.5s ease-out;
+            z-index: 1000;
+            border-left: 4px solid #7b2cbf;
+        }
+        
+        @keyframes slideInRight {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        
+        .coming-soon-content {
+            text-align: center;
+            font-size: 1.5em;
+            opacity: 0.7;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid rgba(123, 44, 191, 0.3);
+        }
+
+        th {
+            background: rgba(123, 44, 191, 0.2);
+            font-weight: bold;
+        }
+
+        #cashout-btn, #cashout-btn-towers, #cashout-btn-crash {
+            background: linear-gradient(145deg, rgba(255, 215, 0, 0.3), rgba(123, 44, 191, 0.3)) !important;
+            padding: 12px 24px;
+            font-size: 1em;
+        }
+
+        #cashout-btn:hover, #cashout-btn-towers:hover, #cashout-btn-crash:hover {
+            background: linear-gradient(145deg, rgba(255, 215, 0, 0.5), rgba(123, 44, 191, 0.4)) !important;
+        }
+
+        .leaderboard {
+            background: rgba(0, 0, 0, 0.7);
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .leaderboard h3 {
+            text-align: center;
+            margin-bottom: 15px;
+            text-shadow: 0 0 10px #ffff00;
+        }
+
+        .leaderboard-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px;
+            margin: 5px 0;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
+
+        #leaderboard {
+            margin-top: 20px;
+        }
+
+        .auth-toggle {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .auth-toggle .btn {
+            padding: 8px 12px;
+            font-size: 0.9em;
+        }
+
+        .auth-form input, .auth-form select {
+            width: 100%;
+            margin-bottom: 15px;
+        }
+
+        .auth-form input[type="password"] {
+            padding: 12px;
+            border-radius: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(123, 44, 191, 0.3);
+            color: #fff;
+            font-size: 1em;
+        }
+
+        .auth-form input[type="password"]:focus {
+            outline: none;
+            box-shadow: 0 0 15px #7b2cbf;
+            border-color: #7b2cbf;
         }
     </style>
-    <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js"></script>
 </head>
 <body>
-    <div class="container">
-        <h1>Mines Game</h1>
-        
-        <div id="auth-section">
-            <div id="login-form">
-                <h2>Login</h2>
-                <form id="login">
-                    <input type="text" id="login-username" placeholder="Username" required>
-                    <input type="password" id="login-password" placeholder="Password" required>
-                    <button type="submit">Login</button>
-                </form>
-            </div>
-            <div id="register-form" style="display: none;">
-                <h2>Register</h2>
-                <form id="register">
-                    <input type="text" id="register-username" placeholder="Username" required>
-                    <input type="password" id="register-password" placeholder="Password" required>
-                    <button type="submit">Register</button>
-                </form>
-            </div>
-            <p id="switch-auth">Don't have an account? Register here.</p>
+    <div id="chat-sidebar" class="chat-sidebar">
+        <div id="messages"></div>
+        <div id="chat-input-container">
+            <input type="text" id="chat-input" placeholder="Type a message..." onkeypress="if(event.key==='Enter') sendMessage()">
+            <button class="btn" onclick="sendMessage()">Send</button>
         </div>
-        
-        <div id="game-section" style="display: none;">
-            <h2>Welcome, <span id="user-username"></span></h2>
-            <p>Balance: <span id="balance">0</span></p>
-            <button id="logout">Logout</button>
-            
-            <h3>Start New Game</h3>
-            <label for="bombs">Number of Bombs:</label>
-            <select id="bombs">
-                <option value="1">1</option>
-                <option value="3">3</option>
-                <option value="5">5</option>
-                <option value="10">10</option>
-                <option value="15">15</option>
-                <option value="20">20</option>
-                <option value="24">24</option>
-            </select>
-            <label for="bet">Bet Amount:</label>
-            <input type="number" id="bet" min="1" placeholder="Bet Amount" required>
-            <button id="start-game">Start Game</button>
-            
-            <div id="grid"></div>
-            <p id="message"></p>
-            <p>Current Multiplier: <span id="multiplier">1.00</span>x</p>
-            <button id="cash-out" style="display: none;">Cash Out</button>
+    </div>
+    
+    <div id="login" class="screen visible">
+        <div class="main-content">
+            <div style="text-align: center; max-width: 400px;">
+                <h1 style="font-size: 3em; margin-bottom: 30px;">Minecraft Gamble Hub 🎮💎</h1>
+                <div class="auth-toggle">
+                    <button class="btn" onclick="setMode('login')">Login</button>
+                    <button class="btn" onclick="setMode('signup')">Sign Up</button>
+                </div>
+                <div id="login-form" class="auth-form">
+                    <input type="text" id="username" placeholder="Enter Username 👤" maxlength="20">
+                    <select id="edition">
+                        <option value="Bedrock">Bedrock Edition 🛏️</option>
+                        <option value="Java">Java Edition ☕</option>
+                    </select>
+                    <input type="password" id="login-password" placeholder="Enter Password 🔒">
+                    <button class="btn" onclick="login()" style="width: 100%; padding: 15px; font-size: 1.2em;">Login & Play 🎯</button>
+                </div>
+                <div id="signup-form" class="auth-form" style="display: none;">
+                    <input type="text" id="signup-username" placeholder="Choose Username 👤" maxlength="20">
+                    <select id="signup-edition">
+                        <option value="Bedrock">Bedrock Edition 🛏️</option>
+                        <option value="Java">Java Edition ☕</option>
+                    </select>
+                    <input type="password" id="signup-password" placeholder="Choose Password 🔒">
+                    <input type="password" id="confirm-password" placeholder="Confirm Password 🔐">
+                    <button class="btn" onclick="signUp()" style="width: 100%; padding: 15px; font-size: 1.2em;">Sign Up & Play 🎯</button>
+                </div>
+                <p style="margin-top: 20px; opacity: 0.7; font-family: 'Roboto', sans-serif;">Powered by Pixels & Bets ✨ | Now with Global Sync!</p>
+            </div>
+        </div>
+    </div>
+    
+    <div id="dashboard" class="screen hidden">
+        <div class="header">
+            <div class="header-left">
+                <h1>Welcome, <span id="user"></span> (<span id="ed"></span>) 💎</h1>
+            </div>
+            <div class="header-right">
+                <div class="balance">Balance: $<span id="balance">0.00</span> 💰 | Wins: <span id="wins">0</span> 🏆</div>
+                <div class="header-buttons">
+                    <button class="btn" onclick="showLeaderboard()">🏆 Leaderboard</button>
+                    <button class="btn" onclick="deposit()">💳 Deposit</button>
+                    <button class="btn" onclick="withdraw()">🏦 Withdraw</button>
+                    <button class="btn logout" onclick="logout()">🚪 Logout</button>
+                </div>
+            </div>
+        </div>
+        <div class="main-content">
+            <div class="games-grid">
+                <div class="game-card" onclick="showScreen('mines')">
+                    <div class="game-icon">💎💣</div>
+                    <h3 class="game-title">Mines</h3>
+                </div>
+                <div class="game-card" onclick="showScreen('dice')">
+                    <div class="game-icon">🎲🎲</div>
+                    <h3 class="game-title">Dice</h3>
+                </div>
+                <div class="game-card" onclick="showScreen('towers')">
+                    <div class="game-icon">🏗️</div>
+                    <h3 class="game-title">Towers</h3>
+                </div>
+                <div class="game-card" onclick="showScreen('blackjack')">
+                    <div class="game-icon">🃏</div>
+                    <h3 class="game-title">Blackjack</h3>
+                </div>
+                <div class="game-card" onclick="showScreen('crash')">
+                    <div class="game-icon">🚀</div>
+                    <h3 class="game-title">Crash</h3>
+                </div>
+                <div class="game-card coming-soon" onclick="showComingSoon()">
+                    <div class="game-icon">⏳</div>
+                    <h3 class="game-title">Coming Soon</h3>
+                </div>
+            </div>
+            <div id="leaderboard" class="leaderboard" style="display: none;">
+                <h3>Global Leaderboard 🏆</h3>
+                <div id="lb-content"></div>
+            </div>
         </div>
     </div>
 
-    <script>
-        // Firebase Config
+    <div id="admin" class="screen hidden">
+        <div class="header">
+            <div class="header-left">
+                <button class="btn back-btn" onclick="showScreen('dashboard')">← Back</button>
+                <h1>Admin Dashboard 🔧</h1>
+            </div>
+            <div class="header-right">
+                <div class="balance">Admin Mode Active 👑</div>
+                <div class="header-buttons">
+                    <button class="btn" onclick="showAdminLogs()">📜 Admin Logs</button>
+                    <button class="btn" onclick="downloadLog()">📥 Download Log</button>
+                    <button class="btn logout" onclick="logout()">🚪 Logout</button>
+                </div>
+            </div>
+        </div>
+        <div class="main-content">
+            <div style="max-width: 800px; width: 100%;">
+                <h2 style="text-align: center; margin-bottom: 20px;">User Management</h2>
+                <div style="margin-bottom: 20px; display: flex; align-items: center; justify-content: center; gap: 10px;">
+                    <input type="text" id="userSearch" placeholder="Search users..." style="width: 300px; padding: 10px; border-radius: 10px; background: rgba(255,255,255,0.1); border: 1px solid #7b2cbf; color: white;">
+                    <button class="btn" onclick="loadUsers('')">Refresh 🔄</button>
+                </div>
+                <div id="usersTable" style="overflow-y: auto; max-height: 400px; background: rgba(0,0,0,0.3); border-radius: 10px; padding: 10px;"></div>
+                <div style="margin-top: 20px; padding: 20px; background: rgba(0,0,0,0.5); border-radius: 15px; display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 10px;">
+                    <h3 style="margin: 0; flex-basis: 100%; text-align: center;">Adjust Balance for User</h3>
+                    <input type="text" id="selectedUser" placeholder="Enter Username (e.g. NewUser)" style="width: 200px; padding: 10px; border-radius: 10px; background: rgba(255,255,255,0.1); border: 1px solid #7b2cbf; color: white;">
+                    <input type="text" id="adjustAmount" placeholder="Amount (e.g. 100k)" style="width: 150px; padding: 10px; border-radius: 10px; background: rgba(255,255,255,0.1); border: 1px solid #7b2cbf; color: white;">
+                    <button class="btn" onclick="doDeposit()" style="background: linear-gradient(145deg, rgba(0,255,0,0.3), rgba(0,200,0,0.2));">Deposit 💳</button>
+                    <button class="btn" onclick="doWithdraw()" style="background: linear-gradient(145deg, rgba(255,0,0,0.3), rgba(200,0,0,0.2));">Withdraw 🏦</button>
+                </div>
+                <div id="admin-logs" style="display: none; margin-top: 20px; overflow-y: auto; max-height: 400px; background: rgba(0,0,0,0.3); border-radius: 10px; padding: 10px;"></div>
+            </div>
+        </div>
+    </div>
+    
+    <div id="mines-screen" class="screen hidden">
+        <div class="header">
+            <div class="header-left">
+                <button class="btn back-btn" onclick="showScreen('dashboard')">← Back</button>
+                <h1>Mines 💣</h1>
+            </div>
+            <div class="header-right">
+                <div class="balance">Balance: $<span id="balance-mines">0.00</span> 💰</div>
+                <div class="header-buttons">
+                    <button class="btn" onclick="deposit()">💳 Deposit</button>
+                    <button class="btn" onclick="withdraw()">🏦 Withdraw</button>
+                    <button class="btn logout" onclick="logout()">🚪 Logout</button>
+                </div>
+            </div>
+        </div>
+        <div class="main-content">
+            <div class="game-area">
+                <div class="input-group">
+                    <label>Bet: $</label>
+                    <input type="text" id="minesbet" placeholder="10 or 1k" value="10">
+                    <label>Mines:</label>
+                    <select id="minesnum">
+                        <option>1</option>
+                        <option>3</option>
+                        <option>5</option>
+                    </select>
+                    <button class="btn" onclick="startMines()">Start 🔍</button>
+                </div>
+                <div id="mine-grid" class="mine-grid"></div>
+                <button id="cashout-btn" class="btn" onclick="cashOutMines()" style="display: none;">Cash Out 💰</button>
+                <div id="mines-result" class="result"></div>
+            </div>
+        </div>
+    </div>
+    
+    <div id="dice-screen" class="screen hidden">
+        <div class="header">
+            <div class="header-left">
+                <button class="btn back-btn" onclick="showScreen('dashboard')">← Back</button>
+                <h1>Dice 🎲</h1>
+            </div>
+            <div class="header-right">
+                <div class="balance">Balance: $<span id="balance-dice">0.00</span> 💰</div>
+                <div class="header-buttons">
+                    <button class="btn" onclick="deposit()">💳 Deposit</button>
+                    <button class="btn" onclick="withdraw()">🏦 Withdraw</button>
+                    <button class="btn logout" onclick="logout()">🚪 Logout</button>
+                </div>
+            </div>
+        </div>
+        <div class="main-content">
+            <div class="game-area">
+                <div class="input-group">
+                    <label>Bet: $</label>
+                    <input type="text" id="dicebet" placeholder="10 or 1k" value="10">
+                    <select id="dicechoice">
+                        <option value="over">Over 7 (Win if >7)</option>
+                        <option value="under">Under 7 (Win if <7)</option>
+                    </select>
+                    <button class="btn" onclick="playDice()">Roll 🎲</button>
+                </div>
+                <div id="dice-display" class="dice-display"></div>
+                <div id="dice-result" class="result"></div>
+            </div>
+        </div>
+    </div>
+    
+    <div id="towers-screen" class="screen hidden">
+        <div class="header">
+            <div class="header-left">
+                <button class="btn back-btn" onclick="showScreen('dashboard')">← Back</button>
+                <h1>Towers 🏗️</h1>
+            </div>
+            <div class="header-right">
+                <div class="balance">Balance: $<span id="balance-towers">0.00</span> 💰</div>
+                <div class="header-buttons">
+                    <button class="btn" onclick="deposit()">💳 Deposit</button>
+                    <button class="btn" onclick="withdraw()">🏦 Withdraw</button>
+                    <button class="btn logout" onclick="logout()">🚪 Logout</button>
+                </div>
+            </div>
+        </div>
+        <div class="main-content">
+            <div class="game-area">
+                <div class="input-group">
+                    <label>Bet: $</label>
+                    <input type="text" id="towersbet" placeholder="10 or 1k" value="10">
+                    <button class="btn" onclick="startTowers()">Build & Climb 🧗</button>
+                </div>
+                <div id="towers-display" class="tower-display"></div>
+                <button id="cashout-btn-towers" class="btn" onclick="cashOutTowers()" style="display: none;">Cash Out 💰</button>
+                <div id="towers-result" class="result"></div>
+            </div>
+        </div>
+    </div>
+    
+    <div id="blackjack-screen" class="screen hidden">
+        <div class="header">
+            <div class="header-left">
+                <button class="btn back-btn" onclick="showScreen('dashboard')">← Back</button>
+                <h1>Blackjack 🃏</h1>
+            </div>
+            <div class="header-right">
+                <div class="balance">Balance: $<span id="balance-blackjack">0.00</span> 💰</div>
+                <div class="header-buttons">
+                    <button class="btn" onclick="deposit()">💳 Deposit</button>
+                    <button class="btn" onclick="withdraw()">🏦 Withdraw</button>
+                    <button class="btn logout" onclick="logout()">🚪 Logout</button>
+                </div>
+            </div>
+        </div>
+        <div class="main-content">
+            <div class="game-area">
+                <div class="input-group">
+                    <label>Bet: $</label>
+                    <input type="text" id="bet" placeholder="10 or 1k" value="10">
+                    <button class="btn" onclick="playBlackjack()">Deal Cards 🎴</button>
+                </div>
+                <div id="bj-hand-player" class="card-display"></div>
+                <div style="text-align: center; margin: 10px 0;">vs</div>
+                <div id="bj-hand-dealer" class="card-display"></div>
+                <div class="controls">
+                    <button class="btn" onclick="bjHit()">Hit ➡️</button>
+                    <button class="btn" onclick="bjStand()">Stand 🛑</button>
+                </div>
+                <div id="bj-result" class="result"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="crash-screen" class="screen hidden">
+        <div class="header">
+            <div class="header-left">
+                <button class="btn back-btn" onclick="showScreen('dashboard')">← Back</button>
+                <h1>Crash 🚀</h1>
+            </div>
+            <div class="header-right">
+                <div class="balance">Balance: $<span id="balance-crash">0.00</span> 💰</div>
+                <div class="header-buttons">
+                    <button class="btn" onclick="deposit()">💳 Deposit</button>
+                    <button class="btn" onclick="withdraw()">🏦 Withdraw</button>
+                    <button class="btn logout" onclick="logout()">🚪 Logout</button>
+                </div>
+            </div>
+        </div>
+        <div class="main-content">
+            <div class="game-area">
+                <div class="input-group" id="crash-input">
+                    <label>Bet: $</label>
+                    <input type="text" id="crashbet" placeholder="10 or 1k" value="10">
+                    <button class="btn" onclick="betOnCrash()">Bet 🚀</button>
+                </div>
+                <div id="crash-area" style="display: none;">
+                    <div id="countdown"></div>
+                    <div id="rocket">🚀</div>
+                    <div id="multiplier">1.00x</div>
+                </div>
+                <button id="cashout-btn-crash" class="btn" onclick="cashOutCrash()" style="display: none;">Cash Out 💰</button>
+                <div id="crash-result" class="result"></div>
+            </div>
+        </div>
+    </div>
+    
+    <div id="notification"></div>
+
+    <script type="module">
+        console.log('Minecraft Gamble Hub v2 - Global Sync Loaded! 🎮💎');
+        
+        // For Firebase JS SDK v7.20.0 and later, measurementId is optional
         const firebaseConfig = {
-            apiKey: "AIzaSyAaL7pqKB0fzxURNyblGYKo9q_8UUqj014",
-            authDomain: "idkdikdi-57db9.firebaseapp.com",
-            databaseURL: "https://idkdikdi-57db9-default-rtdb.europe-west1.firebasedatabase.app",
-            projectId: "idkdikdi-57db9",
-            storageBucket: "idkdikdi-57db9.firebasestorage.app",
-            messagingSenderId: "316879269067",
-            appId: "1:316879269067:web:f69397e5cd00892cebbf4e",
-            measurementId: "G-50NYC4TXYB"
+          apiKey: "AIzaSyAaL7pqKB0fzxURNyblGYKo9q_8UUqj014",
+          authDomain: "idkdikdi-57db9.firebaseapp.com",
+          databaseURL: "https://idkdikdi-57db9-default-rtdb.europe-west1.firebasedatabase.app",
+          projectId: "idkdikdi-57db9",
+          storageBucket: "idkdikdi-57db9.firebasestorage.app",
+          messagingSenderId: "316879269067",
+          appId: "1:316879269067:web:f69397e5cd00892cebbf4e",
+          measurementId: "G-50NYC4TXYB"
         };
+        
+        const { initializeApp, getFirestore, collection, doc, getDoc, setDoc, updateDoc, addDoc, onSnapshot, query, orderBy, limit } = window.firebaseApp;
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        
+        let currentUser = '';
+        let currentEdition = '';
+        let balance = 0.00;
+        let wins = 0;
+        let currentScreen = 'login';
+        let isAdmin = false;
+        let userDoc = null;
+        let messagesUnsub = null;
+        let leaderboardUnsub = null;
+        let usersUnsub = null;
+        let userUnsub = null;
+        let logsUnsub = null;
+        
+        // Game state variables (local for gameplay)
+        let playerHand = [], dealerHand = [], bjBet = 0;
+        let minesGrid = [], minesNum = 0, minesRevealed = 0, minesBet = 0, gameActive = false;
+        let diceBet = 0;
+        let towersGrid = [], currentTowerRow = 0, towersRevealed = 0, towersGameActive = false, towersBet = 0;
+        let users = [];
+        
+        // Crash global state (still local per tab for simplicity; could sync if needed)
+        let globalCrashActive = false;
+        let globalBettingActive = false;
+        let globalStartTime;
+        let globalLaunchTime;
+        let globalCrashMultiplier;
+        let globalCurrentMultiplier = 1.00;
+        let userCrashBet = 0;
+        let userCashedOut = false;
+        
+        const ADMIN_USERNAME = 'burst';
+        const ADMIN_PASSWORD = 'burst123';
+        
+        function formatBalance(bal) {
+            if (bal >= 1e9) return (bal / 1e9).toFixed(1) + 'B';
+            if (bal >= 1e6) return (bal / 1e6).toFixed(1) + 'M';
+            if (bal >= 1e3) return (bal / 1e3).toFixed(1) + 'K';
+            return bal.toFixed(2);
+        }
 
-        // Initialize Firebase
-        const app = firebase.initializeApp(firebaseConfig);
-        const db = firebase.database();
+        function parseBet(str) {
+            str = str.toLowerCase().trim();
+            let num = parseFloat(str);
+            if (isNaN(num)) num = 0;
+            if (str.includes('k')) num *= 1000;
+            else if (str.includes('m')) num *= 1e6;
+            else if (str.includes('b')) num *= 1e9;
+            return num;
+        }
 
-        // Auth Section
-        const authSection = document.getElementById('auth-section');
-        const gameSection = document.getElementById('game-section');
-        const loginForm = document.getElementById('login');
-        const registerForm = document.getElementById('register');
-        const switchAuth = document.getElementById('switch-auth');
-        const loginFormDiv = document.getElementById('login-form');
-        const registerFormDiv = document.getElementById('register-form');
-        const userUsername = document.getElementById('user-username');
-        const balanceEl = document.getElementById('balance');
-        const logout = document.getElementById('logout');
-
-        let currentUser = null;
-        let balanceRef = null;
-
-        // Switch between login and register
-        switchAuth.addEventListener('click', () => {
-            if (loginFormDiv.style.display !== 'none') {
-                loginFormDiv.style.display = 'none';
-                registerFormDiv.style.display = 'block';
-                switchAuth.textContent = 'Already have an account? Login here.';
-            } else {
-                loginFormDiv.style.display = 'block';
-                registerFormDiv.style.display = 'none';
-                switchAuth.textContent = "Don't have an account? Register here.";
-            }
-        });
-
-        // Custom Login
-        loginForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            const username = document.getElementById('login-username').value.trim().toLowerCase();
-            const password = document.getElementById('login-password').value;
-            if (!username || !password) return alert('Please enter username and password.');
-
-            const userRef = db.ref('users/' + username);
-            userRef.once('value').then(snapshot => {
-                const userData = snapshot.val();
-                if (userData && userData.password === password) {
-                    currentUser = { username: username };
-                    authSection.style.display = 'none';
-                    gameSection.style.display = 'block';
-                    userUsername.textContent = username;
-                    
-                    // Load balance
-                    balanceRef = userRef.child('balance');
-                    balanceRef.on('value', (snap) => {
-                        const bal = snap.val() || 0;
-                        balanceEl.textContent = bal.toFixed(2);
-                    });
-                } else {
-                    alert('Invalid username or password.');
-                }
-            }).catch(error => alert(error.message));
-        });
-
-        // Custom Register
-        registerForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            const username = document.getElementById('register-username').value.trim().toLowerCase();
-            const password = document.getElementById('register-password').value;
-            if (!username || !password) return alert('Please enter username and password.');
-
-            const userRef = db.ref('users/' + username);
-            userRef.once('value').then(snapshot => {
-                if (snapshot.exists()) {
-                    alert('Username already taken.');
-                } else {
-                    userRef.set({
-                        password: password, // WARNING: Plain text password - not secure for production!
-                        balance: 1000 // Initial balance
-                    }).then(() => {
-                        alert('Registered successfully! Please login.');
-                        // Switch to login
-                        loginFormDiv.style.display = 'block';
-                        registerFormDiv.style.display = 'none';
-                        switchAuth.textContent = "Don't have an account? Register here.";
-                    });
-                }
-            }).catch(error => alert(error.message));
-        });
-
-        // Logout
-        logout.addEventListener('click', () => {
-            currentUser = null;
-            authSection.style.display = 'block';
-            gameSection.style.display = 'none';
-            if (balanceRef) balanceRef.off();
-        });
-
-        // Game Logic (same as before, with potential fixes)
-        const bombsSelect = document.getElementById('bombs');
-        const betInput = document.getElementById('bet');
-        const startGame = document.getElementById('start-game');
-        const grid = document.getElementById('grid');
-        const message = document.getElementById('message');
-        const multiplierEl = document.getElementById('multiplier');
-        const cashOut = document.getElementById('cash-out');
-
-        let gameActive = false;
-        let mines = [];
-        let revealed = 0;
-        let currentBet = 0;
-        let currentMultiplier = 1;
-
-        const gridSize = 25; // 5x5
-
-        function generateMines(numMines) {
-            mines = [];
-            while (mines.length < numMines) {
-                const pos = Math.floor(Math.random() * gridSize);
-                if (!mines.includes(pos)) mines.push(pos);
+        async function loadUserData() {
+            try {
+                if (!currentUser) return;
+                const userRef = doc(db, 'users', currentUser);
+                userDoc = userRef;
+                if (userUnsub) userUnsub();
+                userUnsub = onSnapshot(userRef, (snap) => {
+                    if (snap.exists()) {
+                        const data = snap.data();
+                        if (!data.edition) {
+                            updateDoc(userRef, { edition: currentEdition });
+                            data.edition = currentEdition;
+                        }
+                        balance = data.balance || 0;
+                        wins = data.wins || 0;
+                        updateAllBalances();
+                        document.getElementById('wins').textContent = wins;
+                    } else {
+                        showNotification('User data not found! ⚠️', 'error');
+                    }
+                });
+                isAdmin = currentUser === ADMIN_USERNAME && currentEdition === 'Java';
+            } catch (error) {
+                console.error('Load user data error:', error);
+                showNotification('Failed to load user data! ⚠️', 'error');
             }
         }
 
-        function calculateMultiplier(revealedTiles, numMines, totalSafe) {
-            // Improved formula for better progression
-            return (1 + (revealedTiles / totalSafe) * (numMines / 5)).toFixed(2);
-        }
-
-        startGame.addEventListener('click', () => {
-            if (gameActive) return;
-            const numMines = parseInt(bombsSelect.value);
-            const bet = parseFloat(betInput.value);
-            const currentBalance = parseFloat(balanceEl.textContent);
-
-            if (isNaN(bet) || bet <= 0 || bet > currentBalance) {
-                alert('Invalid bet amount');
-                return;
-            }
-
-            // Deduct bet
-            balanceRef.transaction((bal) => (bal || 0) - bet);
-
-            currentBet = bet;
-            revealed = 0;
-            currentMultiplier = 1;
-            multiplierEl.textContent = '1.00';
-            message.textContent = '';
-            cashOut.style.display = 'block';
-            gameActive = true;
-
-            generateMines(numMines);
-
-            grid.innerHTML = '';
-            for (let i = 0; i < gridSize; i++) {
-                const tile = document.createElement('div');
-                tile.classList.add('tile', 'hidden');
-                tile.dataset.index = i;
-                tile.addEventListener('click', handleTileClick);
-                grid.appendChild(tile);
-            }
-        });
-
-        function handleTileClick(e) {
-            if (!gameActive) return;
-            const index = parseInt(e.target.dataset.index);
-            if (e.target.classList.contains('safe') || e.target.classList.contains('bomb')) return;
-
-            if (mines.includes(index)) {
-                // Bomb
-                e.target.classList.add('bomb');
-                e.target.textContent = '💣';
-                message.textContent = 'You hit a bomb! Lost ' + currentBet.toFixed(2);
-                gameActive = false;
-                cashOut.style.display = 'none';
-                revealAll();
-            } else {
-                // Safe
-                e.target.classList.add('safe');
-                e.target.textContent = '✅';
-                revealed++;
-                const numMines = mines.length;
-                const totalSafe = gridSize - numMines;
-                currentMultiplier = calculateMultiplier(revealed, numMines, totalSafe);
-                multiplierEl.textContent = currentMultiplier;
-                message.textContent = 'Safe! Current payout: ' + (currentBet * currentMultiplier).toFixed(2);
-
-                if (revealed === totalSafe) {
-                    cashOutGame();
-                }
-            }
-        }
-
-        cashOut.addEventListener('click', () => {
-            if (!gameActive) return;
-            cashOutGame();
-        });
-
-        function cashOutGame() {
-            const payout = currentBet * parseFloat(currentMultiplier);
-            balanceRef.transaction((bal) => (bal || 0) + payout);
-            message.textContent = 'Cashed out! Won ' + payout.toFixed(2);
-            gameActive = false;
-            cashOut.style.display = 'none';
-            revealAll();
-        }
-
-        function revealAll() {
-            const tiles = grid.querySelectorAll('.tile');
-            tiles.forEach(tile => {
-                const index = parseInt(tile.dataset.index);
-                if (mines.includes(index)) {
-                    tile.classList.add('bomb');
-                    tile.textContent = '💣';
-                } else if (!tile.classList.contains('safe')) {
-                    tile.classList.add('safe');
-                    tile.textContent = '✅';
-                }
-                tile.removeEventListener('click', handleTileClick);
+        function updateAllBalances() {
+            const formatted = formatBalance(balance);
+            ['balance', 'balance-mines', 'balance-dice', 'balance-towers', 'balance-blackjack', 'balance-crash'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.textContent = formatted;
             });
         }
+
+        function updateUserWins(newWins) {
+            wins = newWins;
+            document.getElementById('wins').textContent = wins;
+            if (userDoc) {
+                updateDoc(userDoc, { wins: newWins });
+            }
+        }
+
+        function updateUserBalance(newBalance, isWin = false) {
+            balance = newBalance;
+            updateAllBalances();
+            if (userDoc) {
+                updateDoc(userDoc, { balance: newBalance });
+                if (isWin) {
+                    updateUserWins(wins + 1);
+                }
+            }
+        }
+
+        // Synced Chat
+        function loadMessages() {
+            if (messagesUnsub) messagesUnsub();
+            const messagesDiv = document.getElementById('messages');
+            messagesDiv.innerHTML = '';
+            const q = query(collection(db, 'messages'), orderBy('time', 'asc'), limit(50));
+            messagesUnsub = onSnapshot(q, (snapshot) => {
+                messagesDiv.innerHTML = '';
+                snapshot.forEach((doc) => {
+                    const data = doc.data();
+                    const div = document.createElement('div');
+                    div.className = 'message';
+                    div.innerHTML = `<small>${new Date(data.time.toDate()).toLocaleTimeString()} - ${data.username}</small><br>${data.text}`;
+                    messagesDiv.appendChild(div);
+                });
+                messagesDiv.scrollTop = messagesDiv.scrollHeight;
+            });
+        }
+
+        async function sendMessage() {
+            const input = document.getElementById('chat-input');
+            const text = input.value.trim();
+            if (!text || !currentUser) return;
+            await addDoc(collection(db, 'messages'), {
+                text,
+                username: currentUser,
+                time: new Date()
+            });
+            input.value = '';
+        }
+
+        // Global Leaderboard (by wins)
+        function showLeaderboard() {
+            const lb = document.getElementById('leaderboard');
+            if (lb.style.display === 'none') {
+                lb.style.display = 'block';
+                if (leaderboardUnsub) leaderboardUnsub();
+                const q = query(collection(db, 'users'), orderBy('wins', 'desc'), limit(10));
+                leaderboardUnsub = onSnapshot(q, (snapshot) => {
+                    const content = document.getElementById('lb-content');
+                    content.innerHTML = '';
+                    let rank = 1;
+                    snapshot.forEach((doc) => {
+                        const data = doc.data();
+                        const item = document.createElement('div');
+                        item.className = 'leaderboard-item';
+                        item.innerHTML = `<span>#${rank} ${data.edition || 'Bedrock'} ${doc.id}</span><span>🏆${data.wins} | $${formatBalance(data.balance)}</span>`;
+                        content.appendChild(item);
+                        rank++;
+                    });
+                });
+            } else {
+                lb.style.display = 'none';
+                if (leaderboardUnsub) leaderboardUnsub();
+            }
+        }
+
+        function loadUsers(filter = '') {
+            if (usersUnsub) usersUnsub();
+            users = [];
+            const usersRef = collection(db, 'users');
+            const q = query(usersRef, limit(100));
+            usersUnsub = onSnapshot(q, (snap) => {
+                users = [];
+                snap.docs.forEach((d) => {
+                    const data = d.data();
+                    const username = d.id;
+                    if (filter === '' || username.toLowerCase().includes(filter.toLowerCase())) {
+                        users.push({ username, edition: data.edition || 'Unknown', balance: data.balance || 0, wins: data.wins || 0 });
+                    }
+                });
+                renderUsersTable();
+            });
+        }
+
+        function renderUsersTable() {
+            const tableDiv = document.getElementById('usersTable');
+            if (users.length === 0) {
+                tableDiv.innerHTML = '<p style="text-align: center; color: #ccc; padding: 20px;">No users found.</p>';
+                return;
+            }
+            let html = '<table>';
+            html += '<tr><th>Username</th><th>Edition</th><th>Balance</th><th>Wins</th></tr>';
+            users.forEach(user => {
+                html += `<tr><td>${user.username}</td><td>${user.edition}</td><td>$${formatBalance(user.balance)}</td><td>${user.wins}</td></tr>`;
+            });
+            html += '</table>';
+            tableDiv.innerHTML = html;
+        }
+
+        function showAdminLogs() {
+            const logsDiv = document.getElementById('admin-logs');
+            if (logsDiv.style.display === 'none') {
+                logsDiv.style.display = 'block';
+                if (logsUnsub) logsUnsub();
+                const q = query(collection(db, 'adminLogs'), orderBy('time', 'desc'), limit(50));
+                logsUnsub = onSnapshot(q, (snapshot) => {
+                    let html = '<table><tr><th>Time</th><th>Type</th><th>User</th><th>Amount</th><th>By Admin</th></tr>';
+                    snapshot.forEach((doc) => {
+                        const data = doc.data();
+                        html += `<tr><td>${new Date(data.time.toDate()).toLocaleString()}</td><td>${data.type}</td><td>${data.user}</td><td>$${formatBalance(data.amount)}</td><td>${data.by}</td></tr>`;
+                    });
+                    html += '</table>';
+                    logsDiv.innerHTML = html;
+                });
+            } else {
+                logsDiv.style.display = 'none';
+                if (logsUnsub) logsUnsub();
+            }
+        }
+
+        async function doDeposit() {
+            const user = document.getElementById('selectedUser').value.trim();
+            const amtStr = document.getElementById('adjustAmount').value;
+            const amt = parseBet(amtStr);
+            if (!user || isNaN(amt) || amt <= 0) {
+                showNotification('Invalid input! ⚠️', 'error');
+                return;
+            }
+            const userRef = doc(db, 'users', user);
+            const userSnap = await getDoc(userRef);
+            let newBal;
+            if (!userSnap.exists()) {
+                newBal = amt;
+                await setDoc(userRef, { balance: newBal, wins: 0, edition: 'Bedrock' });
+                showNotification(`Created & Deposited $${formatBalance(amt)} to ${user} 💳`, 'success');
+            } else {
+                const currentBal = userSnap.data().balance || 0;
+                newBal = currentBal + amt;
+                await updateDoc(userRef, { balance: newBal });
+                showNotification(`Deposited $${formatBalance(amt)} to ${user}. New: $${formatBalance(newBal)} 💳`, 'success');
+            }
+            await addDoc(collection(db, 'adminLogs'), {
+                type: 'deposit',
+                user: user,
+                amount: amt,
+                time: new Date(),
+                by: currentUser
+            });
+            document.getElementById('selectedUser').value = '';
+            document.getElementById('adjustAmount').value = '';
+            loadUsers(document.getElementById('userSearch').value);
+        }
+
+        async function doWithdraw() {
+            const user = document.getElementById('selectedUser').value.trim();
+            const amtStr = document.getElementById('adjustAmount').value;
+            const amt = parseBet(amtStr);
+            if (!user || isNaN(amt) || amt <= 0) {
+                showNotification('Invalid input! ⚠️', 'error');
+                return;
+            }
+            const userRef = doc(db, 'users', user);
+            const userSnap = await getDoc(userRef);
+            if (!userSnap.exists()) {
+                showNotification('User not found! ⚠️', 'error');
+                return;
+            }
+            const currentBal = userSnap.data().balance || 0;
+            if (amt > currentBal) {
+                showNotification(`Insufficient balance for ${user}! Current: $${formatBalance(currentBal)} 🏦`, 'error');
+                return;
+            }
+            const newBal = currentBal - amt;
+            await updateDoc(userRef, { balance: newBal });
+            await addDoc(collection(db, 'adminLogs'), {
+                type: 'withdraw',
+                user: user,
+                amount: amt,
+                time: new Date(),
+                by: currentUser
+            });
+            showNotification(`Withdrew $${formatBalance(amt)} from ${user}. New: $${formatBalance(newBal)} 🏦`, 'success');
+            document.getElementById('selectedUser').value = '';
+            document.getElementById('adjustAmount').value = '';
+            loadUsers(document.getElementById('userSearch').value);
+        }
+
+        function showScreen(screen) {
+            document.querySelectorAll('.screen').forEach(s => {
+                s.classList.remove('visible');
+                s.classList.add('hidden');
+            });
+            const target = document.getElementById(`${screen}-screen`) || document.getElementById(screen);
+            if (target) {
+                target.classList.remove('hidden');
+                target.classList.add('visible');
+                currentScreen = screen;
+                if (screen !== 'login') {
+                    updateAllBalances();
+                    if (screen === 'dashboard') loadMessages();
+                }
+                if (screen === 'admin') {
+                    loadUsers('');
+                }
+                if (screen === 'mines') {
+                    resetMines();
+                }
+                if (screen === 'towers') {
+                    resetTowers();
+                }
+                if (screen === 'blackjack') {
+                    resetBlackjack();
+                }
+                if (screen === 'crash') {
+                    resetCrash();
+                    if (!globalBettingActive && !globalCrashActive) {
+                        startBettingPhase();
+                    }
+                }
+            }
+        }
+
+        function setMode(mode) {
+            if (mode === 'signup') {
+                document.getElementById('login-form').style.display = 'none';
+                document.getElementById('signup-form').style.display = 'block';
+            } else {
+                document.getElementById('signup-form').style.display = 'none';
+                document.getElementById('login-form').style.display = 'block';
+            }
+        }
+
+        async function signUp() {
+            try {
+                const username = document.getElementById('signup-username').value.trim();
+                const edition = document.getElementById('signup-edition').value;
+                const password = document.getElementById('signup-password').value;
+                const confirm = document.getElementById('confirm-password').value;
+                if (!username || !edition || !password || !confirm || password !== confirm) {
+                    showNotification('Please fill all fields and ensure passwords match! ⚠️', 'error');
+                    return;
+                }
+                if (username === ADMIN_USERNAME) {
+                    showNotification('Admin username cannot be registered! Use login. ⚠️', 'error');
+                    return;
+                }
+                const userRef = doc(db, 'users', username);
+                const userSnap = await getDoc(userRef);
+                if (userSnap.exists()) {
+                    showNotification('User already exists! Please login instead. ⚠️', 'error');
+                    return;
+                }
+                await setDoc(userRef, { balance: 0, wins: 0, edition: edition, password: password });
+                currentUser = username;
+                currentEdition = edition;
+                localStorage.setItem('currentUser', currentUser);
+                localStorage.setItem('currentEdition', currentEdition);
+                await loadUserData();
+                document.body.classList.add('logged-in');
+                showScreen('dashboard');
+                document.getElementById('user').textContent = currentUser;
+                document.getElementById('ed').textContent = currentEdition;
+                addAdminButton();
+                loadMessages();
+                showNotification(`Welcome, ${username}! Edition: ${edition} 🎮`, 'success');
+                if (isAdmin) {
+                    showNotification('Admin mode active! Access the Admin Panel 🔧', 'success');
+                }
+            } catch (error) {
+                console.error('Sign up error:', error);
+                showNotification('Sign up failed! Check console for details. ⚠️', 'error');
+            }
+        }
+
+        async function login() {
+            try {
+                const username = document.getElementById('username').value.trim();
+                const edition = document.getElementById('edition').value;
+                const password = document.getElementById('login-password').value;
+                if (!username || !edition || !password) {
+                    showNotification('Please fill all fields! ⚠️', 'error');
+                    return;
+                }
+                const userRef = doc(db, 'users', username);
+                const userSnap = await getDoc(userRef);
+                if (!userSnap.exists()) {
+                    showNotification('User not found! Please sign up. ⚠️', 'error');
+                    return;
+                }
+                const data = userSnap.data();
+                if (data.edition && data.edition !== edition) {
+                    showNotification('Edition mismatch! Logout and try again. ⚠️', 'error');
+                    return;
+                }
+                let passwordMatch = false;
+                if (username === ADMIN_USERNAME) {
+                    if (password === ADMIN_PASSWORD) {
+                        passwordMatch = true;
+                        if (!data.password) {
+                            await updateDoc(userRef, { password: ADMIN_PASSWORD });
+                        }
+                    }
+                } else {
+                    passwordMatch = data.password === password;
+                }
+                if (!passwordMatch) {
+                    showNotification('Incorrect password! ⚠️', 'error');
+                    return;
+                }
+                currentUser = username;
+                currentEdition = edition;
+                localStorage.setItem('currentUser', currentUser);
+                localStorage.setItem('currentEdition', currentEdition);
+                await loadUserData();
+                document.body.classList.add('logged-in');
+                showScreen('dashboard');
+                document.getElementById('user').textContent = currentUser;
+                document.getElementById('ed').textContent = currentEdition;
+                addAdminButton();
+                loadMessages();
+                showNotification(`Welcome back, ${username}! Edition: ${edition} 🎮`, 'success');
+                if (isAdmin) {
+                    showNotification('Admin mode active! Access the Admin Panel 🔧', 'success');
+                }
+            } catch (error) {
+                console.error('Login error:', error);
+                showNotification('Login failed! Check console for details. ⚠️', 'error');
+            }
+        }
+
+        function logout() {
+            if (messagesUnsub) messagesUnsub();
+            if (leaderboardUnsub) leaderboardUnsub();
+            if (usersUnsub) usersUnsub();
+            if (userUnsub) userUnsub();
+            if (logsUnsub) logsUnsub();
+            const adminBtn = document.querySelector('.admin-btn');
+            if (adminBtn) adminBtn.remove();
+            localStorage.removeItem('currentUser');
+            localStorage.removeItem('currentEdition');
+            document.body.classList.remove('logged-in');
+            document.querySelectorAll('.screen').forEach(s => {
+                s.classList.remove('visible');
+                s.classList.add('hidden');
+            });
+            document.getElementById('login').classList.remove('hidden');
+            document.getElementById('login').classList.add('visible');
+            document.getElementById('username').value = '';
+            document.getElementById('login-password').value = '';
+            document.getElementById('signup-username').value = '';
+            document.getElementById('signup-password').value = '';
+            document.getElementById('confirm-password').value = '';
+            currentUser = '';
+            currentEdition = '';
+            balance = 0;
+            wins = 0;
+            isAdmin = false;
+            userDoc = null;
+            showNotification('Logged out safely! 👋', 'info');
+            currentScreen = 'login';
+            document.getElementById('leaderboard').style.display = 'none';
+        }
+
+        function addAdminButton() {
+            if (!isAdmin) return;
+            const headerButtons = document.querySelector('#dashboard .header-buttons');
+            if (headerButtons.querySelector('.admin-btn')) return;
+            const adminBtn = document.createElement('button');
+            adminBtn.className = 'btn admin-btn';
+            adminBtn.textContent = 'Admin Panel 🔧';
+            adminBtn.onclick = () => showScreen('admin');
+            headerButtons.insertBefore(adminBtn, headerButtons.firstChild);
+        }
+
+        function showNotification(message, type = 'info') {
+            const notif = document.getElementById('notification');
+            notif.textContent = message;
+            notif.style.background = type === 'error' ? 'rgba(255,0,0,0.95)' : type === 'success' ? 'rgba(0,255,0,0.95)' : 'rgba(0,31,63,0.95)';
+            notif.style.borderLeftColor = type === 'error' ? '#ff0000' : type === 'success' ? '#00ff00' : '#7b2cbf';
+            notif.classList.add('notification');
+            setTimeout(() => {
+                notif.classList.remove('notification');
+            }, 3000);
+        }
+
+        function deposit() {
+            showNotification(`Contact Admin on Discord (ID: 1057661388157362277) to deposit! 📩 Provide amount & proof.`, 'info');
+        }
+
+        function withdraw() {
+            if (balance <= 0) {
+                showNotification('Insufficient balance! 💸', 'error');
+                return;
+            }
+            showNotification(`Contact Admin on Discord (ID: 1057661388157362277) to withdraw $${formatBalance(balance)}! 🏦 Provide details.`, 'info');
+        }
+
+        function showComingSoon() {
+            showNotification('Coming Soon! Stay tuned ⏳', 'info');
+        }
+
+        function downloadLog() {
+            // Fallback to local if needed; could sync logs to Firestore
+            showNotification('Logs synced to Firestore! Check console for export. 📊', 'info');
+            console.log('Full user data:', users);
+        }
+
+        // Reset functions (unchanged)
+        function resetBlackjack() {
+            playerHand = [];
+            dealerHand = [];
+            bjBet = 0;
+            document.getElementById('bj-hand-player').innerHTML = '';
+            document.getElementById('bj-hand-dealer').innerHTML = '';
+            document.getElementById('bj-result').textContent = '';
+            document.querySelectorAll('#blackjack-screen .controls button').forEach(btn => btn.disabled = false);
+        }
+
+        function resetMines() {
+            gameActive = false;
+            minesRevealed = 0;
+            document.getElementById('cashout-btn').style.display = 'none';
+            document.getElementById('mine-grid').innerHTML = '';
+            document.getElementById('mines-result').textContent = '';
+        }
+
+        function resetTowers() {
+            towersGameActive = false;
+            currentTowerRow = 0;
+            towersRevealed = 0;
+            document.getElementById('cashout-btn-towers').style.display = 'none';
+            document.getElementById('towers-display').innerHTML = '';
+            document.getElementById('towers-result').textContent = '';
+        }
+
+        function resetCrash() {
+            const inputGroup = document.getElementById('crash-input');
+            if (inputGroup) inputGroup.style.display = 'flex';
+            document.getElementById('crash-area').style.display = 'block';
+            document.getElementById('cashout-btn-crash').style.display = 'none';
+            document.getElementById('crash-result').textContent = '';
+            const rocket = document.getElementById('rocket');
+            if (rocket) {
+                rocket.innerHTML = '🚀';
+                rocket.style.transform = 'translateX(-50%) translateY(0px)';
+            }
+            userCrashBet = 0;
+            userCashedOut = false;
+            globalBettingActive = false;
+            globalCrashActive = false;
+        }
+
+        // Game functions (updated to use updateUserBalance with win flag)
+        function computeMinesMultiplier(revealed, mines) {
+            const total = 25;
+            const safe = total - mines;
+            if (revealed === 0) return 1.0;
+            let prob = 1.0;
+            for (let i = 0; i < revealed; i++) {
+                prob *= (safe - i) / (total - i);
+            }
+            return 1.0 / prob;
+        }
+
+        async function startMines() {
+            const betStr = document.getElementById('minesbet').value;
+            minesBet = parseBet(betStr);
+            minesNum = parseInt(document.getElementById('minesnum').value);
+            if (minesBet > balance || minesBet <= 0) {
+                showNotification('Invalid bet! ⚠️', 'error');
+                return;
+            }
+            updateUserBalance(balance - minesBet);
+            
+            minesGrid = Array(25).fill(false);
+            for (let i = 0; i < minesNum; i++) {
+                let pos;
+                do { pos = Math.floor(Math.random() * 25); } while (minesGrid[pos]);
+                minesGrid[pos] = true;
+            }
+            minesRevealed = 0;
+            gameActive = true;
+            renderMines();
+            const multiplier = computeMinesMultiplier(minesRevealed, minesNum);
+            document.getElementById('mines-result').textContent = `Revealed: ${minesRevealed}/${25 - minesNum} | Potential Payout: x${multiplier.toFixed(2)}`;
+            document.getElementById('cashout-btn').style.display = 'block';
+        }
+
+        function renderMines() {
+            const grid = document.getElementById('mine-grid');
+            grid.innerHTML = '';
+            for (let i = 0; i < 25; i++) {
+                const cell = document.createElement('div');
+                cell.classList.add('mine-cell');
+                cell.textContent = '?';
+                cell.onclick = () => revealMine(i);
+                grid.appendChild(cell);
+            }
+        }
+
+        function revealMine(idx) {
+            if (!gameActive) return;
+            const cells = document.querySelectorAll('#mine-grid .mine-cell');
+            const cell = cells[idx];
+            cell.classList.add('disabled');
+            if (minesGrid[idx]) {
+                cell.textContent = '💣';
+                cell.classList.add('boom');
+                gameActive = false;
+                document.getElementById('cashout-btn').style.display = 'none';
+                endMines(false);
+            } else {
+                cell.textContent = '💎';
+                minesRevealed++;
+                const multiplier = computeMinesMultiplier(minesRevealed, minesNum);
+                document.getElementById('mines-result').textContent = `Revealed: ${minesRevealed}/${25 - minesNum} | Potential Payout: x${multiplier.toFixed(2)}`;
+                if (minesRevealed === 25 - minesNum) {
+                    gameActive = false;
+                    document.getElementById('cashout-btn').style.display = 'none';
+                    endMines(true);
+                }
+            }
+        }
+
+        function cashOutMines() {
+            if (!gameActive) return;
+            gameActive = false;
+            document.getElementById('cashout-btn').style.display = 'none';
+            const multiplier = computeMinesMultiplier(minesRevealed, minesNum);
+            const payout = minesBet * multiplier;
+            updateUserBalance(balance + payout, true);
+            document.getElementById('mines-result').textContent += ` | Cashed out! +$${formatBalance(payout)} 💰`;
+            document.querySelectorAll('.mine-cell').forEach(cell => cell.classList.add('disabled'));
+        }
+
+        function endMines(win) {
+            if (win) {
+                const multiplier = computeMinesMultiplier(minesRevealed, minesNum);
+                const payout = minesBet * multiplier;
+                updateUserBalance(balance + payout, true);
+                document.getElementById('mines-result').textContent += ` | Win! +$${formatBalance(payout)} 🎉`;
+            } else {
+                document.getElementById('mines-result').textContent += ` | Boom! Loss 💥`;
+            }
+            document.querySelectorAll('.mine-cell').forEach(cell => cell.classList.add('disabled'));
+        }
+
+        async function playDice() {
+            const betStr = document.getElementById('dicebet').value;
+            diceBet = parseBet(betStr);
+            const choice = document.getElementById('dicechoice').value;
+            if (diceBet > balance || diceBet <= 0) {
+                showNotification('Invalid bet! ⚠️', 'error');
+                return;
+            }
+            updateUserBalance(balance - diceBet);
+            
+            const die1 = Math.floor(Math.random() * 6) + 1;
+            const die2 = Math.floor(Math.random() * 6) + 1;
+            const sum = die1 + die2;
+            document.getElementById('dice-display').innerHTML = `🎲 ${die1} + 🎲 ${die2} = ${sum}`;
+            
+            let win = false;
+            if (choice === 'over' && sum > 7) win = true;
+            else if (choice === 'under' && sum < 7) win = true;
+            else if (sum === 7) {
+                updateUserBalance(balance + diceBet);
+                document.getElementById('dice-result').textContent = `Push on 7! Refund: $${formatBalance(diceBet)} 💤`;
+            }
+            
+            if (win) {
+                const payout = diceBet * 2;
+                updateUserBalance(balance + payout, true);
+                document.getElementById('dice-result').textContent = `You win! 🎉 Payout: $${formatBalance(payout)}`;
+            } else {
+                document.getElementById('dice-result').textContent = `You lose! 😤`;
+            }
+        }
+
+        async function startTowers() {
+            const betStr = document.getElementById('towersbet').value;
+            towersBet = parseBet(betStr);
+            if (towersBet > balance || towersBet <= 0) {
+                showNotification('Invalid bet! ⚠️', 'error');
+                return;
+            }
+            updateUserBalance(balance - towersBet);
+            
+            towersGrid = [];
+            for (let row = 0; row < 5; row++) {
+                const rowCells = ['safe', 'safe', 'safe'];
+                const skullPos = Math.floor(Math.random() * 3);
+                rowCells[skullPos] = 'skull';
+                towersGrid.push(rowCells);
+            }
+            currentTowerRow = 0;
+            towersRevealed = 0;
+            towersGameActive = true;
+            renderTowers();
+            document.getElementById('towers-result').textContent = 'Choose a cell in the bottom row to start climbing! Only one per row.';
+            document.getElementById('cashout-btn-towers').style.display = 'block';
+            updateTowerMultiplier();
+        }
+
+        function renderTowers() {
+            const display = document.getElementById('towers-display');
+            display.innerHTML = '';
+            for (let r = 4; r >= 0; r--) {
+                const rowDiv = document.createElement('div');
+                rowDiv.classList.add('tower-row');
+                for (let c = 0; c < 3; c++) {
+                    const cell = document.createElement('div');
+                    cell.classList.add('tower-cell');
+                    cell.dataset.row = r;
+                    cell.dataset.col = c;
+                    cell.textContent = '?';
+                    cell.onclick = () => revealTowerCell(r, c);
+                    rowDiv.appendChild(cell);
+                }
+                display.appendChild(rowDiv);
+            }
+            updateTowerRows();
+        }
+
+        function updateTowerRows() {
+            const cells = document.querySelectorAll('.tower-cell');
+            cells.forEach(cell => {
+                const r = parseInt(cell.dataset.row);
+                if (r < currentTowerRow) {
+                    // Past rows already revealed
+                } else if (r > currentTowerRow) {
+                    cell.style.opacity = '0.5';
+                    cell.style.pointerEvents = 'none';
+                } else {
+                    cell.style.opacity = '1';
+                    cell.style.pointerEvents = 'auto';
+                }
+            });
+        }
+
+        function revealTowerCell(row, col) {
+            if (row !== currentTowerRow || !towersGameActive) return;
+            const cells = document.querySelectorAll('.tower-cell');
+            const cell = Array.from(cells).find(c => parseInt(c.dataset.row) === row && parseInt(c.dataset.col) === col);
+            if (!cell) return;
+            cell.classList.add('revealed');
+            if (towersGrid[row][col] === 'skull') {
+                cell.textContent = '💀';
+                cell.classList.add('skull');
+                towersGameActive = false;
+                document.getElementById('cashout-btn-towers').style.display = 'none';
+                endTowers(false);
+            } else {
+                cell.textContent = '💎';
+                cell.classList.add('safe');
+                towersRevealed++;
+                currentTowerRow++;
+                if (currentTowerRow === 5) {
+                    towersGameActive = false;
+                    document.getElementById('cashout-btn-towers').style.display = 'none';
+                    endTowers(true);
+                    return;
+                }
+                updateTowerMultiplier();
+                updateTowerRows();
+            }
+            const currentRowCells = Array.from(cells).filter(c => parseInt(c.dataset.row) === row);
+            currentRowCells.forEach(c => {
+                c.classList.add('revealed');
+                c.style.pointerEvents = 'none';
+            });
+        }
+
+        function updateTowerMultiplier() {
+            const multiplier = 1 + 0.5 * towersRevealed;
+            document.getElementById('towers-result').textContent = `Revealed: ${towersRevealed}/5 | Potential Payout: x${multiplier.toFixed(2)}`;
+        }
+
+        function cashOutTowers() {
+            if (!towersGameActive) return;
+            towersGameActive = false;
+            document.getElementById('cashout-btn-towers').style.display = 'none';
+            const multiplier = 1 + 0.5 * towersRevealed;
+            const payout = towersBet * multiplier;
+            updateUserBalance(balance + payout, true);
+            document.getElementById('towers-result').textContent += ` | Cashed out! +$${formatBalance(payout)} 💰`;
+            document.querySelectorAll('.tower-cell').forEach(c => c.style.pointerEvents = 'none');
+        }
+
+        function endTowers(win) {
+            if (win) {
+                const multiplier = 1 + 0.5 * 5;
+                const payout = towersBet * multiplier;
+                updateUserBalance(balance + payout, true);
+                document.getElementById('towers-result').textContent += ` | Full climb! +$${formatBalance(payout)} 🎉`;
+            } else {
+                document.getElementById('towers-result').textContent += ` | Skull! Loss 💥`;
+            }
+            document.querySelectorAll('.tower-cell').forEach(c => c.style.pointerEvents = 'none');
+        }
+
+        // Blackjack (updated payouts)
+        function handValue(hand) {
+            let val = hand.reduce((a, c) => a + c.value, 0);
+            let aces = hand.filter(c => c.rank === 'A').length;
+            while (val > 21 && aces > 0) {
+                val -= 10;
+                aces--;
+            }
+            return val;
+        }
+
+        async function playBlackjack() {
+            document.querySelectorAll('#blackjack-screen .controls button').forEach(btn => btn.disabled = false);
+            document.getElementById('bj-hand-player').innerHTML = '';
+            document.getElementById('bj-hand-dealer').innerHTML = '';
+            document.getElementById('bj-result').textContent = '';
+            playerHand = [];
+            dealerHand = [];
+            
+            const betStr = document.getElementById('bet').value;
+            bjBet = parseBet(betStr);
+            if (bjBet > balance || bjBet <= 0) {
+                showNotification('Invalid bet! ⚠️', 'error');
+                return;
+            }
+            updateUserBalance(balance - bjBet);
+            
+            const suits = ['♠', '♥', '♦', '♣'];
+            const ranks = ['2','3','4','5','6','7','8','9','10','J','Q','K','A'];
+            function getCard() {
+                const suit = suits[Math.floor(Math.random() * suits.length)];
+                const rank = ranks[Math.floor(Math.random() * ranks.length)];
+                const value = rank === 'A' ? 11 : ['J','Q','K'].includes(rank) ? 10 : parseInt(rank);
+                return { rank, suit, value };
+            }
+            
+            playerHand = [getCard(), getCard()];
+            dealerHand = [getCard(), getCard()];
+            
+            document.getElementById('bj-hand-player').innerHTML = playerHand.map(c => `<span class="card">${c.rank}${c.suit}</span>`).join('');
+            document.getElementById('bj-hand-dealer').innerHTML = `<span class="card">${dealerHand[0].rank}${dealerHand[0].suit}</span> <span class="card">?</span>`;
+            
+            document.getElementById('bj-result').textContent = `Hand Value: ${handValue(playerHand)}`;
+        }
+
+        function bjHit() {
+            if (playerHand.length >= 5) return;
+            const suits = ['♠', '♥', '♦', '♣'];
+            const ranks = ['2','3','4','5','6','7','8','9','10','J','Q','K','A'];
+            const suit = suits[Math.floor(Math.random() * suits.length)];
+            const rank = ranks[Math.floor(Math.random() * ranks.length)];
+            const value = rank === 'A' ? 11 : ['J','Q','K'].includes(rank) ? 10 : parseInt(rank);
+            playerHand.push({ rank, suit, value });
+            document.getElementById('bj-hand-player').innerHTML = playerHand.map(c => `<span class="card">${c.rank}${c.suit}</span>`).join('');
+            const pv = handValue(playerHand);
+            document.getElementById('bj-result').textContent = `Hand Value: ${pv}`;
+            if (pv > 21) endBlackjack();
+        }
+
+        function bjStand() {
+            while (handValue(dealerHand) < 17) {
+                const suits = ['♠', '♥', '♦', '♣'];
+                const ranks = ['2','3','4','5','6','7','8','9','10','J','Q','K','A'];
+                const suit = suits[Math.floor(Math.random() * suits.length)];
+                const rank = ranks[Math.floor(Math.random() * ranks.length)];
+                const value = rank === 'A' ? 11 : ['J','Q','K'].includes(rank) ? 10 : parseInt(rank);
+                dealerHand.push({ rank, suit, value });
+            }
+            document.getElementById('bj-hand-dealer').innerHTML = dealerHand.map(c => `<span class="card">${c.rank}${c.suit}</span>`).join('');
+            endBlackjack();
+        }
+
+        function endBlackjack() {
+            const pv = handValue(playerHand);
+            const dv = handValue(dealerHand);
+            if (pv > 21) {
+                document.getElementById('bj-result').textContent = `Bust! You lose. 😵 Dealer: ${dv}`;
+            } else if (dv > 21) {
+                updateUserBalance(balance + bjBet * 2, true);
+                document.getElementById('bj-result').textContent = `Dealer busts! You win! 🎉 Payout: $${formatBalance(bjBet * 2)}`;
+            } else if (pv > dv) {
+                updateUserBalance(balance + bjBet * 2, true);
+                document.getElementById('bj-result').textContent = `You win! 🎉 Payout: $${formatBalance(bjBet * 2)}`;
+            } else if (pv === dv) {
+                updateUserBalance(balance + bjBet);
+                document.getElementById('bj-result').textContent = `Push! 💤 Refund: $${formatBalance(bjBet)}`;
+            } else {
+                document.getElementById('bj-result').textContent = `Dealer wins! 😤 Dealer: ${dv}`;
+            }
+            document.querySelectorAll('#blackjack-screen .controls button').forEach(btn => btn.disabled = true);
+        }
+
+        // Crash (updated bet/payout)
+        function startBettingPhase() {
+            globalBettingActive = true;
+            globalCrashActive = false;
+            globalLaunchTime = Date.now() + 15000;
+            document.getElementById('crash-area').style.display = 'block';
+            document.getElementById('crash-input').style.display = 'flex';
+            document.getElementById('multiplier').textContent = '1.00x';
+            const rocket = document.getElementById('rocket');
+            if (rocket) {
+                rocket.innerHTML = '🚀';
+                rocket.style.transform = 'translateX(-50%) translateY(0px)';
+            }
+            document.getElementById('countdown').textContent = 'Launch in 15s';
+            document.getElementById('cashout-btn-crash').style.display = 'none';
+            updateCountdown();
+        }
+
+        function updateCountdown() {
+            if (!globalBettingActive) return;
+            const elapsed = (Date.now() - (globalLaunchTime - 15000)) / 1000;
+            const remaining = 15 - elapsed;
+            if (remaining <= 0) {
+                launchRocket();
+                return;
+            }
+            document.getElementById('countdown').textContent = `Launch in ${Math.ceil(remaining)}s`;
+            requestAnimationFrame(updateCountdown);
+        }
+
+        function launchRocket() {
+            globalBettingActive = false;
+            globalCrashActive = true;
+            globalStartTime = Date.now();
+            const lambda = 0.05;
+            const crashSeconds = -Math.log(1 - Math.random()) / lambda;
+            globalCrashMultiplier = 1 + 0.01 * crashSeconds;
+            document.getElementById('countdown').textContent = '';
+            document.getElementById('crash-input').style.display = 'none';
+            if (userCrashBet > 0 && !userCashedOut) {
+                document.getElementById('cashout-btn-crash').style.display = 'block';
+            }
+            const rocket = document.getElementById('rocket');
+            if (rocket) {
+                rocket.style.transform = 'translateX(-50%) translateY(0px)';
+            }
+            updateGlobalCrash();
+        }
+
+        function updateGlobalCrash() {
+            if (!globalCrashActive) return;
+            const elapsed = (Date.now() - globalStartTime) / 1000;
+            globalCurrentMultiplier = 1 + 0.01 * elapsed;
+            document.getElementById('multiplier').textContent = globalCurrentMultiplier.toFixed(2) + 'x';
+            const rocket = document.getElementById('rocket');
+            if (rocket) {
+                rocket.style.transform = `translateX(-50%) translateY(${-elapsed * 50}px)`;
+            }
+            if (globalCurrentMultiplier >= globalCrashMultiplier) {
+                globalCrash();
+                return;
+            }
+            requestAnimationFrame(updateGlobalCrash);
+        }
+
+        function globalCrash() {
+            globalCrashActive = false;
+            const elapsed = (Date.now() - globalStartTime) / 1000;
+            globalCurrentMultiplier = 1 + 0.01 * elapsed;
+            document.getElementById('multiplier').textContent = globalCurrentMultiplier.toFixed(2) + 'x';
+            const rocket = document.getElementById('rocket');
+            if (rocket) {
+                rocket.innerHTML = '💥';
+                rocket.style.transform += ' scale(2)';
+            }
+            if (userCrashBet > 0 && !userCashedOut) {
+                document.getElementById('crash-result').textContent = `Crashed at ${globalCurrentMultiplier.toFixed(2)}x! Lost $${formatBalance(userCrashBet)} 😵`;
+                userCrashBet = 0;
+            }
+            document.getElementById('cashout-btn-crash').style.display = 'none';
+            setTimeout(() => {
+                const rocket = document.getElementById('rocket');
+                if (rocket) {
+                    rocket.innerHTML = '🚀';
+                    rocket.style.transform = 'translateX(-50%) translateY(0px)';
+                }
+                document.getElementById('crash-result').textContent = `Crashed at ${globalCurrentMultiplier.toFixed(2)}x! Next round soon...`;
+                setTimeout(() => {
+                    startBettingPhase();
+                }, 2000);
+            }, 3000);
+        }
+
+        async function betOnCrash() {
+            const betStr = document.getElementById('crashbet').value;
+            const betAmount = parseBet(betStr);
+            if (betAmount > balance || betAmount <= 0 || userCrashBet > 0) {
+                showNotification('Invalid bet or already bet this round! ⚠️', 'error');
+                return;
+            }
+            if (!globalBettingActive) {
+                showNotification('Bets closed! Wait for next round. ⚠️', 'error');
+                return;
+            }
+            updateUserBalance(balance - betAmount);
+            userCrashBet = betAmount;
+            userCashedOut = false;
+            document.getElementById('cashout-btn-crash').style.display = 'block';
+            showNotification(`Bet $${formatBalance(userCrashBet)} on crash! Cash out anytime. 🚀`, 'success');
+        }
+
+        function cashOutCrash() {
+            if (userCrashBet <= 0 || userCashedOut || !globalCrashActive) return;
+            userCashedOut = true;
+            const payout = userCrashBet * globalCurrentMultiplier;
+            updateUserBalance(balance + payout, true);
+            document.getElementById('crash-result').textContent = `Cashed out at ${globalCurrentMultiplier.toFixed(2)}x! +$${formatBalance(payout)} 💰`;
+            document.getElementById('cashout-btn-crash').style.display = 'none';
+            userCrashBet = 0;
+            showNotification(`Cashed out successfully! 🎉`, 'success');
+        }
+
+        // Search listener
+        document.addEventListener('DOMContentLoaded', () => {
+            const searchInput = document.getElementById('userSearch');
+            if (searchInput) {
+                searchInput.addEventListener('input', (e) => {
+                    loadUsers(e.target.value);
+                });
+            }
+            // Auto-login check
+            const storedUser = localStorage.getItem('currentUser');
+            const storedEdition = localStorage.getItem('currentEdition');
+            if (storedUser && storedEdition) {
+                currentUser = storedUser;
+                currentEdition = storedEdition;
+                document.getElementById('user').textContent = currentUser;
+                document.getElementById('ed').textContent = currentEdition;
+                document.body.classList.add('logged-in');
+                isAdmin = currentUser === ADMIN_USERNAME && currentEdition === 'Java';
+                loadUserData();
+                addAdminButton();
+                showScreen('dashboard');
+                loadMessages();
+                if (isAdmin) {
+                    showNotification('Admin mode active! Access the Admin Panel 🔧', 'success');
+                }
+            }
+        });
+
+        // Enter key for login and chat
+        document.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && currentScreen === 'login') {
+                if (document.getElementById('signup-form').style.display !== 'none') {
+                    signUp();
+                } else {
+                    login();
+                }
+            } else if (e.key === 'Enter' && document.body.classList.contains('logged-in')) {
+                sendMessage();
+            }
+        });
+
+        // Expose functions to global scope for onclick handlers
+        window.setMode = setMode;
+        window.login = login;
+        window.signUp = signUp;
+        window.sendMessage = sendMessage;
+        window.showLeaderboard = showLeaderboard;
+        window.deposit = deposit;
+        window.withdraw = withdraw;
+        window.logout = logout;
+        window.showScreen = showScreen;
+        window.showComingSoon = showComingSoon;
+        window.downloadLog = downloadLog;
+        window.loadUsers = loadUsers;
+        window.doDeposit = doDeposit;
+        window.doWithdraw = doWithdraw;
+        window.showAdminLogs = showAdminLogs;
+        window.startMines = startMines;
+        window.playDice = playDice;
+        window.startTowers = startTowers;
+        window.playBlackjack = playBlackjack;
+        window.bjHit = bjHit;
+        window.bjStand = bjStand;
+        window.betOnCrash = betOnCrash;
+        window.cashOutCrash = cashOutCrash;
+        window.cashOutMines = cashOutMines;
+        window.cashOutTowers = cashOutTowers;
     </script>
 </body>
 </html>
