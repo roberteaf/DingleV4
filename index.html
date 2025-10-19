@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎮</text></svg>">
-    <title>Minecraft Gamble Hub 🎮💎</title>
+    <title>Bursts Gambling Site</title>
     <!-- Firebase SDK v12.4.0 -->
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js';
@@ -946,7 +946,7 @@
           authDomain: "idkdikdi-57db9.firebaseapp.com",
           databaseURL: "https://idkdikdi-57db9-default-rtdb.europe-west1.firebasedatabase.app",
           projectId: "idkdikdi-57db9",
-          storageBucket: "idkdikdi-57db9.firebasestorage.app",
+          storageBucket: "idkdikdi-57db9.appspot.com",
           messagingSenderId: "316879269067",
           appId: "1:316879269067:web:f69397e5cd00892cebbf4e",
           measurementId: "G-50NYC4TXYB"
@@ -1337,29 +1337,35 @@
                 }
                 const userRef = doc(db, 'users', username);
                 const userSnap = await getDoc(userRef);
-                if (!userSnap.exists()) {
-                    showNotification('User not found! Please sign up. ⚠️', 'error');
-                    return;
-                }
-                const data = userSnap.data();
-                if (data.edition && data.edition !== edition) {
-                    showNotification('Edition mismatch! Logout and try again. ⚠️', 'error');
-                    return;
-                }
                 let passwordMatch = false;
-                if (username === ADMIN_USERNAME) {
-                    if (password === ADMIN_PASSWORD) {
+                if (!userSnap.exists()) {
+                    if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD && edition === 'Java') {
+                        await setDoc(userRef, { balance: 0, wins: 0, edition: 'Java', password: ADMIN_PASSWORD });
                         passwordMatch = true;
-                        if (!data.password) {
-                            await updateDoc(userRef, { password: ADMIN_PASSWORD });
-                        }
+                    } else {
+                        showNotification('User not found! Please sign up. ⚠️', 'error');
+                        return;
                     }
                 } else {
-                    passwordMatch = data.password === password;
-                }
-                if (!passwordMatch) {
-                    showNotification('Incorrect password! ⚠️', 'error');
-                    return;
+                    const data = userSnap.data();
+                    if (data.edition && data.edition !== edition) {
+                        showNotification('Edition mismatch! Logout and try again. ⚠️', 'error');
+                        return;
+                    }
+                    if (username === ADMIN_USERNAME) {
+                        if (password === ADMIN_PASSWORD) {
+                            passwordMatch = true;
+                            if (!data.password) {
+                                await updateDoc(userRef, { password: ADMIN_PASSWORD });
+                            }
+                        }
+                    } else {
+                        passwordMatch = data.password === password;
+                    }
+                    if (!passwordMatch) {
+                        showNotification('Incorrect password! ⚠️', 'error');
+                        return;
+                    }
                 }
                 currentUser = username;
                 currentEdition = edition;
