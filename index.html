@@ -8,8 +8,8 @@
     <!-- Firebase SDK v12.4.0 -->
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js';
-        import { getFirestore, collection, doc, getDoc, setDoc, updateDoc, addDoc, onSnapshot, query, orderBy, limit } from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js';
-        window.firebaseApp = { initializeApp, getFirestore, collection, doc, getDoc, setDoc, updateDoc, addDoc, onSnapshot, query, orderBy, limit };
+        import { getFirestore, collection, doc, getDoc, setDoc, updateDoc, addDoc, onSnapshot, query, orderBy, limit, deleteDoc } from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js';
+        window.firebaseApp = { initializeApp, getFirestore, collection, doc, getDoc, setDoc, updateDoc, addDoc, onSnapshot, query, orderBy, limit, deleteDoc };
     </script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Roboto:wght@300;400&display=swap');
@@ -766,6 +766,7 @@
                     <input type="text" id="adjustAmount" placeholder="Amount (e.g. 100k)" style="width: 150px; padding: 10px; border-radius: 10px; background: rgba(255,255,255,0.1); border: 1px solid #7b2cbf; color: white;">
                     <button class="btn" onclick="doDeposit()" style="background: linear-gradient(145deg, rgba(0,255,0,0.3), rgba(0,200,0,0.2));">Deposit 💳</button>
                     <button class="btn" onclick="doWithdraw()" style="background: linear-gradient(145deg, rgba(255,0,0,0.3), rgba(200,0,0,0.2));">Withdraw 🏦</button>
+                    <button class="btn" onclick="doDelete()" style="background: linear-gradient(145deg, rgba(255,0,0,0.3), rgba(200,0,0,0.2));">Delete 🗑️</button>
                 </div>
                 <div id="admin-logs" style="display: none; margin-top: 20px; overflow-y: auto; max-height: 400px; background: rgba(0,0,0,0.3); border-radius: 10px; padding: 10px;"></div>
             </div>
@@ -946,30 +947,15 @@
           authDomain: "idkdikdi-57db9.firebaseapp.com",
           databaseURL: "https://idkdikdi-57db9-default-rtdb.europe-west1.firebasedatabase.app",
           projectId: "idkdikdi-57db9",
-          storageBucket: "idkdikdi-57db9.appspot.com",
+          storageBucket: "idkdikdi-57db9.firebasestorage.app",
           messagingSenderId: "316879269067",
           appId: "1:316879269067:web:f69397e5cd00892cebbf4e",
           measurementId: "G-50NYC4TXYB"
         };
         
-        const { initializeApp, getFirestore, collection, doc, getDoc, setDoc, updateDoc, addDoc, onSnapshot, query, orderBy, limit } = window.firebaseApp;
+        const { initializeApp, getFirestore, collection, doc, getDoc, setDoc, updateDoc, addDoc, onSnapshot, query, orderBy, limit, deleteDoc } = window.firebaseApp;
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
-        
-        async function initAdminAccount() {
-            const adminRef = doc(db, 'users', 'burst');
-            const adminSnap = await getDoc(adminRef);
-            if (!adminSnap.exists()) {
-                await setDoc(adminRef, {
-                    balance: 0,
-                    wins: 0,
-                    edition: 'Java',
-                    password: 'burst123'
-                });
-                console.log('Admin account initialized');
-            }
-        }
-        initAdminAccount();
         
         let currentUser = '';
         let currentEdition = '';
@@ -1001,8 +987,10 @@
         let userCrashBet = 0;
         let userCashedOut = false;
         
-        const ADMIN_USERNAME = 'burst';
-        const ADMIN_PASSWORD = 'burst123';
+        const ADMIN_USERS = [
+            { username: 'burst', password: 'burst123' },
+            { username: '2metech77', password: '2metech77special' } // Special password for 2metech77; change as needed
+        ];
         
         function formatBalance(bal) {
             if (bal >= 1e9) return (bal / 1e9).toFixed(1) + 'B';
@@ -1042,7 +1030,8 @@
                         showNotification('User data not found! ⚠️', 'error');
                     }
                 });
-                isAdmin = currentUser === ADMIN_USERNAME && currentEdition === 'Java';
+                const adminUser = ADMIN_USERS.find(admin => admin.username === currentUser && currentEdition === 'Java');
+                isAdmin = !!adminUser;
             } catch (error) {
                 console.error('Load user data error:', error);
                 showNotification('Failed to load user data! ⚠️', 'error');
@@ -1173,10 +1162,10 @@
                 if (logsUnsub) logsUnsub();
                 const q = query(collection(db, 'adminLogs'), orderBy('time', 'desc'), limit(50));
                 logsUnsub = onSnapshot(q, (snapshot) => {
-                    let html = '<table><tr><th>Time</th><th>Type</th><th>User</th><th>Amount</th><th>MC Username</th><th>By</th></tr>';
+                    let html = '<table><tr><th>Time</th><th>Type</th><th>User</th><th>Amount</th><th>By Admin</th></tr>';
                     snapshot.forEach((doc) => {
                         const data = doc.data();
-                        html += `<tr><td>${new Date(data.time.toDate()).toLocaleString()}</td><td>${data.type}</td><td>${data.user || '-'}</td><td>$${formatBalance(data.amount)}</td><td>${data.mcUsername || '-'}</td><td>${data.by}</td></tr>`;
+                        html += `<tr><td>${new Date(data.time.toDate()).toLocaleString()}</td><td>${data.type}</td><td>${data.user}</td><td>$${formatBalance(data.amount)}</td><td>${data.by}</td></tr>`;
                     });
                     html += '</table>';
                     logsDiv.innerHTML = html;
@@ -1254,55 +1243,34 @@
             loadUsers(document.getElementById('userSearch').value);
         }
 
-        async function deposit() {
-            const amtStr = prompt('Enter deposit amount (e.g. 100 or 1k):');
-            const amt = parseBet(amtStr);
-            if (isNaN(amt) || amt <= 0) {
-                showNotification('Invalid amount! ⚠️', 'error');
+        async function doDelete() {
+            const user = document.getElementById('selectedUser').value.trim();
+            if (!user) {
+                showNotification('Invalid input! ⚠️', 'error');
                 return;
             }
-            const mcUser = prompt('Enter your MC username |NOTE THIS IS UR MC USER| :');
-            if (!mcUser) {
-                showNotification('Invalid MC username! ⚠️', 'error');
+            if (user === currentUser) {
+                showNotification('Cannot delete your own account! ⚠️', 'error');
                 return;
             }
+            const userRef = doc(db, 'users', user);
+            const userSnap = await getDoc(userRef);
+            if (!userSnap.exists()) {
+                showNotification('User not found! ⚠️', 'error');
+                return;
+            }
+            await deleteDoc(userRef);
             await addDoc(collection(db, 'adminLogs'), {
-                type: 'deposit_request',
-                user: currentUser,
-                mcUsername: mcUser,
-                amount: amt,
+                type: 'delete',
+                user: user,
+                amount: 0, // No amount for delete, but keeping for consistency
                 time: new Date(),
                 by: currentUser
             });
-            showNotification(`Deposit request for $${formatBalance(amt)} with MC username ${mcUser} logged. Contact admin to complete. 💳`, 'info');
-        }
-
-        async function withdraw() {
-            const amtStr = prompt('Enter withdraw amount (e.g. 100 or 1k):');
-            const amt = parseBet(amtStr);
-            if (isNaN(amt) || amt <= 0) {
-                showNotification('Invalid amount! ⚠️', 'error');
-                return;
-            }
-            if (amt > balance) {
-                showNotification('Insufficient balance! 💸', 'error');
-                return;
-            }
-            const mcUser = prompt('Enter your MC username |NOTE THIS IS UR MC USER| :');
-            if (!mcUser) {
-                showNotification('Invalid MC username! ⚠️', 'error');
-                return;
-            }
-            updateUserBalance(balance - amt);
-            await addDoc(collection(db, 'adminLogs'), {
-                type: 'withdraw_request',
-                user: currentUser,
-                mcUsername: mcUser,
-                amount: amt,
-                time: new Date(),
-                by: currentUser
-            });
-            showNotification(`Withdrew $${formatBalance(amt)} with MC username ${mcUser}. Logged for admin review. 🏦`, 'success');
+            showNotification(`Deleted user ${user}! 🗑️`, 'success');
+            document.getElementById('selectedUser').value = '';
+            document.getElementById('adjustAmount').value = '';
+            loadUsers(document.getElementById('userSearch').value);
         }
 
         function showScreen(screen) {
@@ -1360,7 +1328,8 @@
                     showNotification('Please fill all fields and ensure passwords match! ⚠️', 'error');
                     return;
                 }
-                if (username === ADMIN_USERNAME) {
+                const adminUser = ADMIN_USERS.find(admin => admin.username === username);
+                if (adminUser) {
                     showNotification('Admin username cannot be registered! Use login. ⚠️', 'error');
                     return;
                 }
@@ -1412,7 +1381,18 @@
                     showNotification('Edition mismatch! Logout and try again. ⚠️', 'error');
                     return;
                 }
-                let passwordMatch = data.password === password;
+                let passwordMatch = false;
+                const adminUser = ADMIN_USERS.find(admin => admin.username === username);
+                if (adminUser) {
+                    if (password === adminUser.password) {
+                        passwordMatch = true;
+                        if (!data.password) {
+                            await updateDoc(userRef, { password: adminUser.password });
+                        }
+                    }
+                } else {
+                    passwordMatch = data.password === password;
+                }
                 if (!passwordMatch) {
                     showNotification('Incorrect password! ⚠️', 'error');
                     return;
@@ -1491,6 +1471,18 @@
             setTimeout(() => {
                 notif.classList.remove('notification');
             }, 3000);
+        }
+
+        function deposit() {
+            showNotification(`Contact Admin on Discord (ID: 1057661388157362277) to deposit! 📩 Provide amount & proof.`, 'info');
+        }
+
+        function withdraw() {
+            if (balance <= 0) {
+                showNotification('Insufficient balance! 💸', 'error');
+                return;
+            }
+            showNotification(`Contact Admin on Discord (ID: 1057661388157362277) to withdraw $${formatBalance(balance)}! 🏦 Provide details.`, 'info');
         }
 
         function showComingSoon() {
@@ -2011,8 +2003,40 @@
             showNotification(`Cashed out successfully! 🎉`, 'success');
         }
 
+        // Automatically create/update admin users on load
+        async function ensureAdminUsers() {
+            const admins = [
+                { username: 'burst', password: 'burst123', edition: 'Java' },
+                { username: '2metech77', password: '2metech77special', edition: 'Java' }
+            ];
+            for (const admin of admins) {
+                const userRef = doc(db, 'users', admin.username);
+                const userSnap = await getDoc(userRef);
+                if (!userSnap.exists()) {
+                    await setDoc(userRef, {
+                        balance: 0,
+                        wins: 0,
+                        edition: admin.edition,
+                        password: admin.password
+                    });
+                    console.log(`Created admin user ${admin.username}`);
+                } else {
+                    const data = userSnap.data();
+                    if (data.edition !== admin.edition || data.password !== admin.password) {
+                        await updateDoc(userRef, {
+                            edition: admin.edition,
+                            password: admin.password
+                        });
+                        console.log(`Updated admin user ${admin.username} to Java edition and correct password`);
+                    }
+                }
+            }
+        }
+
         // Search listener
         document.addEventListener('DOMContentLoaded', () => {
+            ensureAdminUsers().catch(console.error); // Automatically create/update admins on page load
+
             const searchInput = document.getElementById('userSearch');
             if (searchInput) {
                 searchInput.addEventListener('input', (e) => {
@@ -2028,7 +2052,8 @@
                 document.getElementById('user').textContent = currentUser;
                 document.getElementById('ed').textContent = currentEdition;
                 document.body.classList.add('logged-in');
-                isAdmin = currentUser === ADMIN_USERNAME && currentEdition === 'Java';
+                const adminUser = ADMIN_USERS.find(admin => admin.username === currentUser);
+                isAdmin = !!adminUser && currentEdition === 'Java';
                 loadUserData();
                 addAdminButton();
                 showScreen('dashboard');
@@ -2067,6 +2092,7 @@
         window.loadUsers = loadUsers;
         window.doDeposit = doDeposit;
         window.doWithdraw = doWithdraw;
+        window.doDelete = doDelete;
         window.showAdminLogs = showAdminLogs;
         window.startMines = startMines;
         window.playDice = playDice;
