@@ -963,14 +963,13 @@
         
         // For Firebase JS SDK v7.20.0 and later, measurementId is optional
         const firebaseConfig = {
-          apiKey: "AIzaSyAaL7pqKB0fzxURNyblGYKo9q_8UUqj014",
-          authDomain: "idkdikdi-57db9.firebaseapp.com",
-          databaseURL: "https://idkdikdi-57db9-default-rtdb.europe-west1.firebasedatabase.app",
-          projectId: "idkdikdi-57db9",
-          storageBucket: "idkdikdi-57db9.appspot.com",
-          messagingSenderId: "316879269067",
-          appId: "1:316879269067:web:f69397e5cd00892cebbf4e",
-          measurementId: "G-50NYC4TXYB"
+          apiKey: "AIzaSyA3Q_Dsp-DXs1DPMGpP5m6ov6SXlNhjLmE",
+          authDomain: "idk123-e1286.firebaseapp.com",
+          projectId: "idk123-e1286",
+          storageBucket: "idk123-e1286.firebasestorage.app",
+          messagingSenderId: "661013440701",
+          appId: "1:661013440701:web:89f99390d5b9b8475c6fd4",
+          measurementId: "G-BBEXPKLP0H"
         };
         
         const { initializeApp, getFirestore, collection, doc, getDoc, setDoc, updateDoc, addDoc, onSnapshot, query, orderBy, limit, deleteDoc } = window.firebaseApp;
@@ -2105,6 +2104,23 @@
                 sendMessage();
             }
         });
+
+        // Anti-inspect measures (disables right-click, F12, Ctrl+Shift+I, etc.)
+        document.addEventListener('contextmenu', event => event.preventDefault());
+        document.addEventListener('keydown', event => {
+            if (event.keyCode === 123 || // F12
+                (event.ctrlKey && event.shiftKey && event.keyCode === 73) || // Ctrl+Shift+I
+                (event.ctrlKey && event.shiftKey && event.keyCode === 74) || // Ctrl+Shift+J
+                (event.ctrlKey && event.keyCode === 85)) { // Ctrl+U
+                event.preventDefault();
+            }
+        });
+        // Detect dev tools open (basic, can be bypassed)
+        setInterval(() => {
+            if (window.outerWidth - window.innerWidth > 200 || window.outerHeight - window.innerHeight > 200) {
+                document.body.innerHTML = '<h1>Dev tools detected! Please close them to continue.</h1>';
+            }
+        }, 1000);
 
         // Expose functions to global scope for onclick handlers
         window.setMode = setMode;
