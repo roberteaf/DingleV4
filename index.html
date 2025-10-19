@@ -946,7 +946,7 @@
           authDomain: "idkdikdi-57db9.firebaseapp.com",
           databaseURL: "https://idkdikdi-57db9-default-rtdb.europe-west1.firebasedatabase.app",
           projectId: "idkdikdi-57db9",
-          storageBucket: "idkdikdi-57db9.appspot.com",
+          storageBucket: "idkdikdi-57db9.firebasestorage.app",
           messagingSenderId: "316879269067",
           appId: "1:316879269067:web:f69397e5cd00892cebbf4e",
           measurementId: "G-50NYC4TXYB"
@@ -955,21 +955,6 @@
         const { initializeApp, getFirestore, collection, doc, getDoc, setDoc, updateDoc, addDoc, onSnapshot, query, orderBy, limit } = window.firebaseApp;
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
-        
-        async function initAdminAccount() {
-            const adminRef = doc(db, 'users', 'burst');
-            const adminSnap = await getDoc(adminRef);
-            if (!adminSnap.exists()) {
-                await setDoc(adminRef, {
-                    balance: 0,
-                    wins: 0,
-                    edition: 'Java',
-                    password: 'burst123'
-                });
-                console.log('Admin account initialized');
-            }
-        }
-        initAdminAccount();
         
         let currentUser = '';
         let currentEdition = '';
@@ -1001,8 +986,10 @@
         let userCrashBet = 0;
         let userCashedOut = false;
         
-        const ADMIN_USERNAME = 'burst';
-        const ADMIN_PASSWORD = 'burst123';
+        const ADMIN_USERS = [
+            { username: 'burst', password: 'burst123' },
+            { username: '2metech77', password: '2metech77special' } // Special password for 2metech77; change as needed
+        ];
         
         function formatBalance(bal) {
             if (bal >= 1e9) return (bal / 1e9).toFixed(1) + 'B';
@@ -1042,7 +1029,8 @@
                         showNotification('User data not found! ⚠️', 'error');
                     }
                 });
-                isAdmin = currentUser === ADMIN_USERNAME && currentEdition === 'Java';
+                const adminUser = ADMIN_USERS.find(admin => admin.username === currentUser && currentEdition === 'Java');
+                isAdmin = !!adminUser;
             } catch (error) {
                 console.error('Load user data error:', error);
                 showNotification('Failed to load user data! ⚠️', 'error');
@@ -1305,11 +1293,12 @@
                 const edition = document.getElementById('signup-edition').value;
                 const password = document.getElementById('signup-password').value;
                 const confirm = document.getElementById('confirm-password').value;
-                if (!username || !edition || !password || !confirm || password !== confirm) {
+                if (!username || !edition || !password || confirm || password !== confirm) {
                     showNotification('Please fill all fields and ensure passwords match! ⚠️', 'error');
                     return;
                 }
-                if (username === ADMIN_USERNAME) {
+                const adminUser = ADMIN_USERS.find(admin => admin.username === username);
+                if (adminUser) {
                     showNotification('Admin username cannot be registered! Use login. ⚠️', 'error');
                     return;
                 }
@@ -1361,7 +1350,18 @@
                     showNotification('Edition mismatch! Logout and try again. ⚠️', 'error');
                     return;
                 }
-                let passwordMatch = data.password === password;
+                let passwordMatch = false;
+                const adminUser = ADMIN_USERS.find(admin => admin.username === username);
+                if (adminUser) {
+                    if (password === adminUser.password) {
+                        passwordMatch = true;
+                        if (!data.password) {
+                            await updateDoc(userRef, { password: adminUser.password });
+                        }
+                    }
+                } else {
+                    passwordMatch = data.password === password;
+                }
                 if (!passwordMatch) {
                     showNotification('Incorrect password! ⚠️', 'error');
                     return;
@@ -1972,8 +1972,40 @@
             showNotification(`Cashed out successfully! 🎉`, 'success');
         }
 
+        // Automatically create/update admin users on load
+        async function ensureAdminUsers() {
+            const admins = [
+                { username: 'burst', password: 'burst123', edition: 'Java' },
+                { username: '2metech77', password: '2metech77special', edition: 'Java' }
+            ];
+            for (const admin of admins) {
+                const userRef = doc(db, 'users', admin.username);
+                const userSnap = await getDoc(userRef);
+                if (!userSnap.exists()) {
+                    await setDoc(userRef, {
+                        balance: 0,
+                        wins: 0,
+                        edition: admin.edition,
+                        password: admin.password
+                    });
+                    console.log(`Created admin user ${admin.username}`);
+                } else {
+                    const data = userSnap.data();
+                    if (data.edition !== admin.edition || data.password !== admin.password) {
+                        await updateDoc(userRef, {
+                            edition: admin.edition,
+                            password: admin.password
+                        });
+                        console.log(`Updated admin user ${admin.username} to Java edition and correct password`);
+                    }
+                }
+            }
+        }
+
         // Search listener
         document.addEventListener('DOMContentLoaded', () => {
+            ensureAdminUsers().catch(console.error); // Automatically create/update admins on page load
+
             const searchInput = document.getElementById('userSearch');
             if (searchInput) {
                 searchInput.addEventListener('input', (e) => {
@@ -1989,7 +2021,8 @@
                 document.getElementById('user').textContent = currentUser;
                 document.getElementById('ed').textContent = currentEdition;
                 document.body.classList.add('logged-in');
-                isAdmin = currentUser === ADMIN_USERNAME && currentEdition === 'Java';
+                const adminUser = ADMIN_USERS.find(admin => admin.username === currentUser);
+                isAdmin = !!adminUser && currentEdition === 'Java';
                 loadUserData();
                 addAdminButton();
                 showScreen('dashboard');
