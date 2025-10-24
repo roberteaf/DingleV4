@@ -1,426 +1,4775 @@
+
 <!DOCTYPE html>
-<html lang="en">
+<html data-bs-theme="light" lang="en">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bursts Unblocked Games</title>
-    <style>
-        body {
-            margin: 0;
-            font-family: Arial, sans-serif;
-            display: flex;
-            height: 100vh;
-            background-color: #000;
-            color: #fff;
-            overflow: hidden;
-            position: relative;
-        }
-        /* Stars background */
-        body::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: radial-gradient(2px 2px at 20px 30px, #eee, rgba(0,0,0,0)),
-                        radial-gradient(2px 2px at 40px 70px, #fff, rgba(0,0,0,0)),
-                        radial-gradient(2px 2px at 50px 160px, #ddd, rgba(0,0,0,0)),
-                        radial-gradient(3px 4px at 120px 40px, #eee, rgba(0,0,0,0)),
-                        radial-gradient(2px 2px at 90px 110px, #fff, rgba(0,0,0,0)),
-                        radial-gradient(2px 3px at 130px 80px, #fff, rgba(0,0,0,0)),
-                        radial-gradient(2px 4px at 160px 120px, #ddd, rgba(0,0,0,0));
-            background-repeat: repeat;
-            background-size: 200px 200px;
-            opacity: 0.3;
-            animation: twinkle 5s infinite;
-        }
-        @keyframes twinkle {
-            0% { opacity: 0.3; }
-            50% { opacity: 0.5; }
-            100% { opacity: 0.3; }
-        }
-        /* Shooting star */
-        .shooting-star {
-            position: absolute;
-            top: -50px;
-            left: 100%;
-            width: 100px;
-            height: 2px;
-            background: linear-gradient(to right, transparent, #fff);
-            transform: rotate(-45deg);
-            animation: shoot 5s linear infinite;
-        }
-        @keyframes shoot {
-            0% { left: 100%; top: -50px; }
-            100% { left: -100%; top: 100vh; }
-        }
-        #sidebar {
-            width: 300px;
-            background-color: rgba(0, 0, 0, 0.8);
-            padding: 20px;
-            overflow-y: auto;
-            box-shadow: 2px 0 10px rgba(255,255,255,0.1);
-            scroll-behavior: smooth;
-        }
-        #sidebar h2 {
-            margin-top: 0;
-            color: #00ffcc;
-        }
-        #search-input {
-            width: 100%;
-            padding: 10px;
-            margin-bottom: 20px;
-            border: 1px solid #00ffcc;
-            background: #111;
-            color: #fff;
-            box-sizing: border-box;
-        }
-        #game-list {
-            list-style: none;
-            padding: 0;
-        }
-        #game-list li {
-            margin-bottom: 10px;
-        }
-        #game-list a {
-            color: #00ffcc;
-            text-decoration: none;
-            transition: color 0.3s ease;
-        }
-        #game-list a:hover {
-            color: #ffcc00;
-        }
-        #main {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            padding: 20px;
-        }
-        #main h1 {
-            margin: 0 0 20px;
-            color: #00ffcc;
-        }
-        #main p {
-            margin: 0 0 20px;
-        }
-        #game-frame {
-            width: 100%;
-            height: 70vh;
-            border: 1px solid #00ffcc;
-            background-color: #000;
-            transition: all 0.3s ease;
-        }
-        #save-section {
-            margin-top: 20px;
-            padding: 15px;
-            background-color: rgba(0, 0, 0, 0.8);
-            border: 1px solid #00ffcc;
-            border-radius: 5px;
-        }
-        #save-section h3 {
-            margin-top: 0;
-            color: #00ffcc;
-        }
-        #save-section textarea {
-            width: 100%;
-            height: 100px;
-            border: 1px solid #00ffcc;
-            background: #111;
-            color: #fff;
-            padding: 10px;
-            box-sizing: border-box;
-        }
-        #save-button, #load-button {
-            margin-top: 10px;
-            padding: 8px 16px;
-            background-color: #00ffcc;
-            border: none;
-            color: #000;
-            cursor: pointer;
-            border-radius: 5px;
-            transition: background-color 0.3s ease;
-        }
-        #save-button:hover, #load-button:hover {
-            background-color: #ffcc00;
-        }
-        @media (max-width: 768px) {
-            body {
-                flex-direction: column;
-            }
-            #sidebar {
-                width: 100%;
-                height: auto;
-            }
-            #game-frame {
-                height: 50vh;
-            }
-        }
-    </style>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
+    <title>Games - Unblocked Games 99</title>
+    <meta name="description" content="Games - Cool play Unblocked Games 99 easy at school">
+    <link rel="stylesheet" href="/assets/bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/assets/css/Inter.css">
+    <link rel="stylesheet" href="/assets/css/swiper-icons.css">
+    <link rel="stylesheet" href="/assets/css/Navbar-Right-Links-icons.css">
+    <link rel="stylesheet" href="/assets/css/Simple-Slider-swiper-bundle.min.css">
+    <link rel="stylesheet" href="/assets/css/Simple-Slider.css">
+    <link rel="stylesheet" href="/assets/css/styles.css">
 </head>
+
 <body>
-    <div class="shooting-star"></div>
-    <div id="sidebar">
-        <h2>Games List (200+ Games - Fixed with Embeddable Sources)</h2>
-        <input type="text" id="search-input" placeholder="Search games...">
-        <ul id="game-list">
-            <!-- MarketJS Games (1-50) -->
-            <li><a onclick="loadGame('https://cdn-factory.marketjs.com/en/escape-from-aztec-responsive/index.html')">1. Escape from Aztec</a></li>
-            <li><a onclick="loadGame('https://cdn-factory.marketjs.com/en/unblock-containers/index.html')">2. Unblock Containers</a></li>
-            <li><a onclick="loadGame('https://cdn-factory.marketjs.com/en/idle-egg-farmer/index.html')">3. Idle Egg Farmer</a></li>
-            <li><a onclick="loadGame('https://cdn-factory.marketjs.com/en/3d-free-kick/index.html')">4. 3D Free Kick</a></li>
-            <li><a onclick="loadGame('https://cdn-factory.marketjs.com/en/dribble-king/index.html')">5. Dribble King</a></li>
-            <li><a onclick="loadGame('https://cdn-factory.marketjs.com/en/word-connections/index.html')">6. Word Connections</a></li>
-            <li><a onclick="loadGame('https://cdn-factory.marketjs.com/en/3d-penalty-kick/index.html')">7. 3D Penalty Kick</a></li>
-            <li><a onclick="loadGame('https://cdn-factory.marketjs.com/en/farmer-pedro/index.html')">8. Farmer Pedro</a></li>
-            <li><a onclick="loadGame('https://cdn-factory.marketjs.com/en/daily-wordler/index.html')">9. Daily Wordler</a></li>
-            <li><a onclick="loadGame('https://cdn-factory.marketjs.com/en/supply-chain-expansion-hd/index.html')">10. Supply Chain Expansion HD</a></li>
-            <li><a onclick="loadGame('https://cdn-factory.marketjs.com/en/trade-routes/index.html')">11. Trade Routes</a></li>
-            <li><a onclick="loadGame('https://cdn-factory.marketjs.com/en/port-shipping-tycoon/index.html')">12. Port Shipping Tycoon</a></li>
-            <li><a onclick="loadGame('https://cdn-factory.marketjs.com/en/snake-king/index.html')">13. Snake King</a></li>
-            <li><a onclick="loadGame('https://cdn-factory.marketjs.com/en/happy-blast-cannon/index.html')">14. Happy Blast Cannon</a></li>
-            <li><a onclick="loadGame('https://cdn-factory.marketjs.com/en/idle-airport-ceo/index.html')">15. Idle Airport CEO</a></li>
-            <li><a onclick="loadGame('https://cdn-factory.marketjs.com/en/bob-the-miner/index.html')">16. Bob the Miner</a></li>
-            <li><a onclick="loadGame('https://cdn-factory.marketjs.com/en/harbor-operator/index.html')">17. Harbor Operator</a></li>
-            <li><a onclick="loadGame('https://cdn-factory.marketjs.com/en/shoot-the-bottle/index.html')">18. Shoot the Bottle</a></li>
-            <li><a onclick="loadGame('https://cdn-factory.marketjs.com/en/whats-grandma-hiding/index.html')">19. What's Grandma Hiding</a></li>
-            <li><a onclick="loadGame('https://cdn-factory.marketjs.com/en/harvest-the-crops/index.html')">20. Harvest the Crops</a></li>
-            <li><a onclick="loadGame('https://cdn-factory.marketjs.com/en/chrome-cars-garage/index.html')">21. Chrome Cars Garage</a></li>
-            <li><a onclick="loadGame('https://cdn-factory.marketjs.com/en/omg-zombie-run/index.html')">22. OMG Zombie Run</a></li>
-            <li><a onclick="loadGame('https://cdn-factory.marketjs.com/en/chicken-blast/index.html')">23. Chicken Blast</a></li>
-            <li><a onclick="loadGame('https://cdn-factory.marketjs.com/en/king-kong-kart-racing/index.html')">24. King Kong Kart Racing</a></li>
-            <li><a onclick="loadGame('https://cdn-factory.marketjs.com/en/happy-boss-pull-pin/index.html')">25. Happy Boss Pull Pin</a></li>
-            <li><a onclick="loadGame('https://cdn-factory.marketjs.com/en/wordler/index.html')">26. Wordler</a></li>
-            <li><a onclick="loadGame('https://cdn-factory.marketjs.com/en/polizei-dance-revolution/index.html')">27. Polizei Dance Revolution</a></li>
-            <li><a onclick="loadGame('https://cdn-factory.marketjs.com/en/atlantic-sky-hunter/index.html')">28. Atlantic Sky Hunter</a></li>
-            <li><a onclick="loadGame('https://cdn-factory.marketjs.com/en/brawl-hero-advanced/index.html')">29. Brawl Hero Advanced</a></li>
-            <li><a onclick="loadGame('https://cdn-factory.marketjs.com/en/flappy-chicken/index.html')">30. Flappy Chicken</a></li>
-            <li><a onclick="loadGame('https://cdn-factory.marketjs.com/en/jigsaw-puzzle/index.html')">31. Jigsaw Puzzle</a></li>
-            <li><a onclick="loadGame('https://cdn-factory.marketjs.com/en/uncle-bullet-007/index.html')">32. Uncle Bullet 007</a></li>
-            <li><a onclick="loadGame('https://cdn-factory.marketjs.com/en/idle-mole-empire/index.html')">33. Idle Mole Empire</a></li>
-            <li><a onclick="loadGame('https://cdn-factory.marketjs.com/en/shoot-the-soda-can/index.html')">34. Shoot the Soda Can</a></li>
-            <li><a onclick="loadGame('https://cdn-factory.marketjs.com/en/idle-factory-domination/index.html')">35. Idle Factory Domination</a></li>
-            <li><a onclick="loadGame('https://cdn-factory.marketjs.com/en/idle-factory-empire/index.html')">36. Idle Factory Empire</a></li>
-            <li><a onclick="loadGame('https://cdn-factory.marketjs.com/en/rugby-kick/index.html')">37. Rugby Kick</a></li>
-            <li><a onclick="loadGame('https://cdn-factory.marketjs.com/en/shoot-the-beer-can/index.html')">38. Shoot the Beer Can</a></li>
-            <li><a onclick="loadGame('https://cdn-factory.marketjs.com/en/crazy-king-of-soccer/index.html')">39. Crazy King of Soccer</a></li>
-            <li><a onclick="loadGame('https://cdn-factory.marketjs.com/en/serious-bro/index.html')">40. Serious Bro</a></li>
-            <li><a onclick="loadGame('https://cdn-factory.marketjs.com/en/stickman-brawler-advanced/index.html')">41. Stickman Brawler Advanced</a></li>
-            <li><a onclick="loadGame('https://cdn-factory.marketjs.com/en/idle-lawnmower-advanced/index.html')">42. Idle Lawnmower Advanced</a></li>
-            <li><a onclick="loadGame('https://cdn-factory.marketjs.com/en/idle-town-billionaire/index.html')">43. Idle Town Billionaire</a></li>
-            <li><a onclick="loadGame('https://cdn-factory.marketjs.com/en/rally-champion-responsive/index.html')">44. Rally Champion Responsive</a></li>
-            <li><a onclick="loadGame('https://cdn-factory.marketjs.com/en/mini-crossword/index.html')">45. Mini Crossword</a></li>
-            <li><a onclick="loadGame('https://cdn-factory.marketjs.com/en/santa-parkour/index.html')">46. Santa Parkour</a></li>
-            <li><a onclick="loadGame('https://cdn-factory.marketjs.com/en/idle-pet-business/index.html')">47. Idle Pet Business</a></li>
-            <li><a onclick="loadGame('https://cdn-factory.marketjs.com/en/bird-bump-simplified/index.html')">48. Bird Bump Simplified</a></li>
-            <li><a onclick="loadGame('https://cdn-factory.marketjs.com/en/stickman-brawler/index.html')">49. Stickman Brawler</a></li>
-            <li><a onclick="loadGame('https://cdn-factory.marketjs.com/en/instadiva-nikke-photoshoot-and-date-night/index.html')">50. InstaDiva Nikke Photoshoot and Date Night</a></li>
-            <!-- HTMLGames Embed URLs (51-74) -->
-            <li><a onclick="loadGame('https://www.htmlgames.com/embed/guardian_lighthouse_hidden_secrets.html')">51. Guardian Lighthouse - Hidden Secrets</a></li>
-            <li><a onclick="loadGame('https://www.htmlgames.com/embed/block_drop.html')">52. Block Drop</a></li>
-            <li><a onclick="loadGame('https://www.htmlgames.com/embed/number_chain.html')">53. Number Chain</a></li>
-            <li><a onclick="loadGame('https://www.htmlgames.com/embed/tropical_fruit_mahjong.html')">54. Tropical Fruit Mahjong</a></li>
-            <li><a onclick="loadGame('https://www.htmlgames.com/embed/halloween_pairs.html')">55. Halloween Pairs</a></li>
-            <li><a onclick="loadGame('https://www.htmlgames.com/embed/wild_west_mysteries.html')">56. Wild West Mysteries</a></li>
-            <li><a onclick="loadGame('https://www.htmlgames.com/embed/daily_mini_sudoku.html')">57. Daily Mini Sudoku</a></li>
-            <li><a onclick="loadGame('https://www.htmlgames.com/embed/freaky_freecell.html')">58. Freaky Freecell</a></li>
-            <li><a onclick="loadGame('https://www.htmlgames.com/embed/bubble_dropper.html')">59. Bubble Dropper</a></li>
-            <li><a onclick="loadGame('https://www.htmlgames.com/embed/donuts.html')">60. Donuts</a></li>
-            <li><a onclick="loadGame('https://www.htmlgames.com/embed/wild_flower_solitaire.html')">61. Wild Flower Solitaire</a></li>
-            <li><a onclick="loadGame('https://www.htmlgames.com/embed/free_aliens.html')">62. Free Aliens</a></li>
-            <li><a onclick="loadGame('https://www.htmlgames.com/embed/number_merge.html')">63. Number Merge</a></li>
-            <li><a onclick="loadGame('https://www.htmlgames.com/embed/drop.html')">64. Drop</a></li>
-            <li><a onclick="loadGame('https://www.htmlgames.com/embed/daily_photo_guess.html')">65. Daily Photo Guess</a></li>
-            <li><a onclick="loadGame('https://www.htmlgames.com/embed/medieval_castle_defense.html')">66. Medieval Castle Defense</a></li>
-            <li><a onclick="loadGame('https://www.htmlgames.com/embed/pentris.html')">67. Pentris</a></li>
-            <li><a onclick="loadGame('https://www.htmlgames.com/embed/jewels_classic.html')">68. Jewels Classic</a></li>
-            <li><a onclick="loadGame('https://www.htmlgames.com/embed/medieval_castle_hidden_differences.html')">69. Medieval Castle Hidden Differences</a></li>
-            <li><a onclick="loadGame('https://www.htmlgames.com/embed/mahjong_merge.html')">70. Mahjong Merge</a></li>
-            <li><a onclick="loadGame('https://www.htmlgames.com/embed/treasure_maze.html')">71. Treasure Maze</a></li>
-            <li><a onclick="loadGame('https://www.htmlgames.com/embed/matchstick_math_puzzle.html')">72. Matchstick Math Puzzle</a></li>
-            <li><a onclick="loadGame('https://www.htmlgames.com/embed/daily_binairo_plus.html')">73. Daily Binairo+</a></li>
-            <li><a onclick="loadGame('https://www.htmlgames.com/embed/holiday_tripeaks.html')">74. Holiday Tripeaks</a></li>
-            <!-- FunHTML5 Games (75-171) -->
-            <li><a onclick="loadGame('https://funhtml5games.com/?play=sonic')">75. SONIC HTML5</a></li>
-            <li><a onclick="loadGame('https://funhtml5games.com/?play=angrybirds')">76. ANGRY BIRDS</a></li>
-            <li><a onclick="loadGame('https://funhtml5games.com/?play=mariofps')">77. MARIO FPS</a></li>
-            <li><a onclick="loadGame('https://funhtml5games.com/?play=pacmanfps')">78. PACMAN FPS</a></li>
-            <li><a onclick="loadGame('https://funhtml5games.com/?play=bomberman')">79. BOMBERMAN HTML5</a></li>
-            <li><a onclick="loadGame('https://funhtml5games.com/?play=mazeblox')">80. MAZEBLOX</a></li>
-            <li><a onclick="loadGame('https://funhtml5games.com/?play=wordle')">81. WORDLE TRAINER</a></li>
-            <li><a onclick="loadGame('https://funhtml5games.com/?play=spacecadetpinball')">82. 3D PINBALL: SPACE CADET</a></li>
-            <li><a onclick="loadGame('https://funhtml5games.com/?play=fruitninja-halloween')">83. FRUIT NINJA: HALLOWEEN</a></li>
-            <li><a onclick="loadGame('https://funhtml5games.com/?play=snake2')">84. SNAKE 2 NOKIA 3310</a></li>
-            <li><a onclick="loadGame('https://funhtml5games.com/?play=crushybird')">85. CRUSHY BIRD</a></li>
-            <li><a onclick="loadGame('https://funhtml5games.com/?play=mazeballs')">86. AMAZEBALLS</a></li>
-            <li><a onclick="loadGame('https://funhtml5games.com/?play=doodlejump')">87. DOODLE JUMP HTML5</a></li>
-            <li><a onclick="loadGame('https://funhtml5games.com/?play=sokoban')">88. SOKOBAN</a></li>
-            <li><a onclick="loadGame('https://funhtml5games.com/?play=roboflip')">89. ROBOFLIP</a></li>
-            <li><a onclick="loadGame('https://funhtml5games.com/?play=flappy')">90. FLAPPY BIRD</a></li>
-            <li><a onclick="loadGame('https://funhtml5games.com/?play=santadash')">91. SANTA DASH</a></li>
-            <li><a onclick="loadGame('https://funhtml5games.com/?play=geomdash')">92. GEOMETRY DASH</a></li>
-            <li><a onclick="loadGame('https://funhtml5games.com/?play=pacman')">93. PACMAN</a></li>
-            <li><a onclick="loadGame('https://funhtml5games.com/?play=angrymex')">94. ANGRY MEXICANS VS TRUMP</a></li>
-            <li><a onclick="loadGame('https://funhtml5games.com/?play=minionescape')">95. MINION ESCAPE</a></li>
-            <li><a onclick="loadGame('https://funhtml5games.com/?play=captainreverso')">96. CAPTAIN REVERSO</a></li>
-            <li><a onclick="loadGame('https://funhtml5games.com/?play=flappytrump')">97. FLAPPY TRUMP</a></li>
-            <li><a onclick="loadGame('https://funhtml5games.com/?play=breakaway')">98. BREAKAWAY</a></li>
-            <li><a onclick="loadGame('https://funhtml5games.com/?play=pokeninja')">99. POKEMON NINJA</a></li>
-            <li><a onclick="loadGame('https://funhtml5games.com/?play=mario')">100. INFINITE MARIO BROS</a></li>
-            <li><a onclick="loadGame('https://funhtml5games.com/?play=mcmaze')">101. MAZE ESCAPE</a></li>
-            <li><a onclick="loadGame('https://funhtml5games.com/?play=pixelminer')">102. PIXEL MINER</a></li>
-            <li><a onclick="loadGame('https://funhtml5games.com/?play=alex4')">103. ALEX THE ALLIGATOR</a></li>
-            <li><a onclick="loadGame('https://funhtml5games.com/?play=shinobi')">104. SHINOBI</a></li>
-            <li><a onclick="loadGame('https://funhtml5games.com/?play=snake3d')">105. SNAKE 3D</a></li>
-            <li><a onclick="loadGame('https://funhtml5games.com/?play=pokemoncrush')">106. POKEMON CRUSH</a></li>
-            <li><a onclick="loadGame('https://funhtml5games.com/?play=bubblebobblehtml5')">107. BUBBLE BOBBLE HTML5</a></li>
-            <li><a onclick="loadGame('https://funhtml5games.com/?play=streets2')">108. STREETS OF RAGE 2</a></li>
-            <li><a onclick="loadGame('https://funhtml5games.com/?play=minionkart')">109. MINION KART</a></li>
-            <li><a onclick="loadGame('https://funhtml5games.com/?play=pacmandash')">110. PACMAN DASH</a></li>
-            <li><a onclick="loadGame('https://funhtml5games.com/?play=popstar')">111. POPSTAR</a></li>
-            <li><a onclick="loadGame('https://funhtml5games.com/?play=mariokart')">112. MARIO KART</a></li>
-            <li><a onclick="loadGame('https://funhtml5games.com/?play=springyninja')">113. SPRINGY NINJA</a></li>
-            <li><a onclick="loadGame('https://funhtml5games.com/?play=tappyplanes')">114. TAPPY PLANES</a></li>
-            <li><a onclick="loadGame('https://funhtml5games.com/?play=geomjump')">115. GEOMETRY JUMP</a></li>
-            <li><a onclick="loadGame('https://funhtml5games.com/?play=rickdangerous')">116. RICK DANGEROUS</a></li>
-            <li><a onclick="loadGame('https://funhtml5games.com/?play=helicoptergame')">117. HELICOPTER GAME</a></li>
-            <li><a onclick="loadGame('https://funhtml5games.com/?play=tetris')">118. TETRIS</a></li>
-            <li><a onclick="loadGame('https://funhtml5games.com/?play=neptuneblue')">119. NEPTUNE BLUE</a></li>
-            <li><a onclick="loadGame('https://funhtml5games.com/?play=booshsub')">120. MIGHTY BOOSH SUB GAME</a></li>
-            <li><a onclick="loadGame('https://funhtml5games.com/?play=minicraft')">121. MINICRAFT</a></li>
-            <li><a onclick="loadGame('https://funhtml5games.com/?play=pandacatch')">122. PANDA JUMP</a></li>
-            <li><a onclick="loadGame('https://funhtml5games.com/?play=zigzagzep')">123. ZIGZAG ZEPPELIN</a></li>
-            <li><a onclick="loadGame('https://funhtml5games.com/?play=blockescape')">124. IMPOSSIBLE GAME HTML5</a></li>
-            <li><a onclick="loadGame('https://funhtml5games.com/?play=fruitninja')">125. FRUIT NINJA</a></li>
-            <li><a onclick="loadGame('https://funhtml5games.com/?play=sonicmario')">126. SONIC MARIO BROS</a></li>
-            <li><a onclick="loadGame('https://funhtml5games.com/?play=jelly')">127. JELLY BLOCKS</a></li>
-            <li><a onclick="loadGame('https://funhtml5games.com/?play=exolon')">128. EXOLON</a></li>
-            <li><a onclick="loadGame('https://funhtml5games.com/?play=retroracer')">129. RETRORACER</a></li>
-            <li><a onclick="loadGame('https://funhtml5games.com/?play=canabalt')">130. CANABALT HTML5</a></li>
-            <li><a onclick="loadGame('https://funhtml5games.com/?play=coil')">131. COIL</a></li>
-            <li><a onclick="loadGame('https://funhtml5games.com/?play=manicminer')">132. MANIC MINER</a></li>
-            <li><a onclick="loadGame('https://funhtml5games.com/?play=marioeditor')">133. MARIO WITH LEVEL EDITOR</a></li>
-            <li><a onclick="loadGame('https://funhtml5games.com/?play=racer10k')">134. RACER 10K</a></li>
-            <li><a onclick="loadGame('https://funhtml5games.com/?play=slideranime')">135. ANIME GIRLS SLIDER PUZZLE</a></li>
-            <li><a onclick="loadGame('https://funhtml5games.com/?play=outrun')">136. OUTRUN HTML5</a></li>
-            <li><a onclick="loadGame('https://funhtml5games.com/?play=crazytaxi')">137. CRAZY TAXI</a></li>
-            <li><a onclick="loadGame('https://funhtml5games.com/?play=spaceinvaders')">138. SPACE INVADERS</a></li>
-            <li><a onclick="loadGame('https://funhtml5games.com/?play=drmario')">139. DR MARIO HTML5</a></li>
-            <li><a onclick="loadGame('https://funhtml5games.com/?play=mariopacman3d')">140. MARIO PACMAN 3D</a></li>
-            <li><a onclick="loadGame('https://funhtml5games.com/?play=santajump')">141. SANTA JUMP</a></li>
-            <li><a onclick="loadGame('https://funhtml5games.com/?play=gtacraft')">142. DEMOLITION DASH</a></li>
-            <li><a onclick="loadGame('https://funhtml5games.com/?play=hydraulicpress')">143. HYDRAULIC PRESS CHANNEL GAME</a></li>
-            <li><a onclick="loadGame('https://funhtml5games.com/?play=jigsawanime')">144. ANIME GIRLS JIGSAW</a></li>
-            <li><a onclick="loadGame('https://funhtml5games.com/?play=sokoban3d')">145. SOKOBAN 3D</a></li>
-            <li><a onclick="loadGame('https://funhtml5games.com/?play=frogger')">146. FROGGER</a></li>
-            <li><a onclick="loadGame('https://funhtml5games.com/?play=pacman3d')">147. PACMAN 3D</a></li>
-            <li><a onclick="loadGame('https://funhtml5games.com/?play=blockninja')">148. BLOCK NINJA</a></li>
-            <li><a onclick="loadGame('https://funhtml5games.com/?play=gauntlet')">149. GAUNTLET HTML5</a></li>
-            <li><a onclick="loadGame('https://funhtml5games.com/?play=donkeykong')">150. DONKEY KONG</a></li>
-            <li><a onclick="loadGame('https://funhtml5games.com/?play=drunkdrive')">151. DRUNK DRIVER</a></li>
-            <li><a onclick="loadGame('https://funhtml5games.com/?play=timberman')">152. TIMBERMAN</a></li>
-            <li><a onclick="loadGame('https://funhtml5games.com/?play=lemmingsxmas')">153. HOLIDAY/XMAS LEMMINGS</a></li>
-            <li><a onclick="loadGame('https://funhtml5games.com/?play=pipemania')">154. PIPE MANIA</a></li>
-            <li><a onclick="loadGame('https://funhtml5games.com/?play=roadblocks')">155. ROADBLOCKS</a></li>
-            <li><a onclick="loadGame('https://funhtml5games.com/?play=sasquash')">156. SASQUASH</a></li>
-            <li><a onclick="loadGame('https://funhtml5games.com/?play=airstrike')">157. AIRSTRIKE</a></li>
-            <li><a onclick="loadGame('https://funhtml5games.com/?play=pixelass')">158. PIXEL ASSASSIN</a></li>
-            <li><a onclick="loadGame('https://funhtml5games.com/?play=rescuecopter')">159. RESCUE COPTER</a></li>
-            <li><a onclick="loadGame('https://funhtml5games.com/?play=eastercoloring')">160. EASTER COLORING BOOK</a></li>
-            <li><a onclick="loadGame('https://funhtml5games.com/?play=flappysanta')">161. FLAPPY SANTA</a></li>
-            <li><a onclick="loadGame('https://funhtml5games.com/?play=escapepit')">162. ESCAPE THE PIT</a></li>
-            <li><a onclick="loadGame('https://funhtml5games.com/?play=buildingblocks')">163. BUILDING BLOCKS</a></li>
-            <li><a onclick="loadGame('https://funhtml5games.com/?play=lemmings')">164. LEMMINGS</a></li>
-            <li><a onclick="loadGame('https://funhtml5games.com/?play=2048bit')">165. 2048</a></li>
-            <li><a onclick="loadGame('https://funhtml5games.com/?play=mariojump')">166. MARIO JUMP</a></li>
-            <li><a onclick="loadGame('https://funhtml5games.com/?play=angryturds')">167. ANGRY TURDS</a></li>
-            <li><a onclick="loadGame('https://funhtml5games.com/?play=cargotruck')">168. CARGO TRUCK</a></li>
-            <li><a onclick="loadGame('https://funhtml5games.com/?play=timbercraft')">169. TIMBERCRAFT</a></li>
-            <li><a onclick="loadGame('https://funhtml5games.com/?play=robocop3')">170. ROBOCOP 3</a></li>
-            <li><a onclick="loadGame('https://funhtml5games.com/?play=2048bit')">171. 2048</a></li>
-            <!-- Open Source Games (172-205) -->
-            <li><a onclick="loadGame('https://kripken.github.io/BananaBread/cube2/bb.html')">172. BananaBread</a></li>
-            <li><a onclick="loadGame('https://binb.co')">173. binb</a></li>
-            <li><a onclick="loadGame('http://fernjager.github.io/game-off-2013/index.html')">174. Turkey Cooking Simulator</a></li>
-            <li><a onclick="loadGame('https://fernjager.github.io/game-off-2013/index.html')">175. Turkey Cooking Simulator</a></li>
-            <li><a onclick="loadGame('http://xproger.info/projects/OpenLara/')">176. OpenLara</a></li>
-            <li><a onclick="loadGame('http://openmeridian.org')">177. Open Meridian</a></li>
-            <li><a onclick="loadGame('http://www.meridian59.com')">178. Meridian 59</a></li>
-            <li><a onclick="loadGame('https://stendhalgame.org')">179. Stendhal</a></li>
-            <li><a onclick="loadGame('http://www.adityaravishankar.com/projects/games/lastcolony/')">180. Last Colony</a></li>
-            <li><a onclick="loadGame('http://www.pokerth.net/')">181. PokerTH</a></li>
-            <li><a onclick="loadGame('http://flixel.org/flxcollisions/')">182. FlxCollisions</a></li>
-            <li><a onclick="loadGame('https://nzp.gay')">183. Nazi Zombies Portable</a></li>
-            <li><a onclick="loadGame('https://www.playreia.com')">184. Reia</a></li>
-            <li><a onclick="loadGame('https://xonotic.org/')">185. Xonotic</a></li>
-            <li><a onclick="loadGame('https://veloren.net/')">186. Veloren</a></li>
-            <li><a onclick="loadGame('https://shatteredpixel.com/shatteredpd/')">187. Shattered Pixel Dungeon</a></li>
-            <li><a onclick="loadGame('https://sandboxels.r74n.com/')">188. Sandboxels</a></li>
-            <li><a onclick="loadGame('http://lichess.org/')">189. Lichess</a></li>
-            <li><a onclick="loadGame('http://fernjager.github.io/game-off-2013/index.html')">190. Turkey Cooking Simulator</a></li>
-            <li><a onclick="loadGame('https://html5gamedevelopment.com/html5-slot-machine/')">191. HTML5 Slot Machine</a></li>
-            <li><a onclick="loadGame('https://gabrielecirulli.github.io/2048/')">192. 2048 Game</a></li>
-            <li><a onclick="loadGame('https://elliotclow.github.io/clumsy-bird/')">193. Clumsy Bird</a></li>
-            <li><a onclick="loadGame('https://hextris.github.io/hextris/')">194. Hextris</a></li>
-            <li><a onclick="loadGame('https://chregu.github.io/pacman/')">195. Pacman in HTML5 Canvas</a></li>
-            <li><a onclick="loadGame('http://madebyevan.com/webgl-pathfinding/')">196. Astray</a></li>
-            <li><a onclick="loadGame('https://dionyzas.github.io/tetris/')">197. Canvas Tetris</a></li>
-            <li><a onclick="loadGame('https://0hh1.com/')">198. 0hh1</a></li>
-            <li><a onclick="loadGame('https://jakesgordon.com/racing/')">199. Javascript Pseudo 3D Racer</a></li>
-            <li><a onclick="loadGame('https://mgechev.github.io/mk.js/')">200. mk.js</a></li>
-            <li><a onclick="loadGame('https://play.freeciv.org/')">201. Freeciv Web</a></li>
-        </ul>
+    <header>
+        <nav class="navbar navbar-expand-lg" data-bs-theme="dark">
+            <div class="container"><a class="navbar-brand d-flex align-items-center" href="/"><img src="/assets/img/logo.png"></a><button data-bs-toggle="collapse" class="navbar-toggler" data-bs-target="#navcol-1"><span class="visually-hidden">Toggle navigation</span><span class="navbar-toggler-icon"></span></button>
+                <div class="collapse navbar-collapse" id="navcol-1">
+                    <ul class="navbar-nav ms-auto">
+                        <li class="nav-item"><a class="nav-link active" href="/games/">Games</a></li>
+                        <li class="nav-item"><a class="nav-link active" href="/categories/">Categories</a></li>
+                    </ul>
+                    <div class="search-container ms-lg-4"><input type="text" id="search-input" class="search-input" placeholder="Search  / 167..."><button class="btn search-button d-flex align-items-center" id="search-button" type="button"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 16 16" class="bi bi-search">
+                                <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0"></path>
+                            </svg></button></div>
+                </div>
+            </div>
+        </nav>
+    </header>
+    <main>
+        <div class="entry-banner">
+    <h1>Top Rated Online Games</h1>
+</div>
+<div class="container">
+    <div class="cate-games mt-5">
+    <div class="row">
+        
+        
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+                
+                
+                
+                
+                    <div class="col-sm-6 col-lg-3">
+                        <a href="/game/basket-random.html">
+                            <div class="game-item"><img class="img-fluid image" src="/assets/upload/ubg999/jpg/basket-random.jpg">
+                                <h2 class="game-title">Basket Random</h2>
+                            </div>
+                        </a>
+                    </div>
+                
+        
+        
+            
+            
+            
+            
+            
+            
+            
+            
+                
+                
+                
+                
+                    <div class="col-sm-6 col-lg-3">
+                        <a href="/game/basketball-stars.html">
+                            <div class="game-item"><img class="img-fluid image" src="/assets/upload/ubg999/jpg/basketball-stars.jpg">
+                                <h2 class="game-title">Basketball Stars</h2>
+                            </div>
+                        </a>
+                    </div>
+                
+        
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+                
+                
+                
+                
+                    <div class="col-sm-6 col-lg-3">
+                        <a href="/game/drift-boss.html">
+                            <div class="game-item"><img class="img-fluid image" src="/assets/upload/ubg999/jpg/drift-boss.jpg">
+                                <h2 class="game-title">Drift Boss</h2>
+                            </div>
+                        </a>
+                    </div>
+                
+        
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+                
+                
+                
+                
+                    <div class="col-sm-6 col-lg-3">
+                        <a href="/game/moto-x3m-pool-party.html">
+                            <div class="game-item"><img class="img-fluid image" src="/assets/upload/ubg999/jpg/moto-x3m-pool-party.jpg">
+                                <h2 class="game-title">Moto X3m Pool Party</h2>
+                            </div>
+                        </a>
+                    </div>
+                
+        
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+                
+                
+                
+                
+                    <div class="col-sm-6 col-lg-3">
+                        <a href="/game/sniper-3d.html">
+                            <div class="game-item"><img class="img-fluid image" src="/assets/upload/ubg999/jpg/sniper-3d.jpg">
+                                <h2 class="game-title">Sniper 3D</h2>
+                            </div>
+                        </a>
+                    </div>
+                
+        
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
     </div>
-    <div id="main">
-        <h1>Bursts Unblocked Games - Ultimate Fix</h1>
-        <p>I fixed it by using sources with direct embeddable URLs that should load in iframes without restrictions. Added over 200 games from multiple sources. Click inside the iframe to interact if needed. These should work on GitHub hosting now!</p>
-        <iframe id="game-frame" src="about:blank" allowfullscreen="true" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" sandbox="allow-forms allow-popups allow-scripts allow-same-origin allow-modals allow-top-navigation"></iframe>
-        <div id="save-section">
-            <h3>Save Stuff Locally</h3>
-            <p>Use this to save notes, high scores, or any text locally in your browser.</p>
-            <textarea id="save-text"></textarea>
-            <button id="save-button">Save</button>
-            <button id="load-button">Load</button>
+    <hr class="mw-100 my-4">
+    <div class="text-center d-flex justify-content-center align-items-center btn-play-game mb-5"><a class="btn-play" href="/category/trending.html">Play Trending Games</a></div>
+    <hr class="cl-pup">
+</div>
+
+    <div class="cate-games mt-5">
+    <div class="row">
+        
+        
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+                
+                
+                
+                
+                    <div class="col-sm-6 col-lg-3">
+                        <a href="/game/moto-x3m-pool-party.html">
+                            <div class="game-item"><img class="img-fluid image" src="/assets/upload/ubg999/jpg/moto-x3m-pool-party.jpg">
+                                <h2 class="game-title">Moto X3m Pool Party</h2>
+                            </div>
+                        </a>
+                    </div>
+                
+        
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+    </div>
+    <hr class="mw-100 my-4">
+    <div class="text-center d-flex justify-content-center align-items-center btn-play-game mb-5"><a class="btn-play" href="/category/latest.html">Play Latest Games</a></div>
+    <hr class="cl-pup">
+</div>
+
+    <div class="cate-games mt-5">
+    <div class="row">
+        
+        
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+                
+                
+                
+                
+                    <div class="col-sm-6 col-lg-3">
+                        <a href="/game/basketball-stars.html">
+                            <div class="game-item"><img class="img-fluid image" src="/assets/upload/ubg999/jpg/basketball-stars.jpg">
+                                <h2 class="game-title">Basketball Stars</h2>
+                            </div>
+                        </a>
+                    </div>
+                
+        
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+    </div>
+    <hr class="mw-100 my-4">
+    <div class="text-center d-flex justify-content-center align-items-center btn-play-game mb-5"><a class="btn-play" href="/category/featured.html">Play Featured Games</a></div>
+    <hr class="cl-pup">
+</div>
+
+    <div class="desc">
+        <p>Are you tired of being stuck in school or at work with nothing to do during your break time? If yes, then we have a vast collection of free games to refresh you. In the realm of online gaming, it stands out as a haven for both entertainment and education.</p>
+
+<p>This is one of the best websites where you can play the most popular online games without downloading or subscribing. The most popular online games do not have easy access and are always paid. As a result of this, real online gamers are not able to experience the thrill of online gaming.</p>
+
+<p>Keeping the importance of online gaming in the lives of people, we are offering top free unblocked games to people of all age groups. The games on this website are compatible to be played on a computer, mobile, tablet, or laptop.</p>
+
+<h2 id="what-is-unblocked-games-99"><strong>What Is Unblocked Games 99?</strong></h2>
+
+<p>Unblocked Games 99 is a popular online gaming platform that allows you to play games for free without any restrictions. Unlike other gaming sites, Unblocked Games 99 provides access to games that are typically blocked by schools or workplaces, giving you the opportunity to play your favorite games during breaks.</p>
+
+<p>The website offers a wide variety of game genres including adventure, action, sports, puzzle, and strategy. The site is easy to navigate with an intuitive search bar allowing you to easily find the game of your choice.</p>
+
+<p>One great feature that love most students is its user-friendly interface which makes it accessible for students, especially from their classroom. Another benefit is that there are no annoying ads or pop-ups while playing games on this platform.</p>
+
+<p>In addition to being able to enjoy your favorite pastime during break time at school or work, the platform can also be accessed from anywhere in the world as long as you have an internet connection. This means that even when traveling abroad or away from home, you can still enjoy your favorite games on this site.</p>
+
+<h2 id="features-of-unblocked-games-99"><strong>Features of Unblocked Games 99</strong></h2>
+
+<ul>
+  <li>You can play these games without any restrictions or blocks. This means you have access to a wide range of games that might be blocked in your school or workplace.</li>
+  <li>These games are free to play, which makes them accessible for anyone who wants to indulge in some gaming fun without breaking the bank.</li>
+  <li>The platform offers a variety of game types from puzzles to action-packed adventures and more. You will never run out of options for what to play.</li>
+</ul>
+
+<h2 id="top-10-most-popular-games"><strong>Top 10 most popular games</strong></h2>
+
+<p>There are hundreds of games on UnblockedGames999 that are added every day on our platform to ensure that the most new and fresh games are made available to our users. We are providing a list of the top 10 latest games.</p>
+
+<h3 id="1-cookie-clicker"><strong>1. Cookie Clicker</strong></h3>
+
+<p><a href="#">Cookie Clicker</a> is the most popular game on this gaming website. It is an incremental idle game. The objective of this game is to produce as many cookies as possible by clicking on the giant cookie which is located on the screen.</p>
+
+<p>You can increase the production of the cookies by purchasing various upgrades with the cookie you earn by clicking on the cookie from the store located on the screen.</p>
+
+<p><img src="/assets/img/Cookie-Clicker.jpg" alt="" /></p>
+
+<p>Cookie Clicker</p>
+
+<p>You can purchase Cursor, Grandma, Farm, Mine, Factory, Bank, Temple, etc. Initially, these upgrades are locked. When you progress in the game by clicking continuously on the large cookie, they get unlocked one by one.</p>
+
+<h3 id="2-flappy-bird"><strong>2. Flappy Bird</strong></h3>
+
+<p>If you like a challenging game, try <a href="#">Flappy Bird</a>, a popular online game. Vietnamese programmer Dong Nguyen developed this online game.</p>
+
+<p>The game’s objective is to guide a small bird through a series of green pipes by clicking the left mouse button to make the bird flap its wings and stay airborne.</p>
+
+<p><img src="/assets/img/Flappy-Bird-.jpg" alt="" /></p>
+
+<p>Flappy Bird</p>
+
+<p>The gap between the pair of pipes is equal and is at random height. If the bird hits the pipe, the game is over. You get a point for crossing a pair of pipes. The game gets progressively more difficult as you score more points</p>
+
+<h2 id="other-games">Other Games</h2>
+
+<p>Except above list, there are many other games that are trending on the internet like – Basketball Stars Unblocked WTF, Tyrone’s Games, and many more.</p>
+
+    </div>
+</div>
+
+    </main>
+    <footer>
+        <div class="container">
+            <div class="footer-grid">
+                <div class="site-ft">
+                    <div class="copyright">
+                        <p class="mb-0">Copyright © 2025 Unblocked Games 99 | All Rights Reserved™</p>
+                    </div>
+                </div>
+                <div class="d-flex justify-content-end site-ft">
+                    <div class="footer-nav-wrap">
+                        <ul class="astra-footer-menu">
+                            <li><a href="/about/">About</a></li>
+                            <li><a href="/privacy/">Privacy</a></li>
+                            <li><a href="/disclaimer/">Disclaimer</a></li>
+                            <li><a href="/contact/">Contact</a></li>
+                        </ul>
+                        <ul class="astra-footer-menu m2">
+                            <li><a href="https://www.facebook.com/Games235/"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 16 16" class="bi bi-facebook">
+                                        <path d="M16 8.049c0-4.446-3.582-8.05-8-8.05C3.58 0-.002 3.603-.002 8.05c0 4.017 2.926 7.347 6.75 7.951v-5.625h-2.03V8.05H6.75V6.275c0-2.017 1.195-3.131 3.022-3.131.876 0 1.791.157 1.791.157v1.98h-1.009c-.993 0-1.303.621-1.303 1.258v1.51h2.218l-.354 2.326H9.25V16c3.824-.604 6.75-3.934 6.75-7.951"></path>
+                                    </svg></a></li>
+                            <li><a href="https://www.youtube.com/@ubg235"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 16 16" class="bi bi-youtube">
+                                        <path d="M8.051 1.999h.089c.822.003 4.987.033 6.11.335a2.01 2.01 0 0 1 1.415 1.42c.101.38.172.883.22 1.402l.01.104.022.26.008.104c.065.914.073 1.77.074 1.957v.075c-.001.194-.01 1.108-.082 2.06l-.008.105-.009.104c-.05.572-.124 1.14-.235 1.558a2.007 2.007 0 0 1-1.415 1.42c-1.16.312-5.569.334-6.18.335h-.142c-.309 0-1.587-.006-2.927-.052l-.17-.006-.087-.004-.171-.007-.171-.007c-1.11-.049-2.167-.128-2.654-.26a2.007 2.007 0 0 1-1.415-1.419c-.111-.417-.185-.986-.235-1.558L.09 9.82l-.008-.104A31.4 31.4 0 0 1 0 7.68v-.123c.002-.215.01-.958.064-1.778l.007-.103.003-.052.008-.104.022-.26.01-.104c.048-.519.119-1.023.22-1.402a2.007 2.007 0 0 1 1.415-1.42c.487-.13 1.544-.21 2.654-.26l.17-.007.172-.006.086-.003.171-.007A99.788 99.788 0 0 1 7.858 2h.193zM6.4 5.209v4.818l4.157-2.408z"></path>
+                                    </svg></a></li>
+                            <li><a href="https://discord.com/invite/gUeBzA2jaF"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 16 16" class="bi bi-discord">
+                                        <path d="M13.545 2.907a13.227 13.227 0 0 0-3.257-1.011.05.05 0 0 0-.052.025c-.141.25-.297.577-.406.833a12.19 12.19 0 0 0-3.658 0 8.258 8.258 0 0 0-.412-.833.051.051 0 0 0-.052-.025c-1.125.194-2.22.534-3.257 1.011a.041.041 0 0 0-.021.018C.356 6.024-.213 9.047.066 12.032c.001.014.01.028.021.037a13.276 13.276 0 0 0 3.995 2.02.05.05 0 0 0 .056-.019c.308-.42.582-.863.818-1.329a.05.05 0 0 0-.01-.059.051.051 0 0 0-.018-.011 8.875 8.875 0 0 1-1.248-.595.05.05 0 0 1-.02-.066.051.051 0 0 1 .015-.019c.084-.063.168-.129.248-.195a.05.05 0 0 1 .051-.007c2.619 1.196 5.454 1.196 8.041 0a.052.052 0 0 1 .053.007c.08.066.164.132.248.195a.051.051 0 0 1-.004.085 8.254 8.254 0 0 1-1.249.594.05.05 0 0 0-.03.03.052.052 0 0 0 .003.041c.24.465.515.909.817 1.329a.05.05 0 0 0 .056.019 13.235 13.235 0 0 0 4.001-2.02.049.049 0 0 0 .021-.037c.334-3.451-.559-6.449-2.366-9.106a.034.034 0 0 0-.02-.019Zm-8.198 7.307c-.789 0-1.438-.724-1.438-1.612 0-.889.637-1.613 1.438-1.613.807 0 1.45.73 1.438 1.613 0 .888-.637 1.612-1.438 1.612m5.316 0c-.788 0-1.438-.724-1.438-1.612 0-.889.637-1.613 1.438-1.613.807 0 1.451.73 1.438 1.613 0 .888-.631 1.612-1.438 1.612"></path>
+                                    </svg></a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
         </div>
-    </div>
-    <script>
-        function loadGame(url) {
-            document.getElementById('game-frame').src = url;
-        }
-
-        const textarea = document.getElementById('save-text');
-        const saveButton = document.getElementById('save-button');
-        const loadButton = document.getElementById('load-button');
-
-        saveButton.addEventListener('click', () => {
-            localStorage.setItem('savedStuff', textarea.value);
-            alert('Saved locally!');
-        });
-
-        loadButton.addEventListener('click', () => {
-            textarea.value = localStorage.getItem('savedStuff') || '';
-        });
-
-        // Load on start
-        textarea.value = localStorage.getItem('savedStuff') || '';
-
-        // Search functionality
-        const searchInput = document.getElementById('search-input');
-        const gameList = document.getElementById('game-list');
-        const games = gameList.getElementsByTagName('li');
-
-        searchInput.addEventListener('keyup', () => {
-            const filter = searchInput.value.toLowerCase();
-            for (let i = 0; i < games.length; i++) {
-                const a = games[i].getElementsByTagName('a')[0];
-                const txtValue = a.textContent || a.innerText;
-                if (txtValue.toLowerCase().indexOf(filter) > -1) {
-                    games[i].style.display = '';
-                } else {
-                    games[i].style.display = 'none';
-                }
-            }
-        });
-    </script>
+    </footer><button class="btn scroll-to-top" onclick="scrollToTop()"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 16 16" class="bi bi-chevron-up">
+            <path fill-rule="evenodd" d="M7.646 4.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1-.708.708L8 5.707l-5.646 5.647a.5.5 0 0 1-.708-.708l6-6z"></path>
+        </svg></button>
+    <script src="/assets/js/jquery.min.js"></script>
+    <script src="/assets/bootstrap/js/bootstrap.min.js"></script>
+    <script src="/assets/js/analytics_ubg235_v1_0.js"></script>
+    <script src="/assets/js/search_v1_0.js"></script>
+    <script src="/assets/js/main.js"></script>
 </body>
+
 </html>
