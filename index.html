@@ -4,15 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎮</text></svg>">
-    <title>Game Hub - Flappy Bird, Casino, Messaging, Among Us</title>
-    <!-- Firebase SDK for Casino and Messaging and Among Us -->
+    <title>Minecraft Gamble Hub 🎮💎</title>
+    <!-- Firebase SDK v12.4.0 -->
     <script type="module">
-        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
-        import { getFirestore, collection, doc, getDoc, setDoc, updateDoc, addDoc, onSnapshot, query, orderBy, limit, deleteDoc } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
-        import { getStorage } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js';
-        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signInAnonymously, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
-        import { getDatabase, ref, onValue, onChildAdded, onChildRemoved, set, push, remove } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js';
-        window.firebase = { initializeApp, getFirestore, collection, doc, getDoc, setDoc, updateDoc, addDoc, onSnapshot, query, orderBy, limit, deleteDoc, getStorage, getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signInAnonymously, onAuthStateChanged, getDatabase, ref, onValue, onChildAdded, onChildRemoved, set, push, remove };
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js';
+        import { getFirestore, collection, doc, getDoc, setDoc, updateDoc, addDoc, onSnapshot, query, orderBy, limit, deleteDoc } from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js';
+        window.firebaseApp = { initializeApp, getFirestore, collection, doc, getDoc, setDoc, updateDoc, addDoc, onSnapshot, query, orderBy, limit, deleteDoc };
     </script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Roboto:wght@300;400&display=swap');
@@ -652,247 +649,6 @@
             box-shadow: 0 0 15px #7b2cbf;
             border-color: #7b2cbf;
         }
-
-        /* Flappy Bird Styles */
-        .random {
-            height: 100vh;
-            width: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        h3 {
-            text-align: center;
-            font-size: 2rem;
-        }
-
-        /* Messaging Styles from Chat Hub */
-        .stars {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
-            pointer-events: none;
-            z-index: -1;
-        }
-        
-        .star {
-            position: absolute;
-            background: #fff;
-            border-radius: 50%;
-            opacity: 0.8;
-            animation: twinkle 2s infinite alternate;
-        }
-        
-        @keyframes twinkle {
-            from { opacity: 0.5; }
-            to { opacity: 1; }
-        }
-        
-        .shooting-stars {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100vh;
-            overflow: hidden;
-            z-index: -1;
-        }
-        
-        .shooting-stars span {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 4px;
-            height: 4px;
-            background: #fff;
-            border-radius: 50%;
-            box-shadow: 0 0 0 4px rgba(255,255,255,0.1), 0 0 0 8px rgba(255,255,255,0.1), 0 0 20px rgba(255,255,255,0.1);
-            animation: animateShooting 3s linear infinite;
-        }
-        
-        .shooting-stars span::before {
-            content: '';
-            position: absolute;
-            top: 50%;
-            transform: translateY(-50%);
-            width: 300px;
-            height: 1px;
-            background: linear-gradient(90deg, #fff, transparent);
-        }
-        
-        @keyframes animateShooting {
-            0% {
-                transform: rotate(315deg) translateX(0);
-                opacity: 1;
-            }
-            70% {
-                opacity: 1;
-            }
-            100% {
-                transform: rotate(315deg) translateX(-1000px);
-                opacity: 0;
-            }
-        }
-        
-        .shooting-stars span:nth-child(1) {
-            top: 0;
-            right: 0;
-            left: initial;
-            animation-delay: 0s;
-            animation-duration: 1s;
-        }
-        
-        .shooting-stars span:nth-child(2) {
-            top: 0;
-            right: 80px;
-            left: initial;
-            animation-delay: 0.2s;
-            animation-duration: 3s;
-        }
-        
-        .shooting-stars span:nth-child(3) {
-            top: 80px;
-            right: 0;
-            left: initial;
-            animation-delay: 0.4s;
-            animation-duration: 2s;
-        }
-        
-        .shooting-stars span:nth-child(4) {
-            top: 0;
-            right: 180px;
-            left: initial;
-            animation-delay: 0.6s;
-            animation-duration: 1.5s;
-        }
-        
-        .shooting-stars span:nth-child(5) {
-            top: 0;
-            right: 400px;
-            left: initial;
-            animation-delay: 0.8s;
-            animation-duration: 2.5s;
-        }
-        
-        .shooting-stars span:nth-child(6) {
-            top: 0;
-            right: 600px;
-            left: initial;
-            animation-delay: 1s;
-            animation-duration: 3s;
-        }
-        
-        .shooting-stars span:nth-child(7) {
-            top: 300px;
-            right: 0;
-            left: initial;
-            animation-delay: 1.2s;
-            animation-duration: 1.75s;
-        }
-        
-        .shooting-stars span:nth-child(8) {
-            top: 0;
-            right: 700px;
-            left: initial;
-            animation-delay: 1.4s;
-            animation-duration: 1.25s;
-        }
-        
-        .shooting-stars span:nth-child(9) {
-            top: 0;
-            right: 1000px;
-            left: initial;
-            animation-delay: 0.75s;
-            animation-duration: 2.25s;
-        }
-        
-        .shooting-stars span:nth-child(10) {
-            top: 0;
-            right: 450px;
-            left: initial;
-            animation-delay: 2.75s;
-            animation-duration: 2.75s;
-        }
-        
-        .messaging-screen {
-            position: absolute;
-            top: 0;
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-            transition: opacity 0.5s ease-in-out, transform 0.5s ease-in-out;
-            z-index: 1;
-        }
-        
-        /* Add all messaging styles here from the original Chat Hub style tag */
-        
-        /* Among Us Styles */
-        .among-game {
-            position: relative;
-            height: 100%;
-            width: 100%;
-            overflow: hidden;
-        }
-
-        .among-container {
-            position: relative;
-            height: 100%;
-            width: 100%;
-        }
-
-        .character {
-            position: absolute;
-        }
-
-        .character-shadow {
-            background: rgba(0, 0, 0, 0.2);
-            border-radius: 50%;
-        }
-
-        .character-sprite {
-            background-size: cover;
-        }
-
-        .character-name-container {
-            position: absolute;
-            top: -20px;
-            left: -50%;
-            white-space: nowrap;
-        }
-
-        .character-name {
-            font-size: 12px;
-            color: white;
-            text-shadow: 0 0 2px black;
-        }
-
-        .character-coins {
-            font-size: 10px;
-            color: gold;
-        }
-
-        .character-you-arrow {
-            position: absolute;
-            top: -30px;
-            left: 50%;
-            transform: translateX(-50%);
-            color: green;
-        }
-
-        .coin {
-            position: absolute;
-            background: gold;
-            border-radius: 50%;
-            animation: float 1s infinite alternate;
-        }
-
-        @keyframes float {
-            from { transform: translateY(0); }
-            to { transform: translateY(-5px); }
-        }
     </style>
 </head>
 <body oncontextmenu="return false">
@@ -907,7 +663,7 @@
     <div id="login" class="screen visible">
         <div class="main-content">
             <div style="text-align: center; max-width: 400px;">
-                <h1 style="font-size: 3em; margin-bottom: 30px;">Game Hub 🎮</h1>
+                <h1 style="font-size: 3em; margin-bottom: 30px;">Minecraft Gamble Hub 🎮💎</h1>
                 <div class="auth-toggle">
                     <button class="btn" onclick="setMode('login')">Login</button>
                     <button class="btn" onclick="setMode('signup')">Sign Up</button>
@@ -953,10 +709,6 @@
         </div>
         <div class="main-content">
             <div class="games-grid">
-                <div class="game-card" onclick="showScreen('flappy')">
-                    <div class="game-icon">🕊️</div>
-                    <h3 class="game-title">Flappy Bird</h3>
-                </div>
                 <div class="game-card" onclick="showScreen('mines')">
                     <div class="game-icon">💎💣</div>
                     <h3 class="game-title">Mines</h3>
@@ -977,13 +729,9 @@
                     <div class="game-icon">🚀</div>
                     <h3 class="game-title">Crash</h3>
                 </div>
-                <div class="game-card" onclick="showScreen('messaging')">
-                    <div class="game-icon">💬</div>
-                    <h3 class="game-title">Messaging</h3>
-                </div>
-                <div class="game-card" onclick="showScreen('among')">
-                    <div class="game-icon">🧑‍🚀</div>
-                    <h3 class="game-title">Among Us</h3>
+                <div class="game-card coming-soon" onclick="showComingSoon()">
+                    <div class="game-icon">⏳</div>
+                    <h3 class="game-title">Coming Soon</h3>
                 </div>
             </div>
             <div id="leaderboard" class="leaderboard" style="display: none;">
@@ -1192,162 +940,6 @@
         </div>
     </div>
     
-    <!-- Flappy Bird Screen -->
-    <div id="flappy-screen" class="screen hidden">
-        <div class="header">
-            <div class="header-left">
-                <button class="btn back-btn" onclick="showScreen('dashboard')">← Back</button>
-                <h1>Flappy Bird 🕊️</h1>
-            </div>
-            <div class="header-right">
-                <div class="balance">Balance: $<span id="balance-flappy">0.00</span> 💰</div>
-                <div class="header-buttons">
-                    <button class="btn logout" onclick="logout()">🚪 Logout</button>
-                </div>
-            </div>
-        </div>
-        <div class="main-content">
-            <div class="game-area">
-                <h3>Flappy Bird Game</h3>
-                <div class="random">
-                    <canvas id="canvas" width="288" height="512"></canvas>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Messaging Screen (Chat Hub) -->
-    <div id="messaging-screen" class="screen hidden">
-        <div class="header">
-            <div class="header-left">
-                <button class="btn back-btn" onclick="showScreen('dashboard')">← Back</button>
-                <h1>Chat Hub 💬</h1>
-            </div>
-            <div class="header-right">
-                <div class="balance">Balance: $<span id="balance-messaging">0.00</span> 💰</div>
-                <div class="header-buttons">
-                    <button class="btn logout" onclick="logout()">🚪 Logout</button>
-                </div>
-            </div>
-        </div>
-        <div class="main-content">
-            <section class="shooting-stars">
-                <span></span>
-                <span></span>
-                <span></span>
-                <span></span>
-                <span></span>
-                <span></span>
-                <span></span>
-                <span></span>
-                <span></span>
-                <span></span>
-            </section>
-            
-            <div id="messaging-dashboard" class="messaging-screen visible">
-                <div class="main-content">
-                    <div style="max-width: 800px; width: 100%;">
-                        <h2 style="text-align: center; margin-bottom: 20px;">Users List</h2>
-                        <div style="margin-bottom: 20px; display: flex; align-items: center; justify-content: center; gap: 10px;">
-                            <input type="text" id="messaging-userSearch" placeholder="Search users..." style="width: 300px; padding: 10px; border-radius: 10px; background: rgba(255,255,255,0.1); border: 1px solid #7b2cbf; color: white;">
-                            <button class="btn" onclick="messagingLoadUsers('')">Refresh 🔄</button>
-                        </div>
-                        <div id="messaging-usersTable" style="overflow-y: auto; max-height: 400px; background: rgba(0,0,0,0.3); border-radius: 10px; padding: 10px;"></div>
-                    </div>
-                </div>
-            </div>
-
-            <div id="messaging-admin" class="messaging-screen hidden">
-                <!-- Admin content from Chat Hub -->
-                <div class="header">
-                    <div class="header-left">
-                        <button class="btn back-btn" onclick="messagingShowScreen('messaging-dashboard')">← Back</button>
-                        <h1>Admin Dashboard 🔧</h1>
-                    </div>
-                    <div class="header-right">
-                        <div class="balance">Admin Mode Active 👑</div>
-                        <div class="header-buttons">
-                            <button class="btn logout" onclick="logout()">🚪 Logout</button>
-                        </div>
-                    </div>
-                </div>
-                <div class="main-content">
-                    <div style="max-width: 800px; width: 100%;">
-                        <h2 style="text-align: center; margin-bottom: 20px;">User Management</h2>
-                        <div style="margin-bottom: 20px; display: flex; align-items: center; justify-content: center; gap: 10px;">
-                            <input type="text" id="messaging-adminUserSearch" placeholder="Search users..." style="width: 300px; padding: 10px; border-radius: 10px; background: rgba(255,255,255,0.1); border: 1px solid #7b2cbf; color: white;">
-                            <button class="btn" onclick="messagingLoadAdminUsers('')">Refresh 🔄</button>
-                        </div>
-                        <div id="messaging-adminUsersTable" style="overflow-y: auto; max-height: 400px; background: rgba(0,0,0,0.3); border-radius: 10px; padding: 10px;"></div>
-                        <div style="margin-top: 20px; padding: 20px; background: rgba(0,0,0,0.5); border-radius: 15px; display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 10px;">
-                            <h3 style="margin: 0; flex-basis: 100%; text-align: center;">Manage User</h3>
-                            <input type="text" id="messaging-selectedUser" placeholder="Enter Username (e.g. NewUser)" style="width: 200px; padding: 10px; border-radius: 10px; background: rgba(255,255,255,0.1); border: 1px solid #7b2cbf; color: white;">
-                            <button class="btn" onclick="messagingDoDelete()" style="background: linear-gradient(145deg, rgba(255,0,0,0.3), rgba(200,0,0,0.2));">Delete 🗑️</button>
-                            <button class="btn" onclick="messagingDoBan()" style="background: linear-gradient(145deg, rgba(255,0,0,0.3), rgba(200,0,0,0.2));">Ban 🚫</button>
-                            <button class="btn" onclick="messagingDoUnban()" style="background: linear-gradient(145deg, rgba(0,255,0,0.3), rgba(0,200,0,0.2));">Unban ✅</button>
-                        </div>
-                        <h2 style="text-align: center; margin: 20px 0;">Private Messages</h2>
-                        <div id="messaging-private-chats-list" style="overflow-y: auto; max-height: 400px; background: rgba(0,0,0,0.3); border-radius: 10px; padding: 10px;"></div>
-                        <div id="messaging-private-chat-view" style="margin-top: 20px; display: none; overflow-y: auto; max-height: 400px; background: rgba(0,0,0,0.3); border-radius: 10px; padding: 10px;"></div>
-                    </div>
-                </div>
-            </div>
-
-            <div id="messaging-private-chat-screen" class="messaging-screen hidden">
-                <div class="header">
-                    <div class="header-left">
-                        <button class="btn back-btn" onclick="messagingClosePrivateChat()">← Back</button>
-                        <h1>Chat with <span id="messaging-chat-with"></span> 💬</h1>
-                    </div>
-                    <div class="header-right">
-                        <div class="header-buttons">
-                            <button class="btn logout" onclick="logout()">🚪 Logout</button>
-                        </div>
-                    </div>
-                </div>
-                <div class="main-content">
-                    <div class="chat-area">
-                        <div id="messaging-private-messages"></div>
-                        <div id="messaging-private-chat-input-container">
-                            <input type="text" id="messaging-private-chat-input" placeholder="Type a message..." onkeypress="if(event.key==='Enter') messagingSendPrivateMessage()">
-                            <input type="file" id="messaging-image-upload" accept="image/*" style="display: none;" onchange="messagingSendImageMessage()">
-                            <button class="btn media-btn" onclick="document.getElementById('messaging-image-upload').click()">📷</button>
-                            <button class="btn media-btn" onclick="messagingStartVoiceRecording()">🎤</button>
-                            <button class="btn" onclick="messagingSendPrivateMessage()">Send</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Among Us Screen -->
-    <div id="among-screen" class="screen hidden">
-        <div class="header">
-            <div class="header-left">
-                <button class="btn back-btn" onclick="showScreen('dashboard')">← Back</button>
-                <h1>Among Us 🧑‍🚀</h1>
-            </div>
-            <div class="header-right">
-                <div class="balance">Balance: $<span id="balance-among">0.00</span> 💰</div>
-                <div class="header-buttons">
-                    <button class="btn logout" onclick="logout()">🚪 Logout</button>
-                </div>
-            </div>
-        </div>
-        <div class="main-content">
-            <div class="game-area">
-                <div class="input-group">
-                    <input type="text" id="room-name" placeholder="Enter Room Name for Lobby">
-                    <button class="btn" onclick="joinRoom()">Join Lobby</button>
-                </div>
-                <div class="among-game">
-                    <div class="among-container" id="among-container"></div>
-                </div>
-            </div>
-        </div>
-    </div>
-    
     <div id="notification"></div>
 
     <script>
@@ -1374,25 +966,24 @@
     </script>
 
     <script type="module">
-        // Firebase Config - Use your own!
+        console.log('Minecraft Gamble Hub v2 - Global Sync Loaded! 🎮💎');
+        
+        // For Firebase JS SDK v7.20.0 and later, measurementId is optional
         const firebaseConfig = {
-            apiKey: "YOUR_API_KEY",
-            authDomain: "YOUR_PROJECT.firebaseapp.com",
-            projectId: "YOUR_PROJECT_ID",
-            storageBucket: "YOUR_PROJECT_ID.appspot.com",
-            messagingSenderId: "YOUR_SENDER_ID",
-            appId: "YOUR_APP_ID",
-            measurementId: "YOUR_MEASUREMENT_ID"
+          apiKey: "AIzaSyAaL7pqKB0fzxURNyblGYKo9q_8UUqj014",
+          authDomain: "idkdikdi-57db9.firebaseapp.com",
+          databaseURL: "https://idkdikdi-57db9-default-rtdb.europe-west1.firebasedatabase.app",
+          projectId: "idkdikdi-57db9",
+          storageBucket: "idkdikdi-57db9.firebasestorage.app",
+          messagingSenderId: "316879269067",
+          appId: "1:316879269067:web:f69397e5cd00892cebbf4e",
+          measurementId: "G-50NYC4TXYB"
         };
         
-        const { initializeApp, getFirestore, collection, doc, getDoc, setDoc, updateDoc, addDoc, onSnapshot, query, orderBy, limit, deleteDoc, getStorage, getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signInAnonymously, onAuthStateChanged, getDatabase, ref, onValue, onChildAdded, onChildRemoved, set, push, remove } = window.firebase;
+        const { initializeApp, getFirestore, collection, doc, getDoc, setDoc, updateDoc, addDoc, onSnapshot, query, orderBy, limit, deleteDoc } = window.firebaseApp;
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
-        const storage = getStorage(app);
-        const auth = getAuth(app);
-        const realtimeDb = getDatabase(app);
         
-        // Casino Code
         let currentUser = '';
         let currentEdition = '';
         let balance = 0.00;
@@ -1413,7 +1004,7 @@
         let towersGrid = [], currentTowerRow = 0, towersRevealed = 0, towersGameActive = false, towersBet = 0;
         let users = [];
         
-        // Crash global state (local per tab for simplicity; could sync if needed)
+        // Crash global state (still local per tab for simplicity; could sync if needed)
         let globalCrashActive = false;
         let globalBettingActive = false;
         let globalStartTime;
@@ -1476,7 +1067,7 @@
 
         function updateAllBalances() {
             const formatted = formatBalance(balance);
-            ['balance', 'balance-mines', 'balance-dice', 'balance-towers', 'balance-blackjack', 'balance-crash', 'balance-flappy', 'balance-messaging', 'balance-among'].forEach(id => {
+            ['balance', 'balance-mines', 'balance-dice', 'balance-towers', 'balance-blackjack', 'balance-crash'].forEach(id => {
                 const el = document.getElementById(id);
                 if (el) el.textContent = formatted;
             });
@@ -1741,15 +1332,6 @@
                         startBettingPhase();
                     }
                 }
-                if (screen === 'flappy') {
-                    // Start Flappy if needed
-                }
-                if (screen === 'messaging') {
-                    messagingShowScreen('messaging-dashboard');
-                }
-                if (screen === 'among') {
-                    // Start Among Us lobby selection
-                }
             }
         }
 
@@ -1894,7 +1476,6 @@
             showNotification('Logged out safely! 👋', 'info');
             currentScreen = 'login';
             document.getElementById('leaderboard').style.display = 'none';
-            // Reset messaging and among if needed
         }
 
         function addAdminButton() {
@@ -2507,792 +2088,48 @@
                     showNotification('Admin mode active! Access the Admin Panel 🔧', 'success');
                 }
             }
-            // Create stars for messaging, if needed
-            const starsContainer = document.createElement('div');
-            starsContainer.className = 'stars';
-            document.body.insertBefore(starsContainer, document.body.firstChild);
-            for (let i = 0; i < 200; i++) {
-                const star = document.createElement('div');
-                star.className = 'star';
-                star.style.left = `${Math.random() * 100}%`;
-                star.style.top = `${Math.random() * 100}%`;
-                const size = Math.random() * 3 + 1;
-                star.style.width = `${size}px`;
-                star.style.height = `${size}px`;
-                star.style.animationDelay = `${Math.random() * 2}s`;
-                star.style.opacity = Math.random() * 0.5 + 0.5;
-                starsContainer.appendChild(star);
-            }
-            // For messaging search
-            const messagingSearchInput = document.getElementById('messaging-userSearch');
-            if (messagingSearchInput) {
-                messagingSearchInput.addEventListener('input', (e) => {
-                    messagingLoadUsers(e.target.value);
-                });
-            }
-            const messagingAdminSearchInput = document.getElementById('messaging-adminUserSearch');
-            if (messagingAdminSearchInput) {
-                messagingAdminSearchInput.addEventListener('input', (e) => {
-                    messagingLoadAdminUsers(e.target.value);
-                });
-            }
-            // Flappy Bird code
-            const cvs = document.getElementById("canvas");
-            const ctx = cvs.getContext("2d");
+        });
 
-            const birdImg = new Image();
-            birdImg.src = "https://raw.githubusercontent.com/Codewithrandom/FlappyBird/main/images/bird.png"; // Assume assets
-            const bgImg = new Image();
-            bgImg.src = "https://raw.githubusercontent.com/Codewithrandom/FlappyBird/main/images/bg.png";
-            const fgImg = new Image();
-            fgImg.src = "https://raw.githubusercontent.com/Codewithrandom/FlappyBird/main/images/fg.png";
-            const pipeNorthImg = new Image();
-            pipeNorthImg.src = "https://raw.githubusercontent.com/Codewithrandom/FlappyBird/main/images/pipeNorth.png";
-            const pipeSouthImg = new Image();
-            pipeSouthImg.src = "https://raw.githubusercontent.com/Codewithrandom/FlappyBird/main/images/pipeSouth.png";
-
-            const flySound = new Audio();
-            flySound.src = "https://raw.githubusercontent.com/Codewithrandom/FlappyBird/main/sounds/fly.mp3";
-            const scorSound = new Audio();
-            scorSound.src = "https://raw.githubusercontent.com/Codewithrandom/FlappyBird/main/sounds/score.mp3";
-
-            let gap = 85;
-            let constant;
-            let bX = 10;
-            let bY = 150;
-            let gravity = 1.5;
-            let score = 0;
-
-            document.addEventListener("keydown", moveUp);
-
-            function moveUp() {
-              bY -= 25;
-              flySound.play();
-            }
-
-            let pipe = [];
-
-            pipe[0] = {
-              x: cvs.width,
-              y: 0,
-            };
-
-            function drawFlappy() {
-              ctx.drawImage(bgImg, 0, 0);
-
-              for (let i = 0; i < pipe.length; i++) {
-                constant = pipeNorthImg.height + gap;
-                ctx.drawImage(pipeNorthImg, pipe[i].x, pipe[i].y);
-                ctx.drawImage(pipeSouthImg, pipe[i].x, pipe[i].y + constant);
-
-                pipe[i].x--;
-
-                if (pipe[i].x == 125) {
-                  pipe.push({
-                    x: cvs.width,
-                    y: Math.floor(Math.random() * pipeNorthImg.height) - pipeNorthImg.height,
-                  });
+        // Enter key for login and chat
+        document.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && currentScreen === 'login') {
+                if (document.getElementById('signup-form').style.display !== 'none') {
+                    signUp();
+                } else {
+                    login();
                 }
-
-                if (
-                  bX + birdImg.width >= pipe[i].x &&
-                  bX <= pipe[i].x + pipeNorthImg.width &&
-                  (bY <= pipe[i].y + pipeNorthImg.height ||
-                    bY + birdImg.height >= pipe[i].y + constant) ||
-                  bY + birdImg.height >= cvs.height - fgImg.height
-                ) {
-                  location.reload();
-                }
-
-                if (pipe[i].x == 5) {
-                  score++;
-                  scorSound.play();
-                }
-              }
-
-              ctx.drawImage(fgImg, 0, cvs.height - fgImg.height);
-
-              ctx.drawImage(birdImg, bX, bY);
-
-              bY += gravity;
-
-              ctx.fillStyle = "#000";
-              ctx.font = "20px Verdana";
-              ctx.fillText("Score : " + score, 10, cvs.height - 20);
-
-              requestAnimationFrame(drawFlappy);
+            } else if (e.key === 'Enter' && document.body.classList.contains('logged-in')) {
+                sendMessage();
             }
+        });
 
-            // Call drawFlappy when flappy screen is shown
-            if (currentScreen === 'flappy') {
-                drawFlappy();
-            }
-
-            // Messaging Code from Chat Hub
-            let messagingCurrentUser = '';
-            let messagingCurrentScreen = 'messaging-dashboard';
-            let messagingIsAdmin = false;
-            let messagingUserDoc = null;
-            let messagingUsersUnsub = null;
-            let messagingAdminUsersUnsub = null;
-            let messagingUserUnsub = null;
-            let messagingPrivateMessagesUnsub = null;
-            let messagingPrivateChatsUnsub = null;
-            let messagingActiveChats = [];
-            let messagingCurrentPrivateChatUser = '';
-            let messagingListeners = {};
-            let messagingUsers = [];
-            let messagingAdminUsers = [];
-            let messagingMediaRecorder = null;
-            
-            const messagingBadWords = ['fuck', 'shit', 'bitch', 'asshole', 'bastard', 'damn', 'cock', 'cunt', 'ass', 'arse', 'bollocks', 'bugger', 'bloody', 'wank', 'piss', 'twat', 'quim', 'nigger', 'fag', 'retard', 'crap', 'pussy', 'dick', 'prick', 'wanker', 'bellend', 'knob', 'tosser'];
-            
-            const messagingEmojis = ['👍', '❤️', '😂', '😢', '😡'];
-
-            function messagingGetChatId(user1, user2) {
-                return [user1, user2].sort().join('_');
-            }
-
-            function messagingCensorText(text) {
-                let censored = text;
-                messagingBadWords.forEach(word => {
-                    const regex = new RegExp(word, 'gi');
-                    censored = censored.replace(regex, '*'.repeat(word.length));
-                });
-                return censored;
-            }
-
-            function messagingContainsBadWord(str) {
-                const lowerStr = str.toLowerCase();
-                return messagingBadWords.some(word => lowerStr.includes(word));
-            }
-
-            async function messagingLoadUserData() {
-                try {
-                    if (!messagingCurrentUser) return;
-                    const userRef = doc(db, 'messagingUsers', messagingCurrentUser);
-                    messagingUserDoc = userRef;
-                    if (messagingUserUnsub) messagingUserUnsub();
-                    messagingUserUnsub = onSnapshot(userRef, (snap) => {
-                        if (snap.exists()) {
-                            const data = snap.data();
-                            if (data.banned) {
-                                showNotification('You are banned! ⚠️', 'error');
-                                logout();
-                                return;
-                            }
-                            messagingActiveChats = data.activeChats || [];
-                            messagingListenToActiveChats();
-                        } else {
-                            showNotification('User data not found! ⚠️', 'error');
-                        }
-                    });
-                    const adminUser = ADMIN_USERS.find(admin => admin.username === messagingCurrentUser);
-                    messagingIsAdmin = !!adminUser;
-                } catch (error) {
-                    console.error('Load user data error:', error);
-                    showNotification('Failed to load user data! ⚠️', 'error');
-                }
-            }
-
-            function messagingListenToActiveChats() {
-                Object.keys(messagingListeners).forEach(key => messagingListeners[key]());
-                messagingListeners = {};
-                messagingActiveChats.forEach(otherUser => {
-                    const chatId = messagingGetChatId(messagingCurrentUser, otherUser);
-                    const q = query(collection(db, `privateMessages/${chatId}/messages`), orderBy('time', 'desc'), limit(1));
-                    messagingListeners[otherUser] = onSnapshot(q, (snap) => {
-                        if (!snap.empty) {
-                            const msg = snap.docs[0].data();
-                            if (msg.username !== messagingCurrentUser) {
-                                showNotification(`New message from ${otherUser}! 💬`, 'success');
-                            }
-                        }
-                    });
-                });
-            }
-
-            function messagingLoadUsers(filter = '') {
-                if (messagingUsersUnsub) messagingUsersUnsub();
-                messagingUsers = [];
-                const usersRef = collection(db, 'messagingUsers');
-                const q = query(usersRef, limit(100));
-                messagingUsersUnsub = onSnapshot(q, (snap) => {
-                    messagingUsers = [];
-                    snap.forEach((d) => {
-                        const data = d.data();
-                        const username = d.id;
-                        if (username !== messagingCurrentUser && (filter === '' || username.toLowerCase().includes(filter.toLowerCase()))) {
-                            messagingUsers.push({ username });
-                        }
-                    });
-                    messagingRenderUsersTable();
-                });
-            }
-
-            function messagingRenderUsersTable() {
-                const tableDiv = document.getElementById('messaging-usersTable');
-                if (messagingUsers.length === 0) {
-                    tableDiv.innerHTML = '<p style="text-align: center; color: #ccc; padding: 20px;">No users found.</p>';
-                    return;
-                }
-                let html = '<table>';
-                html += '<tr><th>Username</th><th>Action</th></tr>';
-                messagingUsers.forEach(user => {
-                    html += `<tr><td>${user.username}</td><td><button class="btn" onclick="messagingOpenPrivateChat('${user.username}')">Message 💬</button></td></tr>`;
-                });
-                html += '</table>';
-                tableDiv.innerHTML = html;
-            }
-
-            function messagingLoadAdminUsers(filter = '') {
-                if (messagingAdminUsersUnsub) messagingAdminUsersUnsub();
-                messagingAdminUsers = [];
-                const usersRef = collection(db, 'messagingUsers');
-                const q = query(usersRef, limit(100));
-                messagingAdminUsersUnsub = onSnapshot(q, (snap) => {
-                    messagingAdminUsers = [];
-                    snap.forEach((d) => {
-                        const data = d.data();
-                        const username = d.id;
-                        if (filter === '' || username.toLowerCase().includes(filter.toLowerCase())) {
-                            messagingAdminUsers.push({ username, banned: data.banned || false });
-                        }
-                    });
-                    messagingRenderAdminUsersTable();
-                });
-            }
-
-            function messagingRenderAdminUsersTable() {
-                const tableDiv = document.getElementById('messaging-adminUsersTable');
-                if (messagingAdminUsers.length === 0) {
-                    tableDiv.innerHTML = '<p style="text-align: center; color: #ccc; padding: 20px;">No users found.</p>';
-                    return;
-                }
-                let html = '<table>';
-                html += '<tr><th>Username</th><th>Banned</th></tr>';
-                messagingAdminUsers.forEach(user => {
-                    html += `<tr><td>${user.username}</td><td>${user.banned ? 'Yes' : 'No'}</td></tr>`;
-                });
-                html += '</table>';
-                tableDiv.innerHTML = html;
-            }
-
-            function messagingLoadPrivateChats() {
-                if (messagingPrivateChatsUnsub) messagingPrivateChatsUnsub();
-                const chatsList = document.getElementById('messaging-private-chats-list');
-                chatsList.innerHTML = '';
-                messagingPrivateChatsUnsub = onSnapshot(collection(db, 'privateMessages'), (snap) => {
-                    chatsList.innerHTML = '';
-                    snap.forEach((d) => {
-                        const chatId = d.id;
-                        const [user1, user2] = chatId.split('_');
-                        const item = document.createElement('div');
-                        item.className = 'leaderboard-item';
-                        item.innerHTML = `<span>Chat between ${user1} and ${user2}</span><button class="btn" onclick="messagingViewPrivateChat('${chatId}')">View 👀</button>`;
-                        chatsList.appendChild(item);
-                    });
-                });
-            }
-
-            function messagingViewPrivateChat(chatId) {
-                if (messagingPrivateMessagesUnsub) messagingPrivateMessagesUnsub();
-                const viewDiv = document.getElementById('messaging-private-chat-view');
-                viewDiv.style.display = 'block';
-                viewDiv.innerHTML = '';
-                const q = query(collection(db, `privateMessages/${chatId}/messages`), orderBy('time', 'asc'));
-                messagingPrivateMessagesUnsub = onSnapshot(q, (snapshot) => {
-                    viewDiv.innerHTML = '';
-                    snapshot.forEach((doc) => {
-                        const data = doc.data();
-                        const div = document.createElement('div');
-                        div.className = 'message';
-                        let content = `<small>${new Date(data.time.toDate()).toLocaleTimeString()} - ${data.username}</small><br>`;
-                        if (data.text) content += data.text;
-                        if (data.imageUrl) content += `<br><img src="${data.imageUrl}" alt="Image">`;
-                        if (data.audioUrl) content += `<br><audio controls src="${data.audioUrl}"></audio>`;
-                        div.innerHTML = content;
-                        viewDiv.appendChild(div);
-                    });
-                    viewDiv.scrollTop = viewDiv.scrollHeight;
-                });
-            }
-
-            async function messagingOpenPrivateChat(otherUser) {
-                messagingCurrentPrivateChatUser = otherUser;
-                document.getElementById('messaging-chat-with').textContent = otherUser;
-                messagingShowScreen('messaging-private-chat');
-                const chatId = messagingGetChatId(messagingCurrentUser, otherUser);
-                if (!messagingActiveChats.includes(otherUser)) {
-                    await updateDoc(messagingUserDoc, { activeChats: firebase.firestore.FieldValue.arrayUnion(otherUser) });
-                    const otherRef = doc(db, 'messagingUsers', otherUser);
-                    await updateDoc(otherRef, { activeChats: firebase.firestore.FieldValue.arrayUnion(messagingCurrentUser) });
-                    messagingActiveChats.push(otherUser);
-                    messagingListenToActiveChats();
-                }
-                messagingLoadPrivateMessages(chatId);
-            }
-
-            function messagingLoadPrivateMessages(chatId) {
-                if (messagingPrivateMessagesUnsub) messagingPrivateMessagesUnsub();
-                const messagesDiv = document.getElementById('messaging-private-messages');
-                messagesDiv.innerHTML = '';
-                const q = query(collection(db, `privateMessages/${chatId}/messages`), orderBy('time', 'asc'), limit(50));
-                messagingPrivateMessagesUnsub = onSnapshot(q, (snapshot) => {
-                    messagesDiv.innerHTML = '';
-                    snapshot.forEach((d) => {
-                        const data = d.data();
-                        const div = document.createElement('div');
-                        div.className = 'message';
-                        let content = `<small>${new Date(data.time.toDate()).toLocaleTimeString()} - ${data.username}</small><br>`;
-                        if (data.text) content += data.text;
-                        if (data.imageUrl) content += `<br><img src="${data.imageUrl}" alt="Image">`;
-                        if (data.audioUrl) content += `<br><audio controls src="${data.audioUrl}"></audio>`;
-                        div.innerHTML = content;
-                        const reactionsDiv = document.createElement('div');
-                        reactionsDiv.className = 'reactions';
-                        messagingEmojis.forEach(emoji => {
-                            const span = document.createElement('span');
-                            span.className = 'reaction';
-                            span.textContent = emoji;
-                            span.onclick = () => messagingReactToMessage(d.id, emoji, chatId);
-                            reactionsDiv.appendChild(span);
-                        });
-                        const existingReactions = document.createElement('div');
-                        if (data.reactions) {
-                            data.reactions.forEach(r => {
-                                const rSpan = document.createElement('span');
-                                rSpan.textContent = `${r.emoji} ${r.count}`;
-                                existingReactions.appendChild(rSpan);
-                            });
-                        }
-                        div.appendChild(reactionsDiv);
-                        div.appendChild(existingReactions);
-                        messagesDiv.appendChild(div);
-                    });
-                    messagesDiv.scrollTop = messagesDiv.scrollHeight;
-                });
-            }
-
-            async function messagingReactToMessage(messageId, emoji, chatId) {
-                const msgRef = doc(db, `privateMessages/${chatId}/messages/${messageId}`);
-                const msgSnap = await getDoc(msgRef);
-                if (msgSnap.exists()) {
-                    let reactions = msgSnap.data().reactions || [];
-                    const existing = reactions.find(r => r.emoji === emoji);
-                    if (existing) {
-                        existing.count++;
-                    } else {
-                        reactions.push({emoji, count: 1});
-                    }
-                    await updateDoc(msgRef, { reactions });
-                }
-            }
-
-            async function messagingSendPrivateMessage() {
-                const input = document.getElementById('messaging-private-chat-input');
-                let text = input.value.trim();
-                if (!text || !messagingCurrentUser || !messagingCurrentPrivateChatUser) return;
-                text = messagingCensorText(text);
-                const chatId = messagingGetChatId(messagingCurrentUser, messagingCurrentPrivateChatUser);
-                const messagesRef = collection(db, `privateMessages/${chatId}/messages`);
-                await addDoc(messagesRef, {
-                    text,
-                    username: messagingCurrentUser,
-                    time: new Date(),
-                    reactions: []
-                });
-                input.value = '';
-            }
-
-            async function messagingSendImageMessage() {
-                const input = document.getElementById('messaging-image-upload');
-                const file = input.files[0];
-                if (!file || !messagingCurrentUser || !messagingCurrentPrivateChatUser) return;
-                const chatId = messagingGetChatId(messagingCurrentUser, messagingCurrentPrivateChatUser);
-                const storageRef = ref(storage, `images/${chatId}/${Date.now()}_${file.name}`);
-                try {
-                    const snapshot = await uploadBytes(storageRef, file);
-                    const imageUrl = await getDownloadURL(snapshot.ref);
-                    const messagesRef = collection(db, `privateMessages/${chatId}/messages`);
-                    await addDoc(messagesRef, {
-                        imageUrl,
-                        username: messagingCurrentUser,
-                        time: new Date(),
-                        reactions: []
-                    });
-                    input.value = '';
-                } catch (error) {
-                    console.error('Image upload error:', error);
-                    showNotification('Failed to upload image! ⚠️', 'error');
-                }
-            }
-
-            async function messagingStartVoiceRecording() {
-                if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-                    showNotification('Voice recording not supported! ⚠️', 'error');
-                    return;
-                }
-                try {
-                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                    messagingMediaRecorder = new MediaRecorder(stream);
-                    const chunks = [];
-                    messagingMediaRecorder.ondataavailable = e => chunks.push(e.data);
-                    messagingMediaRecorder.onstop = async () => {
-                        const blob = new Blob(chunks, { type: 'audio/webm' });
-                        const chatId = messagingGetChatId(messagingCurrentUser, messagingCurrentPrivateChatUser);
-                        const storageRef = ref(storage, `audio/${chatId}/${Date.now()}.webm`);
-                        try {
-                            const snapshot = await uploadBytes(storageRef, blob);
-                            const audioUrl = await getDownloadURL(snapshot.ref);
-                            const messagesRef = collection(db, `privateMessages/${chatId}/messages`);
-                            await addDoc(messagesRef, {
-                                audioUrl,
-                                username: messagingCurrentUser,
-                                time: new Date(),
-                                reactions: []
-                            });
-                        } catch (error) {
-                            console.error('Audio upload error:', error);
-                            showNotification('Failed to upload audio! ⚠️', 'error');
-                        }
-                    };
-                    messagingMediaRecorder.start();
-                    showNotification('Recording started! 🎤 Click again to stop.', 'success');
-                    document.querySelector('#messaging-private-chat-input-container .media-btn[onclick="messagingStartVoiceRecording()"]').onclick = messagingStopVoiceRecording;
-                } catch (error) {
-                    console.error('Voice recording error:', error);
-                    showNotification('Failed to start recording! ⚠️', 'error');
-                }
-            }
-
-            function messagingStopVoiceRecording() {
-                if (messagingMediaRecorder) {
-                    messagingMediaRecorder.stop();
-                    messagingMediaRecorder.stream.getTracks().forEach(track => track.stop());
-                    showNotification('Recording stopped! 🎤', 'success');
-                    document.querySelector('#messaging-private-chat-input-container .media-btn[onclick="messagingStopVoiceRecording()"]').onclick = messagingStartVoiceRecording;
-                }
-            }
-
-            function messagingClosePrivateChat() {
-                if (messagingPrivateMessagesUnsub) messagingPrivateMessagesUnsub();
-                messagingCurrentPrivateChatUser = '';
-                messagingShowScreen('messaging-dashboard');
-            }
-
-            async function messagingDoDelete() {
-                const user = document.getElementById('messaging-selectedUser').value.trim();
-                if (!user) {
-                    showNotification('Invalid input! ⚠️', 'error');
-                    return;
-                }
-                if (user === messagingCurrentUser) {
-                    showNotification('Cannot delete your own account! ⚠️', 'error');
-                    return;
-                }
-                const userRef = doc(db, 'messagingUsers', user);
-                const userSnap = await getDoc(userRef);
-                if (!userSnap.exists()) {
-                    showNotification('User not found! ⚠️', 'error');
-                    return;
-                }
-                await deleteDoc(userRef);
-                showNotification(`Deleted user ${user}! 🗑️`, 'success');
-                document.getElementById('messaging-selectedUser').value = '';
-                messagingLoadAdminUsers(document.getElementById('messaging-adminUserSearch').value);
-            }
-
-            async function messagingDoBan() {
-                const user = document.getElementById('messaging-selectedUser').value.trim();
-                if (!user) {
-                    showNotification('Invalid input! ⚠️', 'error');
-                    return;
-                }
-                if (user === messagingCurrentUser) {
-                    showNotification('Cannot ban your own account! ⚠️', 'error');
-                    return;
-                }
-                const userRef = doc(db, 'messagingUsers', user);
-                const userSnap = await getDoc(userRef);
-                if (!userSnap.exists()) {
-                    showNotification('User not found! ⚠️', 'error');
-                    return;
-                }
-                await updateDoc(userRef, { banned: true });
-                showNotification(`Banned user ${user}! 🚫`, 'success');
-                document.getElementById('messaging-selectedUser').value = '';
-                messagingLoadAdminUsers(document.getElementById('messaging-adminUserSearch').value);
-            }
-
-            async function messagingDoUnban() {
-                const user = document.getElementById('messaging-selectedUser').value.trim();
-                if (!user) {
-                    showNotification('Invalid input! ⚠️', 'error');
-                    return;
-                }
-                const userRef = doc(db, 'messagingUsers', user);
-                const userSnap = await getDoc(userRef);
-                if (!userSnap.exists()) {
-                    showNotification('User not found! ⚠️', 'error');
-                    return;
-                }
-                await updateDoc(userRef, { banned: false });
-                showNotification(`Unbanned user ${user}! ✅`, 'success');
-                document.getElementById('messaging-selectedUser').value = '';
-                messagingLoadAdminUsers(document.getElementById('messaging-adminUserSearch').value);
-            }
-
-            function messagingShowScreen(screen) {
-                document.querySelectorAll('.messaging-screen').forEach(s => {
-                    s.classList.remove('visible');
-                    s.classList.add('hidden');
-                });
-                const target = document.getElementById(`${screen}`) || document.getElementById(screen);
-                if (target) {
-                    target.classList.remove('hidden');
-                    target.classList.add('visible');
-                    messagingCurrentScreen = screen;
-                    if (screen !== 'login') {
-                        if (screen === 'messaging-dashboard') {
-                            messagingLoadUsers('');
-                        }
-                    }
-                    if (screen === 'messaging-admin') {
-                        messagingLoadAdminUsers('');
-                        messagingLoadPrivateChats();
-                    }
-                }
-            }
-
-            // Among Us Code
-            let amongPlayerId = '';
-            let amongPlayers = {};
-            let amongCoins = {};
-            let amongPlayerElements = {};
-            let amongCoinElements = {};
-            let amongLastProcessedInput = 0;
-
-            const amongPlayerColors = ['red', 'orange', 'yellow', 'green', 'purple'];
-            const amongCoinTimeouts = [2, 3, 4, 5];
-            const amongMapData = { // Define your map blocked spaces, min/max x/y
-                minX: 0,
-                minY: 0,
-                maxX: 20, // Example grid
-                maxY: 15,
-                blockedSpaces: {
-                    '5x5': true, // Example blocked
-                    // Add more
-                }
-            };
-            const amongGridSize = 48; // Example 16px * 3 scale
-
-            function amongCreateName() {
-                const prefix = randomFromArray([
-                    'cool',
-                    'super',
-                    'awesome',
-                    'brave',
-                    'crazy'
-                ]);
-                const animal = randomFromArray([
-                    'cat',
-                    'dog',
-                    'fox',
-                    'monkey',
-                    'lion'
-                ]);
-                return `${prefix} ${animal}`;
-            }
-
-            function randomFromArray(array) {
-                return array[Math.floor(Math.random() * array.length)];
-            }
-
-            function getKeyString(x, y) {
-                return `${x}x${y}`;
-            }
-
-            function getRandomSafeSpot() {
-                let x = Math.floor(Math.random() * (amongMapData.maxX - amongMapData.minX + 1)) + amongMapData.minX;
-                let y = Math.floor(Math.random() * (amongMapData.maxY - amongMapData.minY + 1)) + amongMapData.minY;
-                while (amongMapData.blockedSpaces[getKeyString(x, y)]) {
-                    x = Math.floor(Math.random() * (amongMapData.maxX - amongMapData.minX + 1)) + amongMapData.minX;
-                    y = Math.floor(Math.random() * (amongMapData.maxY - amongMapData.minY + 1)) + amongMapData.minY;
-                }
-                return { x, y };
-            }
-
-            function isSolid(x, y) {
-                const blockedNextSpace = amongMapData.blockedSpaces[getKeyString(x, y)];
-                return (
-                    blockedNextSpace ||
-                    x >= amongMapData.maxX ||
-                    x < amongMapData.minX ||
-                    y >= amongMapData.maxY ||
-                    y < amongMapData.minY
-                );
-            }
-
-            function amongKeypressListener(keyCode, callback) {
-                let lastKeyDownTime = 0;
-                document.addEventListener('keydown', (e) => {
-                    if (e.keyCode === keyCode) {
-                        const now = Date.now();
-                        if (now - lastKeyDownTime > 100) { // Debounce
-                            callback();
-                            lastKeyDownTime = now;
-                        }
-                    }
-                });
-            }
-
-            function handleArrowPress(xChange = 0, yChange = 0) {
-                const newX = amongPlayers[amongPlayerId].x + xChange;
-                const newY = amongPlayers[amongPlayers[amongPlayerId].y + yChange;
-                if (!isSolid(newX, newY)) {
-                    amongPlayers[amongPlayerId].x = newX;
-                    amongPlayers[amongPlayerId].y = newY;
-                    if (xChange === 1) {
-                        amongPlayers[amongPlayerId].direction = 'right';
-                    }
-                    if (xChange === -1) {
-                        amongPlayers[amongPlayerId].direction = 'left';
-                    }
-                    amongAttemptGrabCoin(newX, newY);
-                    set(ref(realtimeDb, `players/${amongPlayerId}`), amongPlayers[amongPlayerId]);
-                }
-            }
-
-            function amongAttemptGrabCoin(x, y) {
-                const key = getKeyString(x, y);
-                if (amongCoins[key]) {
-                    remove(ref(realtimeDb, `coins/${key}`));
-                    amongPlayers[amongPlayerId].coins += 1;
-                    set(ref(realtimeDb, `players/${amongPlayerId}/coins`), amongPlayers[amongPlayerId].coins);
-                }
-            }
-
-            function amongPlaceCoin() {
-                const { x, y } = getRandomSafeSpot();
-                const coinRef = ref(realtimeDb, `coins/${getKeyString(x, y)}`);
-                set(coinRef, { x, y });
-                const duration = randomFromArray(amongCoinTimeouts) * 1000;
-                setTimeout(amongPlaceCoin, duration);
-            }
-
-            function joinRoom() {
-                const roomName = document.getElementById('room-name').value.trim();
-                if (!roomName) {
-                    showNotification('Enter a room name!', 'error');
-                    return;
-                }
-                amongCurrentRoom = roomName;
-                // Use roomName in paths, e.g., 'rooms/' + roomName + '/players'
-                amongInitGame();
-            }
-
-            function amongInitGame() {
-                onAuthStateChanged(auth, (user) => {
-                    if (user) {
-                        amongPlayerId = user.uid;
-                        const playerRef = ref(realtimeDb, `rooms/${amongCurrentRoom}/players/${amongPlayerId}`);
-                        const defaultPlayer = {
-                            id: amongPlayerId,
-                            name: amongCreateName(),
-                            direction: 'right',
-                            color: randomFromArray(amongPlayerColors),
-                            x: 3,
-                            y: 3,
-                            coins: 0,
-                        };
-                        set(playerRef, defaultPlayer);
-                        onValue(playerRef, (snapshot) => {
-                            amongPlayers[amongPlayerId] = snapshot.val();
-                        });
-                        onValue(ref(realtimeDb, `rooms/${amongCurrentRoom}/players`), (snapshot) => {
-                            const players = snapshot.val() || {};
-                            Object.keys(players).forEach((key) => {
-                                const characterState = players[key];
-                                let el = amongPlayerElements[key];
-                                if (!el) {
-                                    el = document.createElement('div');
-                                    el.classList.add('character', 'grid-cell');
-                                    if (characterState.id === amongPlayerId) {
-                                        el.classList.add('you');
-                                    }
-                                    el.innerHTML = `
-                                        <div class="character-shadow grid-cell"></div>
-                                        <div class="character-sprite grid-cell"></div>
-                                        <div class="character-name-container">
-                                            <span class="character-name"></span>
-                                            <span class="character-coins">0</span>
-                                        </div>
-                                        <div class="character-you-arrow"></div>
-                                    `;
-                                    document.getElementById('among-container').appendChild(el);
-                                    amongPlayerElements[key] = el;
-                                }
-                                el.querySelector('.character-name').innerText = characterState.name;
-                                el.querySelector('.character-coins').innerText = characterState.coins;
-                                el.setAttribute('data-color', characterState.color);
-                                el.setAttribute('data-direction', characterState.direction);
-                                const left = amongGridSize * characterState.x + 'px';
-                                const top = amongGridSize * characterState.y - 4 + 'px';
-                                el.style.transform = `translate3d(${left}, ${top}, 0)`;
-                            });
-                            // Remove disconnected players
-                            Object.keys(amongPlayerElements).forEach((key) => {
-                                if (!players[key]) {
-                                    amongPlayerElements[key].parentNode.removeChild(amongPlayerElements[key]);
-                                    delete amongPlayerElements[key];
-                                }
-                            });
-                        });
-                        onChildAdded(ref(realtimeDb, `rooms/${amongCurrentRoom}/coins`), (snapshot) => {
-                            const coin = snapshot.val();
-                            const key = getKeyString(coin.x, coin.y);
-                            const coinEl = document.createElement('div');
-                            coinEl.classList.add('coin', 'grid-cell');
-                            coinEl.innerHTML = `
-                                <div class="coin-shadow grid-cell"></div>
-                                <div class="coin-sprite grid-cell"></div>
-                            `;
-                            const left = amongGridSize * coin.x + 'px';
-                            const top = amongGridSize * coin.y - 4 + 'px';
-                            coinEl.style.transform = `translate3d(${left}, ${top}, 0)`;
-                            document.getElementById('among-container').appendChild(coinEl);
-                            amongCoinElements[key] = coinEl;
-                        });
-                        onChildRemoved(ref(realtimeDb, `rooms/${amongCurrentRoom}/coins`), (snapshot) => {
-                            const coin = snapshot.val();
-                            const key = getKeyString(coin.x, coin.y);
-                            amongCoinElements[key].parentNode.removeChild(amongCoinElements[key]);
-                            delete amongCoinElements[key];
-                        });
-                        amongPlaceCoin();
-                        amongKeypressListener(38, () => handleArrowPress(0, -1));  // Up
-                        amongKeypressListener(40, () => handleArrowPress(0, 1));   // Down
-                        amongKeypressListener(37, () => handleArrowPress(-1, 0));  // Left
-                        amongKeypressListener(39, () => handleArrowPress(1, 0));   // Right
-                    } else {
-                        signInAnonymously(auth);
-                    }
-                });
-            }
-
-            // Enter key for login and chat
-            document.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter' && currentScreen === 'login') {
-                    if (document.getElementById('signup-form').style.display !== 'none') {
-                        signUp();
-                    } else {
-                        login();
-                    }
-                } else if (e.key === 'Enter' && document.body.classList.contains('logged-in')) {
-                    sendMessage();
-                }
-            });
+        // Expose functions to global scope for onclick handlers
+        window.setMode = setMode;
+        window.login = login;
+        window.signUp = signUp;
+        window.sendMessage = sendMessage;
+        window.showLeaderboard = showLeaderboard;
+        window.deposit = deposit;
+        window.withdraw = withdraw;
+        window.logout = logout;
+        window.showScreen = showScreen;
+        window.showComingSoon = showComingSoon;
+        window.downloadLog = downloadLog;
+        window.loadUsers = loadUsers;
+        window.doDeposit = doDeposit;
+        window.doWithdraw = doWithdraw;
+        window.doDelete = doDelete;
+        window.showAdminLogs = showAdminLogs;
+        window.startMines = startMines;
+        window.playDice = playDice;
+        window.startTowers = startTowers;
+        window.playBlackjack = playBlackjack;
+        window.bjHit = bjHit;
+        window.bjStand = bjStand;
+        window.betOnCrash = betOnCrash;
+        window.cashOutCrash = cashOutCrash;
+        window.cashOutMines = cashOutMines;
+        window.cashOutTowers = cashOutTowers;
     </script>
 </body>
 </html>
