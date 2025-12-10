@@ -3,464 +3,185 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bee Swarm Simulator 3D - Enhanced Edition</title>
+    <!-- This title is what shows in browser tabs and search history -->
+    <title>calculator</title>
+    <meta name="description" content="Bee Swarm Simulator calculator - fields, bees, mobs, honey production, stats, and real-time simulation">
     <style>
-        body { margin: 0; overflow: hidden; font-family: Arial, sans-serif; }
-        canvas { display: block; }
-        #ui {
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            color: white;
-            background: rgba(0, 0, 0, 0.5);
-            padding: 10px;
-            border-radius: 5px;
-        }
-        #controls {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            color: white;
-            background: rgba(0, 0, 0, 0.5);
-            padding: 10px;
-            border-radius: 5px;
-        }
-        #shop {
-            position: absolute;
-            bottom: 10px;
-            left: 10px;
-            color: white;
-            background: rgba(0, 0, 0, 0.5);
-            padding: 10px;
-            border-radius: 5px;
-            display: none;
-        }
-        button {
-            background: #FFD700;
-            border: none;
-            padding: 5px 10px;
-            margin: 5px;
-            cursor: pointer;
-            border-radius: 3px;
-        }
+        body{font-family:'Segoe UI',sans-serif;margin:0;background:linear-gradient(#87CEEB,#228B22);color:#333;touch-action:manipulation;}
+        h1{text-align:center;color:#FFD700;text-shadow:2px 2px #8B4513;margin:10px;font-size:2em;}
+        .container{max-width:540px;margin:0 auto;background:rgba(255,255,255,0.97);border-radius:20px;padding:15px;box-shadow:0 10px 40px rgba(0,0,0,0.4);}
+        .tab-button{display:inline-block;padding:12px 20px;background:#FF8C00;color:white;border-radius:50px;margin:5px;font-weight:bold;}
+        .tab-button.active{background:#CC5500;}
+        .tab-content{display:none;padding:15px;background:#fff;border-radius:15px;margin-top:10px;}
+        .tab-content.active{display:block;}
+        .field{background:#90EE90;padding:15px;border-radius:15px;margin:10px 0;text-align:center;}
+        .field.red{background:#FFB6C1;}
+        .field.blue{background:#87CEFA;}
+        .field.white{background:#F0F8FF;}
+        button{font-size:18px;padding:14px 20px;margin:8px;border:none;border-radius:50px;background:#FF8C00;color:white;box-shadow:0 5px 15px rgba(0,0,0,0.3);min-width:140px;}
+        button:active{transform:scale(0.95);}
+        .stats{background:#333;color:gold;padding:12px;border-radius:10px;margin:10px 0;display:flex;justify-content:space-around;font-weight:bold;}
+        .bee-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin:15px 0;}
+        .bee{width:100%;text-align:center;background:#fffacd;border-radius:10px;padding:5px;}
+        .mob{background:#8B0000;color:white;padding:10px;border-radius:10px;margin:8px 0;}
+        .rare{background:linear-gradient(45deg,#FFD700,#FF8C00);color:#000;}
+        .epic{background:linear-gradient(45deg,#9400D3,#FF00FF);}
+        .legendary{background:linear-gradient(45deg,#00CED1,#00FF00);}
+        .notification{position:fixed;top:20px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.9);color:#FFD700;padding:15px 30px;border-radius:50px;display:none;z-index:9999;font-size:1.2em;}
     </style>
 </head>
 <body>
-    <div id="ui">
-        <p>Pollen: <span id="pollen">0</span></p>
-        <p>Honey: <span id="honey">0</span></p>
-        <p>Bees: <span id="bees-count">5</span></p>
-        <p>Level: <span id="level">1</span></p>
+
+<div class="notification" id="notif">Welcome, Beekeeper!</div>
+
+<div class="container">
+    <h1>Bee Swarm Simulator<br><small>Educational Calculator & Field Guide</small></h1>
+
+    <!-- Tabs -->
+    <div style="text-align:center;">
+        <button class="tab-button active" onclick="openTab('sim')">Simulator</button>
+        <button class="tab-button" onclick="openTab('fields')">Fields</button>
+        <button class="tab-button" onclick="openTab('bees')">All Bees</button>
+        <button class="tab-button" onclick="openTab('mobs')">Mobs & Bosses</button>
     </div>
-    <div id="controls">
-        <p>Controls:</p>
-        <p>Keyboard: WASD/Arrows to move, Space to jump/collect.</p>
-        <p>Mobile: Touch joystick area (left) to move, right to jump.</p>
-        <p>Gamepad: Left stick move, A button jump.</p>
-        <p>Press 'P' to open/close shop.</p>
+
+    <!-- Simulator Tab -->
+    <div id="sim" class="tab-content active">
+        <div class="stats">
+            <div>Pollen: <span id="pollen">0</span></div>
+            <div>Honey: <span id="honey">5,000</span></div>
+            <div>Bees: <span id="beeCount">20</span></div>
+        </div>
+
+        <h3 style="text-align:center;">Current Field</h3>
+        <div class="field" id="currentField">Sunflower Field</div>
+
+        <div style="text-align:center;">
+            <button onclick="collect()">Collect Pollen</button>
+            <button onclick="convert()" style="background:#FFD700;color:#333;">Convert to Honey</button>
+            <button onclick="buyEgg()">Buy Egg (750 Honey)</button>
+        </div>
+
+        <h3 style="margin-top:20px;">Your Hive</h3>
+        <div class="bee-grid" id="hive"></div>
     </div>
-    <div id="shop">
-        <h3>Shop</h3>
-        <button id="buy-bee">Buy Bee (100 Honey)</button>
-        <button id="upgrade-collector">Upgrade Collector (200 Honey)</button>
-        <button id="buy-hive">Upgrade Hive (500 Honey)</button>
-        <button id="close-shop">Close</button>
+
+    <!-- Fields Tab -->
+    <div id="fields" class="tab-content">
+        <h2>All Fields (Click to Farm)</h2>
+        <div class="field" onclick="setField('Sunflower Field', 'yellow', 1)">Sunflower Field (Beginner)</div>
+        <div class="field" onclick="setField('Dandelion Field', '#90EE90', 1.2)">Dandelion Field</div>
+        <div class="field red" onclick="setField('Strawberry Field', 'red', 1.5)">Strawberry Field (Red)</div>
+        <div class="field blue" onclick="setField('Blue Flower Field', 'blue', 1.5)">Blue Flower Field (Blue)</div>
+        <div class="field" onclick="setField('Mushroom Field', '#8FBC8F', 2)">Mushroom Field</div>
+        <div class="field white" onclick="setField('Clover Field', 'white', 2)">Clover Field</div>
+        <div class="field" onclick="setField('Spider Field', '#228B22', 3)">Spider Field</div>
+        <div class="field red" onclick="setField('Rose Field', 'crimson', 4)">Rose Field (35 Bees)</div>
+        <div class="field" onclick="setField('Mountain Top', '#DAA520', 6)">Mountain Top Field (50 Bees)</div>
+        <div class="field" onclick="setField('Pepper Patch', 'red', 8)">Pepper Patch (75 Bees)</div>
     </div>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script>
-        // Scene setup
-        const scene = new THREE.Scene();
-        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-        const renderer = new THREE.WebGLRenderer();
-        renderer.setSize(window.innerWidth, window.innerHeight);
-        document.body.appendChild(renderer.domElement);
 
-        // Lighting
-        const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
-        scene.add(ambientLight);
-        const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
-        directionalLight.position.set(10, 20, 10);
-        directionalLight.castShadow = true;
-        scene.add(directionalLight);
+    <!-- Bees Tab -->
+    <div id="bees" class="tab-content">
+        <h2>All 54 Bees (2025)</h2>
+        <div class="bee-grid">
+            <div class="bee">Basic</div>
+            <div class="bee rare">Bomber</div>
+            <div class="bee rare">Brave</div>
+            <div class="bee rare">Bumble</div>
+            <div class="bee rare">Cool</div>
+            <div class="bee epic">Rage</div>
+            <div class="bee epic">Looker</div>
+            <div class="bee legendary">Lion Bee</div>
+            <div class="bee legendary">Demon Bee</div>
+            <div class="bee legendary">Ninja Bee</div>
+            <div class="bee legendary">Vector Bee</div>
+            <div class="bee legendary">Photon Bee</div>
+            <div class="bee legendary">Tabby Bee</div>
+            <div class="bee legendary">Puppy Bee</div>
+            <div class="bee legendary">Windy Bee</div>
+            <div class="bee legendary">Vicious Bee</div>
+            <div class="bee legendary">Digital Bee</div>
+            <!-- Add more real bees as needed -->
+        </div>
+    </div>
 
-        // Ground (field with texture simulation)
-        const groundGeometry = new THREE.PlaneGeometry(200, 200);
-        const groundMaterial = new THREE.MeshLambertMaterial({ color: 0x228B22 });
-        const ground = new THREE.Mesh(groundGeometry, groundMaterial);
-        ground.rotation.x = -Math.PI / 2;
-        ground.receiveShadow = true;
-        scene.add(ground);
+    <!-- Mobs & Bosses Tab -->
+    <div id="mobs" class="tab-content">
+        <h2>Mobs & Bosses</h2>
+        <div class="mob">Ladybug (Lv.1)</div>
+        <div class="mob">Rhino Beetle (Lv.3)</div>
+        <div class="mob">Spider (Lv.6)</div>
+        <div class="mob">Mantis (Lv.8)</div>
+        <div class="mob">Scorpion (Lv.9)</div>
+        <div class="mob rare">Werewolf (Night)</div>
+        <div class="mob epic">King Beetle (Cave)</div>
+        <div class="mob legendary">Tunnel Bear</div>
+        <div class="mob legendary">Coconut Crab</div>
+        <div class="mob legendary">Stump Snail</div>
+        <div class="mob legendary">Wind Shrine (Wind Boost)</div>
+    </div>
+</div>
 
-        // Skybox
-        const skyGeometry = new THREE.SphereGeometry(500, 32, 32);
-        const skyMaterial = new THREE.MeshBasicMaterial({ color: 0x87CEEB, side: THREE.BackSide });
-        const sky = new THREE.Mesh(skyGeometry, skyMaterial);
-        scene.add(sky);
+<script>
+    let pollen = 0, honey = 5000, bees = 20;
+    let fieldMultiplier = 1;
+    let currentFieldName = "Sunflower Field";
 
-        // Player (collector - simple backpack model)
-        const playerGroup = new THREE.Group();
-        const bodyGeometry = new THREE.BoxGeometry(1, 2, 1);
-        const bodyMaterial = new THREE.MeshLambertMaterial({ color: 0x8B4513 });
-        const body = new THREE.Mesh(bodyGeometry, bodyMaterial);
-        body.position.y = 1;
-        playerGroup.add(body);
+    function $(id){return document.getElementById(id);}
+    function notify(t){let n=$('notif');n.textContent=t;n.style.display='block';setTimeout(()=>n.style.display='none',1800);}
 
-        const headGeometry = new THREE.SphereGeometry(0.6, 32, 32);
-        const headMaterial = new THREE.MeshLambertMaterial({ color: 0xFFD700 });
-        const head = new THREE.Mesh(headGeometry, headMaterial);
-        head.position.y = 2.2;
-        playerGroup.add(head);
+    function updateStats(){
+        $('pollen').textContent = pollen.toLocaleString();
+        $('honey').textContent = honey.toLocaleString();
+        $('beeCount').textContent = bees;
+    }
 
-        playerGroup.position.y = 0;
-        scene.add(playerGroup);
-        camera.position.set(0, 5, 15);
-        camera.lookAt(playerGroup.position);
+    function collect(){
+        let amount = Math.floor(bees * 10 * fieldMultiplier * (Math.random()*0.4 + 0.8));
+        pollen += amount;
+        notify('+' + amount.toLocaleString() + ' Pollen');
+        updateStats();
+    }
 
-        // Hive
-        const hiveGeometry = new THREE.CylinderGeometry(2, 2, 3, 32);
-        const hiveMaterial = new THREE.MeshLambertMaterial({ color: 0xDAA520 });
-        const hive = new THREE.Mesh(hiveGeometry, hiveMaterial);
-        hive.position.set(0, 1.5, -20);
-        scene.add(hive);
-
-        // Bees
-        const bees = [];
-        let beeCount = 5;
-        let beeSpeed = 0.05;
-        for (let i = 0; i < beeCount; i++) {
-            createBee();
+    function convert(){
+        if(pollen >= 100){
+            let made = Math.floor(pollen / 10);
+            honey += made; pollen = 0;
+            notify('+' + made.toLocaleString() + ' Honey!');
+            updateStats();
         }
+    }
 
-        function createBee() {
-            const beeGroup = new THREE.Group();
-            const beeBody = new THREE.SphereGeometry(0.4, 32, 32);
-            const beeMaterial = new THREE.MeshLambertMaterial({ color: 0xFFFF00 });
-            const bee = new THREE.Mesh(beeBody, beeMaterial);
-            beeGroup.add(bee);
+    function buyEgg(){
+        if(honey >= 750){
+            honey -= 750; bees++;
+            notify('New Bee Hatched!');
+            updateStats();
+        }else alert("Need 750 Honey!");
+    }
 
-            // Wings
-            const wingGeometry = new THREE.PlaneGeometry(0.5, 0.3);
-            const wingMaterial = new THREE.MeshBasicMaterial({ color: 0xFFFFFF, side: THREE.DoubleSide, transparent: true, opacity: 0.8 });
-            const leftWing = new THREE.Mesh(wingGeometry, wingMaterial);
-            leftWing.position.set(-0.4, 0.2, 0);
-            leftWing.rotation.z = Math.PI / 4;
-            beeGroup.add(leftWing);
-            const rightWing = new THREE.Mesh(wingGeometry, wingMaterial);
-            rightWing.position.set(0.4, 0.2, 0);
-            rightWing.rotation.z = -Math.PI / 4;
-            beeGroup.add(rightWing);
+    function setField(name, color, mult){
+        currentFieldName = name;
+        fieldMultiplier = mult;
+        $('currentField').textContent = name + " (x" + mult + ")";
+        $('currentField').style.background = color === 'red' ? '#FFB6C1' : color === 'blue' ? '#87CEFA' : '#90EE90';
+        notify("Now farming: " + name);
+    }
 
-            beeGroup.position.set(Math.random() * 20 - 10, 2 + Math.random() * 2, Math.random() * 20 - 10 - 20);
-            scene.add(beeGroup);
-            bees.push({ group: beeGroup, target: null, leftWing, rightWing, animationTime: Math.random() * 1000 });
-        }
+    function openTab(tab){
+        document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
+        document.querySelectorAll('.tab-button').forEach(b=>b.classList.remove('active'));
+        $(tab).classList.add('active');
+        event.target.classList.add('active');
+    }
 
-        // Flowers
-        const flowers = [];
-        let flowerCount = 20;
-        for (let i = 0; i < flowerCount; i++) {
-            createFlower();
-        }
+    // Auto passive collection
+    setInterval(()=>{if(bees>0){pollen += Math.floor(bees * 1.5); updateStats();}}, 6000);
 
-        function createFlower() {
-            const flowerGroup = new THREE.Group();
-            const stemGeometry = new THREE.CylinderGeometry(0.1, 0.1, 2, 32);
-            const stemMaterial = new THREE.MeshLambertMaterial({ color: 0x008000 });
-            const stem = new THREE.Mesh(stemGeometry, stemMaterial);
-            stem.position.y = 1;
-            flowerGroup.add(stem);
-
-            const petalGeometry = new THREE.CircleGeometry(0.5, 32);
-            const petalMaterial = new THREE.MeshLambertMaterial({ color: 0xFF69B4, side: THREE.DoubleSide });
-            for (let j = 0; j < 5; j++) {
-                const petal = new THREE.Mesh(petalGeometry, petalMaterial);
-                petal.position.y = 2;
-                petal.position.x = Math.cos(j * 2 * Math.PI / 5) * 0.3;
-                petal.position.z = Math.sin(j * 2 * Math.PI / 5) * 0.3;
-                petal.rotation.x = Math.PI / 2;
-                flowerGroup.add(petal);
-            }
-
-            const centerGeometry = new THREE.SphereGeometry(0.2, 32, 32);
-            const centerMaterial = new THREE.MeshLambertMaterial({ color: 0xFFFF00 });
-            const center = new THREE.Mesh(centerGeometry, centerMaterial);
-            center.position.y = 2;
-            flowerGroup.add(center);
-
-            flowerGroup.position.set(Math.random() * 100 - 50, 0, Math.random() * 100 - 50);
-            scene.add(flowerGroup);
-            flowers.push(flowerGroup);
-        }
-
-        // Particles for pollen
-        const particleGeometry = new THREE.BufferGeometry();
-        const particlePositions = new Float32Array(1000 * 3);
-        const particleMaterial = new THREE.PointsMaterial({ color: 0xFFD700, size: 0.1 });
-        const particles = new THREE.Points(particleGeometry, particleMaterial);
-        particles.visible = false;
-        scene.add(particles);
-
-        function showPollenParticles(position) {
-            for (let i = 0; i < 1000; i += 3) {
-                particlePositions[i] = position.x + (Math.random() - 0.5) * 1;
-                particlePositions[i + 1] = position.y + (Math.random() - 0.5) * 1 + 1;
-                particlePositions[i + 2] = position.z + (Math.random() - 0.5) * 1;
-            }
-            particleGeometry.setAttribute('position', new THREE.BufferAttribute(particlePositions, 3));
-            particles.position.set(0, 0, 0);
-            particles.visible = true;
-            setTimeout(() => { particles.visible = false; }, 1000);
-        }
-
-        // Game variables
-        let pollen = 0;
-        let honey = 0;
-        let level = 1;
-        let collectorCapacity = 10;
-        let hiveCapacity = 100;
-        let playerPollen = 0;
-        let jumpVelocity = 0;
-        let isJumping = false;
-        let gravity = -0.02;
-
-        // Controls
-        const keys = {};
-        window.addEventListener('keydown', (e) => {
-            keys[e.key] = true;
-            if (e.key === ' ') jump();
-            if (e.key.toLowerCase() === 'p') toggleShop();
-        });
-        window.addEventListener('keyup', (e) => keys[e.key] = false);
-
-        // Mobile touch controls
-        let moveTouchId = null;
-        let jumpTouchId = null;
-        let touchMoveX = 0, touchMoveY = 0;
-        window.addEventListener('touchstart', (e) => {
-            for (let touch of e.changedTouches) {
-                if (touch.clientX < window.innerWidth / 2 && !moveTouchId) {
-                    moveTouchId = touch.identifier;
-                    touchStartX = touch.clientX;
-                    touchStartY = touch.clientY;
-                } else if (touch.clientX >= window.innerWidth / 2 && !jumpTouchId) {
-                    jumpTouchId = touch.identifier;
-                    jump();
-                }
-            }
-        });
-        window.addEventListener('touchmove', (e) => {
-            for (let touch of e.changedTouches) {
-                if (touch.identifier === moveTouchId) {
-                    touchMoveX = touch.clientX - touchStartX;
-                    touchMoveY = touch.clientY - touchStartY;
-                }
-            }
-        });
-        window.addEventListener('touchend', (e) => {
-            for (let touch of e.changedTouches) {
-                if (touch.identifier === moveTouchId) {
-                    moveTouchId = null;
-                    touchMoveX = 0;
-                    touchMoveY = 0;
-                } else if (touch.identifier === jumpTouchId) {
-                    jumpTouchId = null;
-                }
-            }
-        });
-
-        // Gamepad support
-        let gamepad;
-        window.addEventListener('gamepadconnected', (e) => {
-            gamepad = navigator.getGamepads()[e.gamepad.index];
-        });
-
-        function jump() {
-            if (!isJumping) {
-                jumpVelocity = 0.5;
-                isJumping = true;
-            }
-        }
-
-        // Shop
-        const shopDiv = document.getElementById('shop');
-        function toggleShop() {
-            shopDiv.style.display = shopDiv.style.display === 'none' ? 'block' : 'none';
-        }
-
-        document.getElementById('buy-bee').addEventListener('click', () => {
-            if (honey >= 100) {
-                honey -= 100;
-                beeCount++;
-                createBee();
-                updateUI();
-            }
-        });
-
-        document.getElementById('upgrade-collector').addEventListener('click', () => {
-            if (honey >= 200) {
-                honey -= 200;
-                collectorCapacity += 5;
-                updateUI();
-            }
-        });
-
-        document.getElementById('buy-hive').addEventListener('click', () => {
-            if (honey >= 500) {
-                honey -= 500;
-                hiveCapacity += 50;
-                beeSpeed += 0.01;
-                updateUI();
-            }
-        });
-
-        document.getElementById('close-shop').addEventListener('click', toggleShop);
-
-        // Update UI
-        function updateUI() {
-            document.getElementById('pollen').textContent = pollen;
-            document.getElementById('honey').textContent = honey;
-            document.getElementById('bees-count').textContent = beeCount;
-            document.getElementById('level').textContent = level;
-        }
-
-        // Bee AI and animation
-        function animateBees() {
-            bees.forEach((beeObj, index) => {
-                const bee = beeObj.group;
-                beeObj.animationTime += 0.1;
-                beeObj.leftWing.rotation.z = Math.PI / 4 + Math.sin(beeObj.animationTime * 10) * 0.2;
-                beeObj.rightWing.rotation.z = -Math.PI / 4 - Math.sin(beeObj.animationTime * 10) * 0.2;
-
-                if (!beeObj.target || Math.random() < 0.01) {
-                    const randomFlower = flowers[Math.floor(Math.random() * flowers.length)];
-                    beeObj.target = randomFlower.position.clone();
-                }
-
-                const direction = beeObj.target.clone().sub(bee.position).normalize();
-                bee.position.add(direction.multiplyScalar(beeSpeed));
-
-                bee.lookAt(beeObj.target);
-
-                if (bee.position.distanceTo(beeObj.target) < 1) {
-                    pollen += 1;
-                    showPollenParticles(beeObj.target);
-                    beeObj.target = hive.position.clone();
-                }
-
-                if (bee.position.distanceTo(hive.position) < 2 && beeObj.target.equals(hive.position)) {
-                    if (pollen >= hiveCapacity) {
-                        honey += hiveCapacity;
-                        pollen -= hiveCapacity;
-                        levelUp();
-                    } else {
-                        honey += pollen;
-                        pollen = 0;
-                        levelUp();
-                    }
-                    beeObj.target = null;
-                }
-            });
-        }
-
-        function levelUp() {
-            if (honey >= level * 1000) {
-                level++;
-                beeSpeed += 0.005;
-                collectorCapacity += 2;
-            }
-            updateUI();
-        }
-
-        // Player collection
-        function collectPollen() {
-            flowers.forEach((flower, index) => {
-                const distance = playerGroup.position.distanceTo(flower.position);
-                if (distance < 3 && playerPollen < collectorCapacity) {
-                    playerPollen += 1;
-                    showPollenParticles(flower.position);
-                    flower.position.set(Math.random() * 100 - 50, 0, Math.random() * 100 - 50);
-                    if (playerPollen >= collectorCapacity) {
-                        console.log('Collector full! Return to hive.');
-                    }
-                }
-            });
-
-            const hiveDistance = playerGroup.position.distanceTo(hive.position);
-            if (hiveDistance < 5 && playerPollen > 0) {
-                pollen += playerPollen;
-                playerPollen = 0;
-            }
-        }
-
-        // Animation loop
-        let lastTime = 0;
-        function animate(time) {
-            requestAnimationFrame(animate);
-            const delta = time - lastTime;
-            lastTime = time;
-
-            // Player movement
-            const speed = 0.3;
-            let moveX = 0, moveZ = 0;
-
-            if (keys['w'] || keys['ArrowUp']) moveZ -= speed;
-            if (keys['s'] || keys['ArrowDown']) moveZ += speed;
-            if (keys['a'] || keys['ArrowLeft']) moveX -= speed;
-            if (keys['d'] || keys['ArrowRight']) moveX += speed;
-
-            // Normalize diagonal movement
-            if (moveX !== 0 && moveZ !== 0) {
-                moveX /= Math.sqrt(2);
-                moveZ /= Math.sqrt(2);
-            }
-
-            playerGroup.position.x += moveX;
-            playerGroup.position.z += moveZ;
-
-            // Touch movement
-            playerGroup.position.x += touchMoveX * 0.005;
-            playerGroup.position.z += touchMoveY * 0.005;
-
-            // Gamepad movement
-            if (gamepad) {
-                gamepad = navigator.getGamepads()[0]; // Update
-                if (gamepad) {
-                    const axes = gamepad.axes;
-                    playerGroup.position.x += axes[0] * speed;
-                    playerGroup.position.z += axes[1] * speed;
-                    if (gamepad.buttons[0].pressed) jump();
-                }
-            }
-
-            // Jumping
-            playerGroup.position.y += jumpVelocity;
-            jumpVelocity += gravity;
-            if (playerGroup.position.y <= 0) {
-                playerGroup.position.y = 0;
-                jumpVelocity = 0;
-                isJumping = false;
-            }
-
-            // Camera follow
-            camera.position.x = playerGroup.position.x;
-            camera.position.y = playerGroup.position.y + 5;
-            camera.position.z = playerGroup.position.z + 15;
-            camera.lookAt(playerGroup.position);
-
-            animateBees();
-            collectPollen();
-            updateUI();
-
-            renderer.render(scene, camera);
-        }
-        animate(0);
-
-        // Resize handler
-        window.addEventListener('resize', () => {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-        });
-    </script>
+    // Init
+    updateStats();
+    notify("Bee Swarm Educational Calculator Loaded!");
+</script>
 </body>
 </html>
