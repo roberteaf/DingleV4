@@ -1,442 +1,466 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Bee Fields — Prototype</title>
-<style>
-  html,body{height:100%;margin:0;font-family:Inter,Arial,Helvetica,sans-serif;background:#bfe8ff;}
-  #renderCanvas{width:100%;height:100%;display:block;touch-action:none;}
-  /* GUI container */
-  #ui {
-    position: absolute; left: 12px; top: 12px;
-    background: rgba(255,255,255,0.9);
-    padding: 10px; border-radius: 10px; min-width:185px;
-    box-shadow:0 6px 18px rgba(0,0,0,0.18);
-  }
-  #ui .row{display:flex;justify-content:space-between;align-items:center;margin:6px 0;}
-  #ui h3{margin:0 0 8px 0;font-weight:600;font-size:14px;}
-  button, .shop-btn {background:#2b6cff;color:white;border:0;padding:6px 8px;border-radius:8px;cursor:pointer}
-  .small-btn{padding:4px 6px;font-size:12px}
-  #controls {position:absolute;right:12px;top:12px;background:rgba(255,255,255,0.9);padding:10px;border-radius:10px;}
-  #joystick { position: fixed; left: 14px; bottom: 16px; width:100px; height:100px; border-radius:50%;
-    background: rgba(255,255,255,0.06); border:2px solid rgba(255,255,255,0.18); touch-action:none; display:none;}
-  #shopPanel {position:absolute;left:12px;bottom:12px;background:rgba(255,255,255,0.95);padding:8px;border-radius:10px;max-width:320px;}
-  .panelTitle{font-weight:600;margin-bottom:6px;}
-  .shop-row{display:flex;align-items:center;justify-content:space-between;margin:6px 0;}
-  .fieldLabel{padding:6px;border-radius:8px;color:white;font-weight:700}
-  .red{background:#e04e4e}.blue{background:#3773ff}.whitef{background:#ffffff;color:#222}
-  #admin{position:absolute;right:12px;bottom:12px;background:rgba(0,0,0,0.5);color:white;padding:8px;border-radius:8px;}
-  .toast{position:absolute;left:50%;transform:translateX(-50%);top:20px;background:rgba(0,0,0,0.8);color:white;padding:8px 14px;border-radius:8px;display:none;}
-  /* responsive */
-  @media (max-width:820px){
-    #ui{left:10px;top:8px;min-width:140px;padding:8px}
-    #controls{right:8px;top:8px;padding:8px}
-    #shopPanel{left:8px;bottom:8px;padding:6px}
-    #joystick{display:block}
-  }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bee Swarm Simulator 3D - Enhanced Edition</title>
+    <style>
+        body { margin: 0; overflow: hidden; font-family: Arial, sans-serif; }
+        canvas { display: block; }
+        #ui {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            color: white;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 10px;
+            border-radius: 5px;
+        }
+        #controls {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            color: white;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 10px;
+            border-radius: 5px;
+        }
+        #shop {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            color: white;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 10px;
+            border-radius: 5px;
+            display: none;
+        }
+        button {
+            background: #FFD700;
+            border: none;
+            padding: 5px 10px;
+            margin: 5px;
+            cursor: pointer;
+            border-radius: 3px;
+        }
+    </style>
 </head>
 <body>
-<canvas id="renderCanvas"></canvas>
+    <div id="ui">
+        <p>Pollen: <span id="pollen">0</span></p>
+        <p>Honey: <span id="honey">0</span></p>
+        <p>Bees: <span id="bees-count">5</span></p>
+        <p>Level: <span id="level">1</span></p>
+    </div>
+    <div id="controls">
+        <p>Controls:</p>
+        <p>Keyboard: WASD/Arrows to move, Space to jump/collect.</p>
+        <p>Mobile: Touch joystick area (left) to move, right to jump.</p>
+        <p>Gamepad: Left stick move, A button jump.</p>
+        <p>Press 'P' to open/close shop.</p>
+    </div>
+    <div id="shop">
+        <h3>Shop</h3>
+        <button id="buy-bee">Buy Bee (100 Honey)</button>
+        <button id="upgrade-collector">Upgrade Collector (200 Honey)</button>
+        <button id="buy-hive">Upgrade Hive (500 Honey)</button>
+        <button id="close-shop">Close</button>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+        // Scene setup
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
 
-<!-- Main Stats UI -->
-<div id="ui">
-  <h3>Bee Fields — Prototype</h3>
-  <div class="row"><div>Pollen</div><div id="pollen">0</div></div>
-  <div class="row"><div>Honey</div><div id="honey">0</div></div>
-  <div class="row"><div>Bees</div><div id="beeCount">0</div></div>
-  <div class="row"><div>Area</div><div id="areaLabel">Red Field</div></div>
-  <div class="row"><div>Backpack</div><div id="backpack">100</div></div>
-  <div style="margin-top:8px;display:flex;gap:6px">
-    <button id="saveBtn" class="small-btn">Save</button>
-    <button id="loadBtn" class="small-btn">Load</button>
-    <button id="resetBtn" class="small-btn">Reset</button>
-  </div>
-</div>
+        // Lighting
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+        scene.add(ambientLight);
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+        directionalLight.position.set(10, 20, 10);
+        directionalLight.castShadow = true;
+        scene.add(directionalLight);
 
-<!-- Controls panel (tool usage) -->
-<div id="controls">
-  <div style="display:flex;gap:8px;align-items:center">
-    <button id="rakeBtn" class="small-btn">Use Rake</button>
-    <button id="boostBtn" class="small-btn">Drink Smoothie (Boost)</button>
-  </div>
-  <div style="margin-top:8px;font-size:12px">WASD / joystick to move • Tap shop to buy</div>
-</div>
+        // Ground (field with texture simulation)
+        const groundGeometry = new THREE.PlaneGeometry(200, 200);
+        const groundMaterial = new THREE.MeshLambertMaterial({ color: 0x228B22 });
+        const ground = new THREE.Mesh(groundGeometry, groundMaterial);
+        ground.rotation.x = -Math.PI / 2;
+        ground.receiveShadow = true;
+        scene.add(ground);
 
-<!-- Shop Panel -->
-<div id="shopPanel">
-  <div class="panelTitle">Shop / Upgrades</div>
-  <div class="shop-row"><div>Backpack +50</div><div><button class="shop-btn" data-action="buyBackpack">100 pollen</button></div></div>
-  <div class="shop-row"><div>Rake Power +1</div><div><button class="shop-btn" data-action="buyRake">150 pollen</button></div></div>
-  <div class="shop-row"><div>Buy Red Bee</div><div><button class="shop-btn" data-action="buyRed">500 pollen</button></div></div>
-  <div class="shop-row"><div>Buy Blue Bee</div><div><button class="shop-btn" data-action="buyBlue">500 pollen</button></div></div>
-  <div class="shop-row"><div>Buy White Bee</div><div><button class="shop-btn" data-action="buyWhite">500 pollen</button></div></div>
-</div>
+        // Skybox
+        const skyGeometry = new THREE.SphereGeometry(500, 32, 32);
+        const skyMaterial = new THREE.MeshBasicMaterial({ color: 0x87CEEB, side: THREE.BackSide });
+        const sky = new THREE.Mesh(skyGeometry, skyMaterial);
+        scene.add(sky);
 
-<!-- Admin dev quick testing -->
-<div id="admin">
-  <div style="font-weight:700;margin-bottom:6px">DEV</div>
-  <div style="display:flex;gap:6px;flex-direction:column">
-    <button id="addPollen" class="small-btn">+1000 Pollen</button>
-    <button id="addHoney" class="small-btn">+100 Honey</button>
-    <button id="x1000" class="small-btn">Toggle x1000</button>
-  </div>
-</div>
+        // Player (collector - simple backpack model)
+        const playerGroup = new THREE.Group();
+        const bodyGeometry = new THREE.BoxGeometry(1, 2, 1);
+        const bodyMaterial = new THREE.MeshLambertMaterial({ color: 0x8B4513 });
+        const body = new THREE.Mesh(bodyGeometry, bodyMaterial);
+        body.position.y = 1;
+        playerGroup.add(body);
 
-<div id="joystick"></div>
-<div id="toast" class="toast"></div>
+        const headGeometry = new THREE.SphereGeometry(0.6, 32, 32);
+        const headMaterial = new THREE.MeshLambertMaterial({ color: 0xFFD700 });
+        const head = new THREE.Mesh(headGeometry, headMaterial);
+        head.position.y = 2.2;
+        playerGroup.add(head);
 
-<script src="https://cdn.babylonjs.com/babylon.js"></script>
-<script>
-/* =========================
-   Game / Engine constants
-   ========================= */
-const canvas = document.getElementById('renderCanvas');
-const engine = new BABYLON.Engine(canvas, true, {preserveDrawingBuffer:true,stencil:true});
-let scene, player, camera;
-let pollen = 0, honey = 0;
-let backpackCap = 100;
-let bees = []; // {mesh, type}
-let beeRoster = {red:0, blue:0, white:0};
-let rakePower = 1;
-let boostMultiplier = 1;
-let boostTimer = 0;
-let devX1000 = false;
+        playerGroup.position.y = 0;
+        scene.add(playerGroup);
+        camera.position.set(0, 5, 15);
+        camera.lookAt(playerGroup.position);
 
-/* --------------------------
-   Utility functions
-   -------------------------- */
-function toast(msg, t=2000){
-  const el = document.getElementById('toast');
-  el.textContent = msg; el.style.display='block';
-  setTimeout(()=>el.style.display='none', t);
-}
-function saveGame(){
-  const data = {pollen,honey,backpackCap,beeRoster,rakePower};
-  localStorage.setItem('beeGameSave', JSON.stringify(data));
-  toast('Saved');
-}
-function loadGame(){
-  const raw = localStorage.getItem('beeGameSave');
-  if(!raw){ toast('No save'); return; }
-  const d = JSON.parse(raw);
-  pollen = d.pollen||0; honey=d.honey||0; backpackCap=d.backpackCap||100;
-  beeRoster = d.beeRoster || {red:0,blue:0,white:0}; rakePower=d.rakePower||1;
-  spawnBeesFromRoster();
-  updateUI(); toast('Loaded');
-}
-function resetGame(){ if(!confirm('Reset game?')) return; localStorage.removeItem('beeGameSave'); location.reload(); }
+        // Hive
+        const hiveGeometry = new THREE.CylinderGeometry(2, 2, 3, 32);
+        const hiveMaterial = new THREE.MeshLambertMaterial({ color: 0xDAA520 });
+        const hive = new THREE.Mesh(hiveGeometry, hiveMaterial);
+        hive.position.set(0, 1.5, -20);
+        scene.add(hive);
 
-/* =========================
-   Scene creation
-   ========================= */
-function createScene(){
-  scene = new BABYLON.Scene(engine);
-  scene.clearColor = new BABYLON.Color4(0.75,0.93,1,1);
-
-  // Camera + player
-  camera = new BABYLON.FreeCamera("cam", new BABYLON.Vector3(0,3,-10), scene);
-  camera.speed = 0.5;
-  camera.minZ = 0.1;
-  camera.setTarget(BABYLON.Vector3.Zero());
-
-  // Player capsule
-  player = BABYLON.MeshBuilder.CreateCapsule('player',{height:1.6, radius:0.4},scene);
-  player.position.y = 1;
-  player.checkCollisions = true;
-
-  // Follow camera (smooth)
-  camera.lockedTarget = player;
-
-  // Light
-  new BABYLON.HemisphericLight('h', new BABYLON.Vector3(0,1,0), scene);
-
-  // Simple ground & fields
-  const matRed = new BABYLON.StandardMaterial('mred',scene); matRed.diffuseColor = new BABYLON.Color3(0.9,0.5,0.5);
-  const matBlue = new BABYLON.StandardMaterial('mblue',scene); matBlue.diffuseColor = new BABYLON.Color3(0.45,0.6,1);
-  const matWhite = new BABYLON.StandardMaterial('mwhite',scene); matWhite.diffuseColor = new BABYLON.Color3(0.98,0.98,0.98);
-
-  const fieldSize = 40;
-  const redField = BABYLON.MeshBuilder.CreateGround('redField',{width:fieldSize,height:fieldSize},scene);
-  redField.material = matRed; redField.position.z = 0;
-
-  const blueField = BABYLON.MeshBuilder.CreateGround('blueField',{width:fieldSize,height:fieldSize},scene);
-  blueField.material = matBlue; blueField.position.z = fieldSize + 6;
-
-  const whiteField = BABYLON.MeshBuilder.CreateGround('whiteField',{width:fieldSize,height:fieldSize},scene);
-  whiteField.material = matWhite; whiteField.position.z = -fieldSize - 6;
-
-  // Flower arrays
-  scene._flowers = [];
-  function spawnFlowersForField(field, color, count){
-    const baseZ = field.position.z;
-    for(let i=0;i<count;i++){
-      const px = (Math.random()-0.5)*(fieldSize-6);
-      const pz = baseZ + (Math.random()-0.5)*(fieldSize-6);
-      const petal = BABYLON.MeshBuilder.CreateSphere('flower',{diameter:0.35},scene);
-      petal.position = new BABYLON.Vector3(px,0.18,pz);
-      const fm = new BABYLON.StandardMaterial('fmat'+Math.random(),scene); fm.diffuseColor = color;
-      petal.material = fm;
-      petal._flower = {pollen:10, colorTag: color}; // small pollen stash
-      scene._flowers.push(petal);
-    }
-  }
-  spawnFlowersForField(redField, new BABYLON.Color3(1,0.2,0.2), 18);
-  spawnFlowersForField(blueField, new BABYLON.Color3(0.2,0.4,1), 18);
-  spawnFlowersForField(whiteField, new BABYLON.Color3(1,1,1), 18);
-
-  // Simple environment decor: low poly tree (for performance)
-  const trunk = BABYLON.MeshBuilder.CreateCylinder('tr',{height:2,radius:0.5},scene);
-  trunk.position.set(18,1,-8);
-  const crown = BABYLON.MeshBuilder.CreateSphere('c',{diameter:2.4},scene);
-  crown.position.set(18,2.2,-8);
-  crown.material = new BABYLON.StandardMaterial('cm',scene); crown.material.diffuseColor = new BABYLON.Color3(0.15,0.6,0.15);
-
-  // ground collider to avoid falling through
-  scene.collisionsEnabled = false;
-
-  return scene;
-}
-
-/* =========================
-   Player input (WASD + joystick)
-   ========================= */
-let input = {x:0,z:0};
-const keys = {};
-window.addEventListener('keydown', e=>{ keys[e.key.toLowerCase()]=true; });
-window.addEventListener('keyup', e=>{ keys[e.key.toLowerCase()]=false; });
-
-/* Mobile joystick handling */
-const joy = document.getElementById('joystick');
-let joyActive = false;
-let joyCenter = null;
-let u = 0, v = 0;
-joy.addEventListener('touchstart', e=>{
-  joyActive = true;
-  const r = joy.getBoundingClientRect();
-  joyCenter = {x:r.left + r.width/2, y:r.top + r.height/2};
-}, {passive:true});
-joy.addEventListener('touchmove', e=>{
-  if(!joyCenter) return;
-  const t = e.touches[0];
-  const dx = t.clientX - joyCenter.x;
-  const dy = t.clientY - joyCenter.y;
-  u = Math.max(-1, Math.min(1, dx/40));
-  v = Math.max(-1, Math.min(1, -dy/40));
-}, {passive:true});
-joy.addEventListener('touchend', e=>{ joyActive=false; u=0; v=0; joyCenter=null; });
-
-/* =========================
-   Bee system
-   ========================= */
-function spawnBeesFromRoster(){
-  // remove existing
-  bees.forEach(b=>{ b.mesh.dispose(); });
-  bees = [];
-  const types = [];
-  for(let i=0;i<beeRoster.red;i++) types.push('red');
-  for(let i=0;i<beeRoster.blue;i++) types.push('blue');
-  for(let i=0;i<beeRoster.white;i++) types.push('white');
-  types.forEach((t,i)=>{
-    const m = BABYLON.MeshBuilder.CreateSphere('bee'+i,{diameter:0.28},scene);
-    m.position = player.position.clone();
-    const mat = new BABYLON.StandardMaterial('bmat'+i,scene);
-    if(t==='red') mat.diffuseColor = new BABYLON.Color3(1,0.2,0.2);
-    if(t==='blue') mat.diffuseColor = new BABYLON.Color3(0.2,0.4,1);
-    if(t==='white') mat.diffuseColor = new BABylon.Color3?.() ? null : null; // fallback
-    if(t==='white') mat.diffuseColor = new BABYLON.Color3(0.95,0.95,0.95);
-    m.material = mat;
-    bees.push({mesh:m, type:t, carry:0});
-  });
-  updateUI();
-}
-
-/* initial starter bees */
-beeRoster = {red:1, blue:1, white:1};
-function spawnStarterBees(){
-  spawnBeesFromRoster();
-}
-
-/* bee behaviour: follow player, collect from flowers, produce pollen per second */
-function beeTick(dt){
-  const playerPos = player.position;
-  const currentArea = getCurrentArea();
-
-  bees.forEach(b=>{
-    // move towards player (smooth)
-    const dir = playerPos.subtract(b.mesh.position);
-    const dist = dir.length();
-    if(dist>0.6){
-      const speed = 2.0 * (1 + (rakePower-1)*0.06); // bees a bit faster with rake upgrades
-      const step = dir.normalize().scale(Math.min(dt * speed, dist));
-      b.mesh.position.addInPlace(step);
-    }
-    // check nearby flowers within 1.0 unit
-    for(const f of scene._flowers){
-      const d = BABYLON.Vector3.Distance(b.mesh.position, f.position);
-      if(d < 0.9 && f._flower && f._flower.pollen > 0){
-        // collection amount depends on bee type and area preference
-        let baseCollect = 0.3 * dt; // pollen per second baseline
-        // preferred area boost
-        const preferred = (b.type === 'red' && currentArea==='Red Field') ||
-                          (b.type === 'blue' && currentArea==='Blue Field') ||
-                          (b.type === 'white' && currentArea==='White Field');
-        const areaMult = preferred ? 3.0 : 1.0;
-        // rake & boost & dev multiplier
-        const collect = baseCollect * areaMult * (1 + (rakePower-1)*0.2) * boostMultiplier * (devX1000 ? 1000 : 1);
-        const take = Math.min(collect, f._flower.pollen);
-        f._flower.pollen -= take;
-        b.carry += take;
-        // if b.carry reaches threshold or bee returns to player, deposit to player backpack
-        if(b.carry >= 2){
-          const toStore = Math.min(b.carry, backpackCap - pollen);
-          pollen += toStore;
-          b.carry -= toStore;
-          // overflow stays in bee carry
+        // Bees
+        const bees = [];
+        let beeCount = 5;
+        let beeSpeed = 0.05;
+        for (let i = 0; i < beeCount; i++) {
+            createBee();
         }
-      }
-    }
-  });
 
-  // small passive conversion from pollen to honey
-  const convertRate = 0.02 * (devX1000?1000:1); // % per tick - deliberately small
-  const converting = Math.floor(pollen * convertRate * dt);
-  if(converting > 0){
-    honey += converting;
-    pollen -= converting;
-  }
-}
+        function createBee() {
+            const beeGroup = new THREE.Group();
+            const beeBody = new THREE.SphereGeometry(0.4, 32, 32);
+            const beeMaterial = new THREE.MeshLambertMaterial({ color: 0xFFFF00 });
+            const bee = new THREE.Mesh(beeBody, beeMaterial);
+            beeGroup.add(bee);
 
-/* =========================
-   Area detection
-   ========================= */
-function getCurrentArea(){
-  const z = player.position.z;
-  if(z > 20) return 'Blue Field';
-  if(z < -20) return 'White Field';
-  return 'Red Field';
-}
+            // Wings
+            const wingGeometry = new THREE.PlaneGeometry(0.5, 0.3);
+            const wingMaterial = new THREE.MeshBasicMaterial({ color: 0xFFFFFF, side: THREE.DoubleSide, transparent: true, opacity: 0.8 });
+            const leftWing = new THREE.Mesh(wingGeometry, wingMaterial);
+            leftWing.position.set(-0.4, 0.2, 0);
+            leftWing.rotation.z = Math.PI / 4;
+            beeGroup.add(leftWing);
+            const rightWing = new THREE.Mesh(wingGeometry, wingMaterial);
+            rightWing.position.set(0.4, 0.2, 0);
+            rightWing.rotation.z = -Math.PI / 4;
+            beeGroup.add(rightWing);
 
-/* =========================
-   Player actions (rake / boost)
-   ========================= */
-function useRake(){
-  // Rake gathers nearby flowers instantly into pollen (costs nothing but cooldown)
-  let gathered = 0;
-  for(const f of scene._flowers){
-    const d = BABYLON.Vector3.Distance(player.position, f.position);
-    if(d < 2.5 && f._flower && f._flower.pollen > 0){
-      const take = Math.min(f._flower.pollen, 5 * rakePower);
-      const canStore = Math.min(take, backpackCap - pollen);
-      pollen += canStore;
-      f._flower.pollen -= canStore;
-      gathered += canStore;
-    }
-  }
-  if(gathered>0) toast('Raked +' + Math.floor(gathered) + ' pollen');
-  updateUI();
-}
+            beeGroup.position.set(Math.random() * 20 - 10, 2 + Math.random() * 2, Math.random() * 20 - 10 - 20);
+            scene.add(beeGroup);
+            bees.push({ group: beeGroup, target: null, leftWing, rightWing, animationTime: Math.random() * 1000 });
+        }
 
-function drinkBoost(){
-  // Smoothie gives x3 multiplier for 15 seconds
-  boostMultiplier = 3;
-  boostTimer = 15.0;
-  toast('Smoothie: x3 for 15s');
-}
+        // Flowers
+        const flowers = [];
+        let flowerCount = 20;
+        for (let i = 0; i < flowerCount; i++) {
+            createFlower();
+        }
 
-/* =========================
-   Game loop & update UI
-   ========================= */
-function updateUI(){
-  document.getElementById('pollen').innerText = Math.floor(pollen);
-  document.getElementById('honey').innerText = Math.floor(honey);
-  document.getElementById('beeCount').innerText = bees.length;
-  document.getElementById('areaLabel').innerText = getCurrentArea();
-  document.getElementById('backpack').innerText = backpackCap;
-}
+        function createFlower() {
+            const flowerGroup = new THREE.Group();
+            const stemGeometry = new THREE.CylinderGeometry(0.1, 0.1, 2, 32);
+            const stemMaterial = new THREE.MeshLambertMaterial({ color: 0x008000 });
+            const stem = new THREE.Mesh(stemGeometry, stemMaterial);
+            stem.position.y = 1;
+            flowerGroup.add(stem);
 
-let lastTime = performance.now();
-function gameLoop(){
-  const now = performance.now();
-  const dt = Math.min((now - lastTime)/1000, 0.05);
-  lastTime = now;
+            const petalGeometry = new THREE.CircleGeometry(0.5, 32);
+            const petalMaterial = new THREE.MeshLambertMaterial({ color: 0xFF69B4, side: THREE.DoubleSide });
+            for (let j = 0; j < 5; j++) {
+                const petal = new THREE.Mesh(petalGeometry, petalMaterial);
+                petal.position.y = 2;
+                petal.position.x = Math.cos(j * 2 * Math.PI / 5) * 0.3;
+                petal.position.z = Math.sin(j * 2 * Math.PI / 5) * 0.3;
+                petal.rotation.x = Math.PI / 2;
+                flowerGroup.add(petal);
+            }
 
-  // input mapping
-  let ix = 0, iz = 0;
-  if(keys['w'] || keys['arrowup']) iz = 1;
-  if(keys['s'] || keys['arrowdown']) iz = -1;
-  if(keys['a'] || keys['arrowleft']) ix = -1;
-  if(keys['d'] || keys['arrowright']) ix = 1;
-  if(joyActive){ ix = u; iz = v; }
+            const centerGeometry = new THREE.SphereGeometry(0.2, 32, 32);
+            const centerMaterial = new THREE.MeshLambertMaterial({ color: 0xFFFF00 });
+            const center = new THREE.Mesh(centerGeometry, centerMaterial);
+            center.position.y = 2;
+            flowerGroup.add(center);
 
-  // move player (smooth)
-  const moveSpeed = 6 * (1 + (rakePower-1)*0.05);
-  const mv = new BABYLON.Vector3(ix * moveSpeed * dt, 0, iz * moveSpeed * dt);
-  player.position.addInPlace(mv);
+            flowerGroup.position.set(Math.random() * 100 - 50, 0, Math.random() * 100 - 50);
+            scene.add(flowerGroup);
+            flowers.push(flowerGroup);
+        }
 
-  // limit to world bounds
-  player.position.x = Math.max(-50, Math.min(50, player.position.x));
-  player.position.z = Math.max(-80, Math.min(80, player.position.z));
+        // Particles for pollen
+        const particleGeometry = new THREE.BufferGeometry();
+        const particlePositions = new Float32Array(1000 * 3);
+        const particleMaterial = new THREE.PointsMaterial({ color: 0xFFD700, size: 0.1 });
+        const particles = new THREE.Points(particleGeometry, particleMaterial);
+        particles.visible = false;
+        scene.add(particles);
 
-  // bee tick
-  beeTick(dt);
+        function showPollenParticles(position) {
+            for (let i = 0; i < 1000; i += 3) {
+                particlePositions[i] = position.x + (Math.random() - 0.5) * 1;
+                particlePositions[i + 1] = position.y + (Math.random() - 0.5) * 1 + 1;
+                particlePositions[i + 2] = position.z + (Math.random() - 0.5) * 1;
+            }
+            particleGeometry.setAttribute('position', new THREE.BufferAttribute(particlePositions, 3));
+            particles.position.set(0, 0, 0);
+            particles.visible = true;
+            setTimeout(() => { particles.visible = false; }, 1000);
+        }
 
-  // boost timer
-  if(boostTimer > 0){
-    boostTimer -= dt;
-    if(boostTimer <= 0){ boostTimer = 0; boostMultiplier = 1; toast('Boost ended'); }
-  }
+        // Game variables
+        let pollen = 0;
+        let honey = 0;
+        let level = 1;
+        let collectorCapacity = 10;
+        let hiveCapacity = 100;
+        let playerPollen = 0;
+        let jumpVelocity = 0;
+        let isJumping = false;
+        let gravity = -0.02;
 
-  updateUI();
-  scene.render();
-  requestAnimationFrame(gameLoop);
-}
+        // Controls
+        const keys = {};
+        window.addEventListener('keydown', (e) => {
+            keys[e.key] = true;
+            if (e.key === ' ') jump();
+            if (e.key.toLowerCase() === 'p') toggleShop();
+        });
+        window.addEventListener('keyup', (e) => keys[e.key] = false);
 
-/* =========================
-   Shop buttons & UI events
-   ========================= */
-document.querySelectorAll('.shop-btn').forEach(b=>{
-  b.addEventListener('click', ()=>{
-    const act = b.getAttribute('data-action');
-    if(act==='buyBackpack'){
-      if(pollen >= 100){ pollen -= 100; backpackCap += 50; toast('Backpack upgraded'); }
-      else toast('Need 100 pollen');
-    }
-    if(act==='buyRake'){
-      if(pollen >= 150){ pollen -= 150; rakePower += 1; toast('Rake power +1'); }
-      else toast('Need 150 pollen');
-    }
-    if(act==='buyRed'){ if(pollen>=500){ pollen-=500; beeRoster.red++; spawnBeesFromRoster(); toast('Bought Red Bee'); } else toast('Need 500 pollen'); }
-    if(act==='buyBlue'){ if(pollen>=500){ pollen-=500; beeRoster.blue++; spawnBeesFromRoster(); toast('Bought Blue Bee'); } else toast('Need 500 pollen'); }
-    if(act==='buyWhite'){ if(pollen>=500){ pollen-=500; beeRoster.white++; spawnBeesFromRoster(); toast('Bought White Bee'); } else toast('Need 500 pollen'); }
-    updateUI();
-  });
-});
+        // Mobile touch controls
+        let moveTouchId = null;
+        let jumpTouchId = null;
+        let touchMoveX = 0, touchMoveY = 0;
+        window.addEventListener('touchstart', (e) => {
+            for (let touch of e.changedTouches) {
+                if (touch.clientX < window.innerWidth / 2 && !moveTouchId) {
+                    moveTouchId = touch.identifier;
+                    touchStartX = touch.clientX;
+                    touchStartY = touch.clientY;
+                } else if (touch.clientX >= window.innerWidth / 2 && !jumpTouchId) {
+                    jumpTouchId = touch.identifier;
+                    jump();
+                }
+            }
+        });
+        window.addEventListener('touchmove', (e) => {
+            for (let touch of e.changedTouches) {
+                if (touch.identifier === moveTouchId) {
+                    touchMoveX = touch.clientX - touchStartX;
+                    touchMoveY = touch.clientY - touchStartY;
+                }
+            }
+        });
+        window.addEventListener('touchend', (e) => {
+            for (let touch of e.changedTouches) {
+                if (touch.identifier === moveTouchId) {
+                    moveTouchId = null;
+                    touchMoveX = 0;
+                    touchMoveY = 0;
+                } else if (touch.identifier === jumpTouchId) {
+                    jumpTouchId = null;
+                }
+            }
+        });
 
-document.getElementById('rakeBtn').addEventListener('click', useRake);
-document.getElementById('boostBtn').addEventListener('click', ()=>{ if(pollen>=50){ pollen-=50; drinkBoost(); updateUI(); } else toast('Need 50 pollen'); });
+        // Gamepad support
+        let gamepad;
+        window.addEventListener('gamepadconnected', (e) => {
+            gamepad = navigator.getGamepads()[e.gamepad.index];
+        });
 
-document.getElementById('saveBtn').addEventListener('click', saveGame);
-document.getElementById('loadBtn').addEventListener('click', loadGame);
-document.getElementById('resetBtn').addEventListener('click', resetGame);
+        function jump() {
+            if (!isJumping) {
+                jumpVelocity = 0.5;
+                isJumping = true;
+            }
+        }
 
-/* admin */
-document.getElementById('addPollen').addEventListener('click', ()=>{ pollen += 1000; updateUI(); });
-document.getElementById('addHoney').addEventListener('click', ()=>{ honey += 100; updateUI(); });
-document.getElementById('x1000').addEventListener('click', ()=>{ devX1000 = !devX1000; toast('x1000 ' + (devX1000?'ON':'OFF')); });
+        // Shop
+        const shopDiv = document.getElementById('shop');
+        function toggleShop() {
+            shopDiv.style.display = shopDiv.style.display === 'none' ? 'block' : 'none';
+        }
 
-/* =========================
-   Initialization
-   ========================= */
-scene = createScene();
-spawnStarterBees();
-updateUI();
-engine.runRenderLoop(()=> scene.render());
-requestAnimationFrame(gameLoop);
+        document.getElementById('buy-bee').addEventListener('click', () => {
+            if (honey >= 100) {
+                honey -= 100;
+                beeCount++;
+                createBee();
+                updateUI();
+            }
+        });
 
-/* Resize handling */
-window.addEventListener('resize', ()=>engine.resize());
-</script>
+        document.getElementById('upgrade-collector').addEventListener('click', () => {
+            if (honey >= 200) {
+                honey -= 200;
+                collectorCapacity += 5;
+                updateUI();
+            }
+        });
+
+        document.getElementById('buy-hive').addEventListener('click', () => {
+            if (honey >= 500) {
+                honey -= 500;
+                hiveCapacity += 50;
+                beeSpeed += 0.01;
+                updateUI();
+            }
+        });
+
+        document.getElementById('close-shop').addEventListener('click', toggleShop);
+
+        // Update UI
+        function updateUI() {
+            document.getElementById('pollen').textContent = pollen;
+            document.getElementById('honey').textContent = honey;
+            document.getElementById('bees-count').textContent = beeCount;
+            document.getElementById('level').textContent = level;
+        }
+
+        // Bee AI and animation
+        function animateBees() {
+            bees.forEach((beeObj, index) => {
+                const bee = beeObj.group;
+                beeObj.animationTime += 0.1;
+                beeObj.leftWing.rotation.z = Math.PI / 4 + Math.sin(beeObj.animationTime * 10) * 0.2;
+                beeObj.rightWing.rotation.z = -Math.PI / 4 - Math.sin(beeObj.animationTime * 10) * 0.2;
+
+                if (!beeObj.target || Math.random() < 0.01) {
+                    const randomFlower = flowers[Math.floor(Math.random() * flowers.length)];
+                    beeObj.target = randomFlower.position.clone();
+                }
+
+                const direction = beeObj.target.clone().sub(bee.position).normalize();
+                bee.position.add(direction.multiplyScalar(beeSpeed));
+
+                bee.lookAt(beeObj.target);
+
+                if (bee.position.distanceTo(beeObj.target) < 1) {
+                    pollen += 1;
+                    showPollenParticles(beeObj.target);
+                    beeObj.target = hive.position.clone();
+                }
+
+                if (bee.position.distanceTo(hive.position) < 2 && beeObj.target.equals(hive.position)) {
+                    if (pollen >= hiveCapacity) {
+                        honey += hiveCapacity;
+                        pollen -= hiveCapacity;
+                        levelUp();
+                    } else {
+                        honey += pollen;
+                        pollen = 0;
+                        levelUp();
+                    }
+                    beeObj.target = null;
+                }
+            });
+        }
+
+        function levelUp() {
+            if (honey >= level * 1000) {
+                level++;
+                beeSpeed += 0.005;
+                collectorCapacity += 2;
+            }
+            updateUI();
+        }
+
+        // Player collection
+        function collectPollen() {
+            flowers.forEach((flower, index) => {
+                const distance = playerGroup.position.distanceTo(flower.position);
+                if (distance < 3 && playerPollen < collectorCapacity) {
+                    playerPollen += 1;
+                    showPollenParticles(flower.position);
+                    flower.position.set(Math.random() * 100 - 50, 0, Math.random() * 100 - 50);
+                    if (playerPollen >= collectorCapacity) {
+                        console.log('Collector full! Return to hive.');
+                    }
+                }
+            });
+
+            const hiveDistance = playerGroup.position.distanceTo(hive.position);
+            if (hiveDistance < 5 && playerPollen > 0) {
+                pollen += playerPollen;
+                playerPollen = 0;
+            }
+        }
+
+        // Animation loop
+        let lastTime = 0;
+        function animate(time) {
+            requestAnimationFrame(animate);
+            const delta = time - lastTime;
+            lastTime = time;
+
+            // Player movement
+            const speed = 0.3;
+            let moveX = 0, moveZ = 0;
+
+            if (keys['w'] || keys['ArrowUp']) moveZ -= speed;
+            if (keys['s'] || keys['ArrowDown']) moveZ += speed;
+            if (keys['a'] || keys['ArrowLeft']) moveX -= speed;
+            if (keys['d'] || keys['ArrowRight']) moveX += speed;
+
+            // Normalize diagonal movement
+            if (moveX !== 0 && moveZ !== 0) {
+                moveX /= Math.sqrt(2);
+                moveZ /= Math.sqrt(2);
+            }
+
+            playerGroup.position.x += moveX;
+            playerGroup.position.z += moveZ;
+
+            // Touch movement
+            playerGroup.position.x += touchMoveX * 0.005;
+            playerGroup.position.z += touchMoveY * 0.005;
+
+            // Gamepad movement
+            if (gamepad) {
+                gamepad = navigator.getGamepads()[0]; // Update
+                if (gamepad) {
+                    const axes = gamepad.axes;
+                    playerGroup.position.x += axes[0] * speed;
+                    playerGroup.position.z += axes[1] * speed;
+                    if (gamepad.buttons[0].pressed) jump();
+                }
+            }
+
+            // Jumping
+            playerGroup.position.y += jumpVelocity;
+            jumpVelocity += gravity;
+            if (playerGroup.position.y <= 0) {
+                playerGroup.position.y = 0;
+                jumpVelocity = 0;
+                isJumping = false;
+            }
+
+            // Camera follow
+            camera.position.x = playerGroup.position.x;
+            camera.position.y = playerGroup.position.y + 5;
+            camera.position.z = playerGroup.position.z + 15;
+            camera.lookAt(playerGroup.position);
+
+            animateBees();
+            collectPollen();
+            updateUI();
+
+            renderer.render(scene, camera);
+        }
+        animate(0);
+
+        // Resize handler
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+    </script>
 </body>
 </html>
