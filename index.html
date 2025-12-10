@@ -1,25 +1,442 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<meta charset="utf-8">
-<title>dingle calculator</title>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Bee Fields — Prototype</title>
 <style>
-  html, body {
-    margin: 0;
-    height: 100%;
-    overflow: hidden;
-    background: #000;
+  html,body{height:100%;margin:0;font-family:Inter,Arial,Helvetica,sans-serif;background:#bfe8ff;}
+  #renderCanvas{width:100%;height:100%;display:block;touch-action:none;}
+  /* GUI container */
+  #ui {
+    position: absolute; left: 12px; top: 12px;
+    background: rgba(255,255,255,0.9);
+    padding: 10px; border-radius: 10px; min-width:185px;
+    box-shadow:0 6px 18px rgba(0,0,0,0.18);
   }
-  iframe {
-    position: fixed;
-    inset: 0;
-    width: 100vw;
-    height: 100vh;
-    border: none;
+  #ui .row{display:flex;justify-content:space-between;align-items:center;margin:6px 0;}
+  #ui h3{margin:0 0 8px 0;font-weight:600;font-size:14px;}
+  button, .shop-btn {background:#2b6cff;color:white;border:0;padding:6px 8px;border-radius:8px;cursor:pointer}
+  .small-btn{padding:4px 6px;font-size:12px}
+  #controls {position:absolute;right:12px;top:12px;background:rgba(255,255,255,0.9);padding:10px;border-radius:10px;}
+  #joystick { position: fixed; left: 14px; bottom: 16px; width:100px; height:100px; border-radius:50%;
+    background: rgba(255,255,255,0.06); border:2px solid rgba(255,255,255,0.18); touch-action:none; display:none;}
+  #shopPanel {position:absolute;left:12px;bottom:12px;background:rgba(255,255,255,0.95);padding:8px;border-radius:10px;max-width:320px;}
+  .panelTitle{font-weight:600;margin-bottom:6px;}
+  .shop-row{display:flex;align-items:center;justify-content:space-between;margin:6px 0;}
+  .fieldLabel{padding:6px;border-radius:8px;color:white;font-weight:700}
+  .red{background:#e04e4e}.blue{background:#3773ff}.whitef{background:#ffffff;color:#222}
+  #admin{position:absolute;right:12px;bottom:12px;background:rgba(0,0,0,0.5);color:white;padding:8px;border-radius:8px;}
+  .toast{position:absolute;left:50%;transform:translateX(-50%);top:20px;background:rgba(0,0,0,0.8);color:white;padding:8px 14px;border-radius:8px;display:none;}
+  /* responsive */
+  @media (max-width:820px){
+    #ui{left:10px;top:8px;min-width:140px;padding:8px}
+    #controls{right:8px;top:8px;padding:8px}
+    #shopPanel{left:8px;bottom:8px;padding:6px}
+    #joystick{display:block}
   }
 </style>
 </head>
 <body>
-  <iframe src="https://2v2.io" allowfullscreen></iframe>
+<canvas id="renderCanvas"></canvas>
+
+<!-- Main Stats UI -->
+<div id="ui">
+  <h3>Bee Fields — Prototype</h3>
+  <div class="row"><div>Pollen</div><div id="pollen">0</div></div>
+  <div class="row"><div>Honey</div><div id="honey">0</div></div>
+  <div class="row"><div>Bees</div><div id="beeCount">0</div></div>
+  <div class="row"><div>Area</div><div id="areaLabel">Red Field</div></div>
+  <div class="row"><div>Backpack</div><div id="backpack">100</div></div>
+  <div style="margin-top:8px;display:flex;gap:6px">
+    <button id="saveBtn" class="small-btn">Save</button>
+    <button id="loadBtn" class="small-btn">Load</button>
+    <button id="resetBtn" class="small-btn">Reset</button>
+  </div>
+</div>
+
+<!-- Controls panel (tool usage) -->
+<div id="controls">
+  <div style="display:flex;gap:8px;align-items:center">
+    <button id="rakeBtn" class="small-btn">Use Rake</button>
+    <button id="boostBtn" class="small-btn">Drink Smoothie (Boost)</button>
+  </div>
+  <div style="margin-top:8px;font-size:12px">WASD / joystick to move • Tap shop to buy</div>
+</div>
+
+<!-- Shop Panel -->
+<div id="shopPanel">
+  <div class="panelTitle">Shop / Upgrades</div>
+  <div class="shop-row"><div>Backpack +50</div><div><button class="shop-btn" data-action="buyBackpack">100 pollen</button></div></div>
+  <div class="shop-row"><div>Rake Power +1</div><div><button class="shop-btn" data-action="buyRake">150 pollen</button></div></div>
+  <div class="shop-row"><div>Buy Red Bee</div><div><button class="shop-btn" data-action="buyRed">500 pollen</button></div></div>
+  <div class="shop-row"><div>Buy Blue Bee</div><div><button class="shop-btn" data-action="buyBlue">500 pollen</button></div></div>
+  <div class="shop-row"><div>Buy White Bee</div><div><button class="shop-btn" data-action="buyWhite">500 pollen</button></div></div>
+</div>
+
+<!-- Admin dev quick testing -->
+<div id="admin">
+  <div style="font-weight:700;margin-bottom:6px">DEV</div>
+  <div style="display:flex;gap:6px;flex-direction:column">
+    <button id="addPollen" class="small-btn">+1000 Pollen</button>
+    <button id="addHoney" class="small-btn">+100 Honey</button>
+    <button id="x1000" class="small-btn">Toggle x1000</button>
+  </div>
+</div>
+
+<div id="joystick"></div>
+<div id="toast" class="toast"></div>
+
+<script src="https://cdn.babylonjs.com/babylon.js"></script>
+<script>
+/* =========================
+   Game / Engine constants
+   ========================= */
+const canvas = document.getElementById('renderCanvas');
+const engine = new BABYLON.Engine(canvas, true, {preserveDrawingBuffer:true,stencil:true});
+let scene, player, camera;
+let pollen = 0, honey = 0;
+let backpackCap = 100;
+let bees = []; // {mesh, type}
+let beeRoster = {red:0, blue:0, white:0};
+let rakePower = 1;
+let boostMultiplier = 1;
+let boostTimer = 0;
+let devX1000 = false;
+
+/* --------------------------
+   Utility functions
+   -------------------------- */
+function toast(msg, t=2000){
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.style.display='block';
+  setTimeout(()=>el.style.display='none', t);
+}
+function saveGame(){
+  const data = {pollen,honey,backpackCap,beeRoster,rakePower};
+  localStorage.setItem('beeGameSave', JSON.stringify(data));
+  toast('Saved');
+}
+function loadGame(){
+  const raw = localStorage.getItem('beeGameSave');
+  if(!raw){ toast('No save'); return; }
+  const d = JSON.parse(raw);
+  pollen = d.pollen||0; honey=d.honey||0; backpackCap=d.backpackCap||100;
+  beeRoster = d.beeRoster || {red:0,blue:0,white:0}; rakePower=d.rakePower||1;
+  spawnBeesFromRoster();
+  updateUI(); toast('Loaded');
+}
+function resetGame(){ if(!confirm('Reset game?')) return; localStorage.removeItem('beeGameSave'); location.reload(); }
+
+/* =========================
+   Scene creation
+   ========================= */
+function createScene(){
+  scene = new BABYLON.Scene(engine);
+  scene.clearColor = new BABYLON.Color4(0.75,0.93,1,1);
+
+  // Camera + player
+  camera = new BABYLON.FreeCamera("cam", new BABYLON.Vector3(0,3,-10), scene);
+  camera.speed = 0.5;
+  camera.minZ = 0.1;
+  camera.setTarget(BABYLON.Vector3.Zero());
+
+  // Player capsule
+  player = BABYLON.MeshBuilder.CreateCapsule('player',{height:1.6, radius:0.4},scene);
+  player.position.y = 1;
+  player.checkCollisions = true;
+
+  // Follow camera (smooth)
+  camera.lockedTarget = player;
+
+  // Light
+  new BABYLON.HemisphericLight('h', new BABYLON.Vector3(0,1,0), scene);
+
+  // Simple ground & fields
+  const matRed = new BABYLON.StandardMaterial('mred',scene); matRed.diffuseColor = new BABYLON.Color3(0.9,0.5,0.5);
+  const matBlue = new BABYLON.StandardMaterial('mblue',scene); matBlue.diffuseColor = new BABYLON.Color3(0.45,0.6,1);
+  const matWhite = new BABYLON.StandardMaterial('mwhite',scene); matWhite.diffuseColor = new BABYLON.Color3(0.98,0.98,0.98);
+
+  const fieldSize = 40;
+  const redField = BABYLON.MeshBuilder.CreateGround('redField',{width:fieldSize,height:fieldSize},scene);
+  redField.material = matRed; redField.position.z = 0;
+
+  const blueField = BABYLON.MeshBuilder.CreateGround('blueField',{width:fieldSize,height:fieldSize},scene);
+  blueField.material = matBlue; blueField.position.z = fieldSize + 6;
+
+  const whiteField = BABYLON.MeshBuilder.CreateGround('whiteField',{width:fieldSize,height:fieldSize},scene);
+  whiteField.material = matWhite; whiteField.position.z = -fieldSize - 6;
+
+  // Flower arrays
+  scene._flowers = [];
+  function spawnFlowersForField(field, color, count){
+    const baseZ = field.position.z;
+    for(let i=0;i<count;i++){
+      const px = (Math.random()-0.5)*(fieldSize-6);
+      const pz = baseZ + (Math.random()-0.5)*(fieldSize-6);
+      const petal = BABYLON.MeshBuilder.CreateSphere('flower',{diameter:0.35},scene);
+      petal.position = new BABYLON.Vector3(px,0.18,pz);
+      const fm = new BABYLON.StandardMaterial('fmat'+Math.random(),scene); fm.diffuseColor = color;
+      petal.material = fm;
+      petal._flower = {pollen:10, colorTag: color}; // small pollen stash
+      scene._flowers.push(petal);
+    }
+  }
+  spawnFlowersForField(redField, new BABYLON.Color3(1,0.2,0.2), 18);
+  spawnFlowersForField(blueField, new BABYLON.Color3(0.2,0.4,1), 18);
+  spawnFlowersForField(whiteField, new BABYLON.Color3(1,1,1), 18);
+
+  // Simple environment decor: low poly tree (for performance)
+  const trunk = BABYLON.MeshBuilder.CreateCylinder('tr',{height:2,radius:0.5},scene);
+  trunk.position.set(18,1,-8);
+  const crown = BABYLON.MeshBuilder.CreateSphere('c',{diameter:2.4},scene);
+  crown.position.set(18,2.2,-8);
+  crown.material = new BABYLON.StandardMaterial('cm',scene); crown.material.diffuseColor = new BABYLON.Color3(0.15,0.6,0.15);
+
+  // ground collider to avoid falling through
+  scene.collisionsEnabled = false;
+
+  return scene;
+}
+
+/* =========================
+   Player input (WASD + joystick)
+   ========================= */
+let input = {x:0,z:0};
+const keys = {};
+window.addEventListener('keydown', e=>{ keys[e.key.toLowerCase()]=true; });
+window.addEventListener('keyup', e=>{ keys[e.key.toLowerCase()]=false; });
+
+/* Mobile joystick handling */
+const joy = document.getElementById('joystick');
+let joyActive = false;
+let joyCenter = null;
+let u = 0, v = 0;
+joy.addEventListener('touchstart', e=>{
+  joyActive = true;
+  const r = joy.getBoundingClientRect();
+  joyCenter = {x:r.left + r.width/2, y:r.top + r.height/2};
+}, {passive:true});
+joy.addEventListener('touchmove', e=>{
+  if(!joyCenter) return;
+  const t = e.touches[0];
+  const dx = t.clientX - joyCenter.x;
+  const dy = t.clientY - joyCenter.y;
+  u = Math.max(-1, Math.min(1, dx/40));
+  v = Math.max(-1, Math.min(1, -dy/40));
+}, {passive:true});
+joy.addEventListener('touchend', e=>{ joyActive=false; u=0; v=0; joyCenter=null; });
+
+/* =========================
+   Bee system
+   ========================= */
+function spawnBeesFromRoster(){
+  // remove existing
+  bees.forEach(b=>{ b.mesh.dispose(); });
+  bees = [];
+  const types = [];
+  for(let i=0;i<beeRoster.red;i++) types.push('red');
+  for(let i=0;i<beeRoster.blue;i++) types.push('blue');
+  for(let i=0;i<beeRoster.white;i++) types.push('white');
+  types.forEach((t,i)=>{
+    const m = BABYLON.MeshBuilder.CreateSphere('bee'+i,{diameter:0.28},scene);
+    m.position = player.position.clone();
+    const mat = new BABYLON.StandardMaterial('bmat'+i,scene);
+    if(t==='red') mat.diffuseColor = new BABYLON.Color3(1,0.2,0.2);
+    if(t==='blue') mat.diffuseColor = new BABYLON.Color3(0.2,0.4,1);
+    if(t==='white') mat.diffuseColor = new BABylon.Color3?.() ? null : null; // fallback
+    if(t==='white') mat.diffuseColor = new BABYLON.Color3(0.95,0.95,0.95);
+    m.material = mat;
+    bees.push({mesh:m, type:t, carry:0});
+  });
+  updateUI();
+}
+
+/* initial starter bees */
+beeRoster = {red:1, blue:1, white:1};
+function spawnStarterBees(){
+  spawnBeesFromRoster();
+}
+
+/* bee behaviour: follow player, collect from flowers, produce pollen per second */
+function beeTick(dt){
+  const playerPos = player.position;
+  const currentArea = getCurrentArea();
+
+  bees.forEach(b=>{
+    // move towards player (smooth)
+    const dir = playerPos.subtract(b.mesh.position);
+    const dist = dir.length();
+    if(dist>0.6){
+      const speed = 2.0 * (1 + (rakePower-1)*0.06); // bees a bit faster with rake upgrades
+      const step = dir.normalize().scale(Math.min(dt * speed, dist));
+      b.mesh.position.addInPlace(step);
+    }
+    // check nearby flowers within 1.0 unit
+    for(const f of scene._flowers){
+      const d = BABYLON.Vector3.Distance(b.mesh.position, f.position);
+      if(d < 0.9 && f._flower && f._flower.pollen > 0){
+        // collection amount depends on bee type and area preference
+        let baseCollect = 0.3 * dt; // pollen per second baseline
+        // preferred area boost
+        const preferred = (b.type === 'red' && currentArea==='Red Field') ||
+                          (b.type === 'blue' && currentArea==='Blue Field') ||
+                          (b.type === 'white' && currentArea==='White Field');
+        const areaMult = preferred ? 3.0 : 1.0;
+        // rake & boost & dev multiplier
+        const collect = baseCollect * areaMult * (1 + (rakePower-1)*0.2) * boostMultiplier * (devX1000 ? 1000 : 1);
+        const take = Math.min(collect, f._flower.pollen);
+        f._flower.pollen -= take;
+        b.carry += take;
+        // if b.carry reaches threshold or bee returns to player, deposit to player backpack
+        if(b.carry >= 2){
+          const toStore = Math.min(b.carry, backpackCap - pollen);
+          pollen += toStore;
+          b.carry -= toStore;
+          // overflow stays in bee carry
+        }
+      }
+    }
+  });
+
+  // small passive conversion from pollen to honey
+  const convertRate = 0.02 * (devX1000?1000:1); // % per tick - deliberately small
+  const converting = Math.floor(pollen * convertRate * dt);
+  if(converting > 0){
+    honey += converting;
+    pollen -= converting;
+  }
+}
+
+/* =========================
+   Area detection
+   ========================= */
+function getCurrentArea(){
+  const z = player.position.z;
+  if(z > 20) return 'Blue Field';
+  if(z < -20) return 'White Field';
+  return 'Red Field';
+}
+
+/* =========================
+   Player actions (rake / boost)
+   ========================= */
+function useRake(){
+  // Rake gathers nearby flowers instantly into pollen (costs nothing but cooldown)
+  let gathered = 0;
+  for(const f of scene._flowers){
+    const d = BABYLON.Vector3.Distance(player.position, f.position);
+    if(d < 2.5 && f._flower && f._flower.pollen > 0){
+      const take = Math.min(f._flower.pollen, 5 * rakePower);
+      const canStore = Math.min(take, backpackCap - pollen);
+      pollen += canStore;
+      f._flower.pollen -= canStore;
+      gathered += canStore;
+    }
+  }
+  if(gathered>0) toast('Raked +' + Math.floor(gathered) + ' pollen');
+  updateUI();
+}
+
+function drinkBoost(){
+  // Smoothie gives x3 multiplier for 15 seconds
+  boostMultiplier = 3;
+  boostTimer = 15.0;
+  toast('Smoothie: x3 for 15s');
+}
+
+/* =========================
+   Game loop & update UI
+   ========================= */
+function updateUI(){
+  document.getElementById('pollen').innerText = Math.floor(pollen);
+  document.getElementById('honey').innerText = Math.floor(honey);
+  document.getElementById('beeCount').innerText = bees.length;
+  document.getElementById('areaLabel').innerText = getCurrentArea();
+  document.getElementById('backpack').innerText = backpackCap;
+}
+
+let lastTime = performance.now();
+function gameLoop(){
+  const now = performance.now();
+  const dt = Math.min((now - lastTime)/1000, 0.05);
+  lastTime = now;
+
+  // input mapping
+  let ix = 0, iz = 0;
+  if(keys['w'] || keys['arrowup']) iz = 1;
+  if(keys['s'] || keys['arrowdown']) iz = -1;
+  if(keys['a'] || keys['arrowleft']) ix = -1;
+  if(keys['d'] || keys['arrowright']) ix = 1;
+  if(joyActive){ ix = u; iz = v; }
+
+  // move player (smooth)
+  const moveSpeed = 6 * (1 + (rakePower-1)*0.05);
+  const mv = new BABYLON.Vector3(ix * moveSpeed * dt, 0, iz * moveSpeed * dt);
+  player.position.addInPlace(mv);
+
+  // limit to world bounds
+  player.position.x = Math.max(-50, Math.min(50, player.position.x));
+  player.position.z = Math.max(-80, Math.min(80, player.position.z));
+
+  // bee tick
+  beeTick(dt);
+
+  // boost timer
+  if(boostTimer > 0){
+    boostTimer -= dt;
+    if(boostTimer <= 0){ boostTimer = 0; boostMultiplier = 1; toast('Boost ended'); }
+  }
+
+  updateUI();
+  scene.render();
+  requestAnimationFrame(gameLoop);
+}
+
+/* =========================
+   Shop buttons & UI events
+   ========================= */
+document.querySelectorAll('.shop-btn').forEach(b=>{
+  b.addEventListener('click', ()=>{
+    const act = b.getAttribute('data-action');
+    if(act==='buyBackpack'){
+      if(pollen >= 100){ pollen -= 100; backpackCap += 50; toast('Backpack upgraded'); }
+      else toast('Need 100 pollen');
+    }
+    if(act==='buyRake'){
+      if(pollen >= 150){ pollen -= 150; rakePower += 1; toast('Rake power +1'); }
+      else toast('Need 150 pollen');
+    }
+    if(act==='buyRed'){ if(pollen>=500){ pollen-=500; beeRoster.red++; spawnBeesFromRoster(); toast('Bought Red Bee'); } else toast('Need 500 pollen'); }
+    if(act==='buyBlue'){ if(pollen>=500){ pollen-=500; beeRoster.blue++; spawnBeesFromRoster(); toast('Bought Blue Bee'); } else toast('Need 500 pollen'); }
+    if(act==='buyWhite'){ if(pollen>=500){ pollen-=500; beeRoster.white++; spawnBeesFromRoster(); toast('Bought White Bee'); } else toast('Need 500 pollen'); }
+    updateUI();
+  });
+});
+
+document.getElementById('rakeBtn').addEventListener('click', useRake);
+document.getElementById('boostBtn').addEventListener('click', ()=>{ if(pollen>=50){ pollen-=50; drinkBoost(); updateUI(); } else toast('Need 50 pollen'); });
+
+document.getElementById('saveBtn').addEventListener('click', saveGame);
+document.getElementById('loadBtn').addEventListener('click', loadGame);
+document.getElementById('resetBtn').addEventListener('click', resetGame);
+
+/* admin */
+document.getElementById('addPollen').addEventListener('click', ()=>{ pollen += 1000; updateUI(); });
+document.getElementById('addHoney').addEventListener('click', ()=>{ honey += 100; updateUI(); });
+document.getElementById('x1000').addEventListener('click', ()=>{ devX1000 = !devX1000; toast('x1000 ' + (devX1000?'ON':'OFF')); });
+
+/* =========================
+   Initialization
+   ========================= */
+scene = createScene();
+spawnStarterBees();
+updateUI();
+engine.runRenderLoop(()=> scene.render());
+requestAnimationFrame(gameLoop);
+
+/* Resize handling */
+window.addEventListener('resize', ()=>engine.resize());
+</script>
 </body>
 </html>
