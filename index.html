@@ -27,8 +27,9 @@
 *{margin:0;padding:0;box-sizing:border-box;}
 html,body{height:100%;overflow:hidden;}
 body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);}
-/* Make screens scrollable individually */
-.screen{overflow-y:auto;overflow-x:hidden;}
+/* ── SCREENS ── */
+.screen{display:none;position:fixed;inset:0;flex-direction:column;z-index:1;overflow-y:auto;overflow-x:hidden;}
+.screen.visible{display:flex;}
 
 /* ── CANVAS BACKGROUND ── */
 #bgCanvas{position:fixed;inset:0;z-index:0;pointer-events:none;}
@@ -39,15 +40,10 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);}
 .g1{width:600px;height:600px;top:-200px;left:-150px;background:rgba(124,58,237,0.09);animation-duration:20s;}
 .g2{width:500px;height:500px;bottom:-150px;right:-120px;background:rgba(6,182,212,0.07);animation-duration:15s;animation-delay:-7s;}
 .g3{width:350px;height:350px;top:40%;left:40%;background:rgba(168,85,247,0.05);animation-duration:12s;animation-delay:-3s;}
-@keyframes glowFloat{0%{transform:translate(0,0) scale(1);}50%{transform:translate(30px,-20px) scale(1.05);}100%{transform:translate(-15px,25px) scale(0.97);}};
-
-/* ── SCREENS ── */
-.screen{position:absolute;inset:0;display:flex;flex-direction:column;transition:opacity .3s ease,transform .3s ease;z-index:1;}
-.hidden{opacity:0;pointer-events:none;transform:translateY(14px);}
-.visible{opacity:1;pointer-events:all;transform:translateY(0);}
+@keyframes glowFloat{0%{transform:translate(0,0) scale(1);}50%{transform:translate(30px,-20px) scale(1.05);}100%{transform:translate(-15px,25px) scale(0.97);}}
 
 /* ── LOGIN ── */
-#login{justify-content:center;align-items:center;}
+#login{align-items:center;justify-content:center;}
 .login-wrap{position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;gap:32px;animation:riseUp .55s cubic-bezier(.16,1,.3,1);}
 @keyframes riseUp{from{opacity:0;transform:translateY(28px);}to{opacity:1;transform:translateY(0);}}
 .brand{text-align:center;}
@@ -336,7 +332,77 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);}
 .dtable td{padding:9px 13px;border-bottom:1px solid rgba(255,255,255,.025);color:var(--text);}
 .dtable tr:hover td{background:rgba(255,255,255,.02);}
 
-/* ── NOTIF ── */
+/* ── ANNOUNCEMENT BAR ── */
+#announce-bar{
+  display:none;width:100%;padding:9px 20px;
+  background:linear-gradient(90deg,rgba(124,58,237,.18),rgba(6,182,212,.12));
+  border-bottom:1px solid rgba(124,58,237,.3);
+  font-size:.8rem;font-weight:500;color:#c084fc;
+  text-align:center;letter-spacing:.01em;position:relative;z-index:5;
+  animation:slideDown .3s ease;
+}
+@keyframes slideDown{from{opacity:0;transform:translateY(-8px);}to{opacity:1;transform:translateY(0);}}
+#announce-bar .ann-inner{display:flex;align-items:center;justify-content:center;gap:8px;}
+#announce-bar .ann-ico{font-size:.9rem;}
+
+/* ── CROWN / DEBUG BUTTON ── */
+#crown-btn{
+  position:fixed;bottom:20px;left:20px;z-index:500;
+  width:44px;height:44px;border-radius:50%;
+  background:linear-gradient(135deg,rgba(245,158,11,.25),rgba(124,58,237,.2));
+  border:1px solid rgba(245,158,11,.4);color:#f59e0b;font-size:1.2rem;
+  cursor:pointer;display:none;align-items:center;justify-content:center;
+  transition:all .2s;box-shadow:0 4px 20px rgba(245,158,11,.15);
+}
+#crown-btn:hover{transform:scale(1.1);box-shadow:0 6px 28px rgba(245,158,11,.3);}
+
+/* ── DEBUG MODAL ── */
+#debug-modal{
+  display:none;position:fixed;inset:0;z-index:9000;
+  background:rgba(0,0,0,.7);backdrop-filter:blur(8px);
+  align-items:center;justify-content:center;
+}
+#debug-modal.open{display:flex;}
+.debug-panel{
+  width:540px;max-width:94vw;max-height:88vh;overflow-y:auto;
+  background:#080d1a;border:1px solid rgba(245,158,11,.25);
+  border-radius:20px;padding:28px;
+  box-shadow:0 0 60px rgba(245,158,11,.08),0 24px 64px rgba(0,0,0,.6);
+}
+.debug-panel h2{
+  font-family:'Space Grotesk',sans-serif;font-size:1.1rem;font-weight:700;
+  color:#f59e0b;margin-bottom:20px;display:flex;align-items:center;gap:8px;
+}
+.debug-section{margin-bottom:20px;}
+.debug-section h4{font-size:.72rem;font-weight:600;color:var(--muted2);letter-spacing:.1em;text-transform:uppercase;margin-bottom:10px;}
+.debug-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
+.dinp{
+  flex:1;min-width:120px;padding:9px 12px;
+  background:rgba(0,0,0,.5);border:1px solid var(--border2);
+  border-radius:8px;color:var(--text);font-size:.84rem;outline:none;
+  transition:border-color .2s;
+}
+.dinp:focus{border-color:rgba(245,158,11,.5);}
+.dbtn{
+  padding:9px 16px;font-size:.82rem;font-weight:600;border-radius:8px;cursor:pointer;transition:all .18s;white-space:nowrap;
+}
+.dbtn.gold{background:rgba(245,158,11,.15);border:1px solid rgba(245,158,11,.3);color:#f59e0b;}
+.dbtn.gold:hover{background:rgba(245,158,11,.28);}
+.dbtn.red{background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.25);color:#f87171;}
+.dbtn.red:hover{background:rgba(239,68,68,.22);}
+.dbtn.pu{background:rgba(124,58,237,.15);border:1px solid rgba(124,58,237,.3);color:#c084fc;}
+.dbtn.pu:hover{background:rgba(124,58,237,.28);}
+.dbtn.gr{background:rgba(16,185,129,.12);border:1px solid rgba(16,185,129,.28);color:#34d399;}
+.dbtn.gr:hover{background:rgba(16,185,129,.22);}
+.debug-close{float:right;background:none;border:none;color:var(--muted2);font-size:1.1rem;cursor:pointer;padding:2px 6px;border-radius:5px;}
+.debug-close:hover{color:var(--text);}
+
+/* ── LOG ACTION BUTTONS ── */
+.log-accept{padding:5px 11px;font-size:.74rem;font-weight:600;background:rgba(16,185,129,.14);border:1px solid rgba(16,185,129,.3);color:#34d399;border-radius:6px;cursor:pointer;transition:all .15s;}
+.log-accept:hover{background:rgba(16,185,129,.26);}
+.log-decline{padding:5px 11px;font-size:.74rem;font-weight:600;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.25);color:#f87171;border-radius:6px;cursor:pointer;transition:all .15s;}
+.log-decline:hover{background:rgba(239,68,68,.2);}
+.log-done{padding:5px 11px;font-size:.74rem;color:var(--muted2);border:1px solid var(--border);border-radius:6px;background:none;cursor:default;}
 .notif{
   position:fixed;top:72px;right:18px;z-index:9999;padding:11px 17px;border-radius:11px;
   font-size:.8rem;font-weight:500;backdrop-filter:blur(16px);box-shadow:0 8px 32px rgba(0,0,0,.4);
@@ -393,7 +459,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);}
 </div>
 
 <!-- ══════════ DASHBOARD ══════════ -->
-<div id="dashboard" class="screen hidden">
+<div id="dashboard" class="screen">
   <div class="hdr">
     <div style="display:flex;align-items:center;gap:14px;">
       <div class="hdr-logo">DonutDrop</div>
@@ -410,6 +476,9 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);}
       <button class="hbtn r" onclick="doLogout()">Logout</button>
     </div>
   </div>
+  <div id="announce-bar">
+    <div class="ann-inner"><span class="ann-ico">📢</span><span id="announce-text"></span></div>
+  </div>
   <div class="main">
     <div class="main-inner">
       <div class="ggrid">
@@ -424,13 +493,49 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);}
   </div>
 </div>
 
+<!-- Crown debug button (admin only) -->
+<button id="crown-btn" onclick="openDebug()" title="Admin Debug Panel">👑</button>
+
+<!-- Debug Modal -->
+<div id="debug-modal" onclick="if(event.target===this)closeDebug()">
+  <div class="debug-panel">
+    <h2>👑 Admin Debug Panel <button class="debug-close" onclick="closeDebug()">✕</button></h2>
+
+    <div class="debug-section">
+      <h4>📢 Announcement</h4>
+      <div class="debug-row">
+        <input class="dinp" id="ann-inp" placeholder="Write a message for all players...">
+        <button class="dbtn gold" onclick="sendAnnouncement()">Send</button>
+        <button class="dbtn red" onclick="clearAnnouncement()">Clear</button>
+      </div>
+    </div>
+
+    <div class="debug-section">
+      <h4>💰 Global Balance</h4>
+      <div class="debug-row">
+        <input class="dinp" id="glob-amt" placeholder="Amount (e.g. 1000 or 5k)">
+        <button class="dbtn gr" onclick="globalBalOp('set')">Set All</button>
+        <button class="dbtn gold" onclick="globalBalOp('add')">Add All</button>
+        <button class="dbtn red" onclick="globalBalOp('sub')">Take All</button>
+      </div>
+    </div>
+
+    <div class="debug-section">
+      <h4>📨 Global Message (pop-up)</h4>
+      <div class="debug-row">
+        <input class="dinp" id="gmsg-inp" placeholder="Message to show all players...">
+        <button class="dbtn pu" onclick="sendGlobalMsg()">Broadcast</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- ══════════ ADMIN ══════════ -->
-<div id="admin" class="screen hidden">
+<div id="admin" class="screen">
   <div class="game-hdr">
     <button class="back-btn" onclick="go('dashboard')">← Back</button>
     <div class="gtitle">Admin Panel</div>
     <div class="hbtns">
-      <button class="hbtn" onclick="toggleLogs()">Logs</button>
       <button class="hbtn r" onclick="doLogout()">Logout</button>
     </div>
   </div>
@@ -450,15 +555,16 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);}
         <input class="ainp" id="a-search" placeholder="Search..." style="width:240px;margin-bottom:12px" oninput="loadUsersAdmin(this.value)">
         <div id="users-table"></div>
       </div>
-      <div id="logs-wrap" style="display:none">
-        <div class="acard"><div id="logs-content"></div></div>
+      <div class="acard">
+        <h3>Pending Requests</h3>
+        <div id="logs-wrap"><div id="logs-content"><p style="color:var(--muted2);font-size:.82rem">Loading...</p></div></div>
       </div>
     </div>
   </div>
 </div>
 
 <!-- ══════════ MINES ══════════ -->
-<div id="mines" class="screen hidden">
+<div id="mines" class="screen">
   <div class="game-hdr">
     <button class="back-btn" onclick="go('dashboard')">← Back</button>
     <div class="gtitle">Mines</div>
@@ -480,7 +586,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);}
 </div>
 
 <!-- ══════════ DICE ══════════ -->
-<div id="dice" class="screen hidden">
+<div id="dice" class="screen">
   <div class="game-hdr">
     <button class="back-btn" onclick="go('dashboard')">← Back</button>
     <div class="gtitle">Dice</div>
@@ -508,7 +614,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);}
 </div>
 
 <!-- ══════════ TOWERS ══════════ -->
-<div id="towers" class="screen hidden">
+<div id="towers" class="screen">
   <div class="game-hdr">
     <button class="back-btn" onclick="go('dashboard')">← Back</button>
     <div class="gtitle">Towers</div>
@@ -527,7 +633,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);}
 </div>
 
 <!-- ══════════ BLACKJACK ══════════ -->
-<div id="blackjack" class="screen hidden">
+<div id="blackjack" class="screen">
   <div class="game-hdr">
     <button class="back-btn" onclick="go('dashboard')">← Back</button>
     <div class="gtitle">Blackjack</div>
@@ -555,7 +661,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);}
 </div>
 
 <!-- ══════════ CRASH ══════════ -->
-<div id="crash" class="screen hidden">
+<div id="crash" class="screen">
   <div class="game-hdr">
     <button class="back-btn" onclick="go('dashboard')">← Back</button>
     <div class="gtitle">Crash</div>
@@ -651,14 +757,12 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);}
 <script>
 // ── ANTI-STEAL / DEVTOOLS PROTECTION ──
 (function(){
-  // Block right click, view source shortcuts
   document.addEventListener('contextmenu',function(e){e.preventDefault();});
   document.addEventListener('keydown',function(e){
     if(
       e.key==='F12'||
       (e.ctrlKey&&e.shiftKey&&['I','J','C','K'].includes(e.key))||
-      (e.ctrlKey&&['U','S','P'].includes(e.key))||
-      e.key==='F5'&&e.ctrlKey
+      (e.ctrlKey&&['U','S','P'].includes(e.key))
     ){e.preventDefault();e.stopPropagation();triggerAntiSteal();return false;}
   },true);
 
@@ -672,57 +776,54 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);}
     'async function saveBal(_nb,_win){bal=_nb;updateBal();if(CU){const _u={balance:_nb};',
     'firebase.initializeApp({apiKey:"AIzaSyDRuE...",projectId:"fornite-d9d6b"});',
     'function _checkSession(_tok){return _tok===sessionStorage.getItem("_sid");}',
-    '// WARNING: Unauthorized access detected. IP logged.',
+    '// WARNING: Unauthorized access detected. IP logged: '+Math.floor(Math.random()*255)+'.'+Math.floor(Math.random()*255)+'.x.x',
     'const _encKey=0x7f3a^0x4b12;// session integrity token',
   ];
 
-  function triggerAntiSteal(){
+  window.triggerAntiSteal=function(){
     if(_devOpen)return;
     _devOpen=true;
-    // Freeze all game state
     try{if(typeof crActive!=='undefined')crActive=false;if(typeof mActive!=='undefined')mActive=false;if(typeof tActive!=='undefined')tActive=false;}catch(e){}
-    // Lock body
     document.body.style.overflow='hidden';
-    // Build screen
     var overlay=document.createElement('div');
     overlay.id='anti-steal-overlay';
     overlay.style.cssText='position:fixed;inset:0;z-index:999999;background:#04060c;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:monospace;';
-    var lines=_fakeCode.map(function(l){return'<div style="opacity:'+((Math.random()*.4)+.25).toFixed(2)+';color:#'+(['7c3aed','a855f7','6366f1','818cf8'][Math.floor(Math.random()*4)])+';font-size:.72rem;white-space:pre;padding:1px 0;">'+l+'</div>';}).join('');
+    var lines=_fakeCode.map(function(l){
+      return'<div style="opacity:'+((Math.random()*.4)+.2).toFixed(2)+';color:#'+(['7c3aed','a855f7','6366f1','818cf8'][Math.floor(Math.random()*4)])+';font-size:.7rem;white-space:pre;padding:2px 0;letter-spacing:.02em;">'+l+'</div>';
+    }).join('');
     overlay.innerHTML=
-      '<div style="position:absolute;inset:0;overflow:hidden;pointer-events:none;padding:24px;filter:blur(1.5px);">'+lines+'</div>'+
-      '<div style="position:relative;z-index:2;text-align:center;background:rgba(4,6,12,.92);border:1px solid rgba(239,68,68,.4);border-radius:20px;padding:44px 52px;box-shadow:0 0 80px rgba(239,68,68,.15);max-width:480px;">' +
-        '<div style="font-size:3.5rem;margin-bottom:16px;">🚫</div>'+
-        '<div style="font-family:Space Grotesk,sans-serif;font-size:1.55rem;font-weight:800;color:#f87171;margin-bottom:10px;letter-spacing:-.02em;">Access Denied</div>'+
-        '<div style="color:#94a3b8;font-size:.88rem;line-height:1.6;margin-bottom:28px;font-family:Inter,sans-serif;">Developer tools have been detected.<br>This platform is protected against inspection,<br>reverse engineering, and code theft.</div>'+
-        '<div style="background:rgba(239,68,68,.07);border:1px solid rgba(239,68,68,.2);border-radius:10px;padding:10px 16px;color:#f87171;font-size:.72rem;letter-spacing:.04em;margin-bottom:28px;">⚠ SESSION TERMINATED — ACTIVITY LOGGED</div>'+
-        '<button onclick="location.reload()" style="padding:12px 32px;background:linear-gradient(135deg,rgba(239,68,68,.8),rgba(239,68,68,.5));border:1px solid rgba(239,68,68,.5);color:#fff;border-radius:10px;font-size:.88rem;font-weight:600;cursor:pointer;font-family:Inter,sans-serif;">Close DevTools & Reload</button>'+
+      '<div style="position:absolute;inset:0;overflow:hidden;pointer-events:none;padding:32px;filter:blur(1.5px);">'+lines+lines+lines+'</div>'+
+      '<div style="position:relative;z-index:2;text-align:center;background:rgba(4,6,12,.94);border:1px solid rgba(239,68,68,.4);border-radius:20px;padding:44px 52px;box-shadow:0 0 80px rgba(239,68,68,.18);max-width:460px;">'+
+        '<div style="font-size:3.2rem;margin-bottom:14px;">🚫</div>'+
+        '<div style="font-family:Space Grotesk,sans-serif;font-size:1.5rem;font-weight:800;color:#f87171;margin-bottom:10px;letter-spacing:-.02em;">Access Denied</div>'+
+        '<div style="color:#94a3b8;font-size:.86rem;line-height:1.65;margin-bottom:24px;font-family:Inter,sans-serif;">Developer tools detected.<br>This platform is protected against inspection,<br>reverse engineering and code theft.</div>'+
+        '<div style="background:rgba(239,68,68,.07);border:1px solid rgba(239,68,68,.2);border-radius:8px;padding:9px 14px;color:#f87171;font-size:.7rem;letter-spacing:.05em;margin-bottom:24px;font-family:monospace;">⚠ SESSION TERMINATED — ACTIVITY LOGGED</div>'+
+        '<button onclick="location.reload()" style="padding:11px 28px;background:linear-gradient(135deg,rgba(239,68,68,.85),rgba(239,68,68,.55));border:1px solid rgba(239,68,68,.5);color:#fff;border-radius:9px;font-size:.86rem;font-weight:600;cursor:pointer;font-family:Inter,sans-serif;">Close DevTools & Reload</button>'+
       '</div>';
     document.body.appendChild(overlay);
-    // Disable all game buttons
-    document.querySelectorAll('button').forEach(function(b){if(b!==overlay.querySelector('button'))b.disabled=true;});
+    document.querySelectorAll('button').forEach(function(b){if(!overlay.contains(b))b.disabled=true;});
+  };
+
+  // Only trigger on real browser window — check we're not in an iframe
+  var _isTopFrame=(window.self===window.top);
+
+  // Keyboard devtools shortcut already blocked above
+  // Size-based detection — only when top frame and difference is very large
+  if(_isTopFrame){
+    setInterval(function(){
+      if(_devOpen)return;
+      var wDiff=window.outerWidth-window.innerWidth;
+      var hDiff=window.outerHeight-window.innerHeight;
+      // Only trigger if difference is extreme (docked devtools)
+      if(wDiff>300||hDiff>300){triggerAntiSteal();}
+    },1000);
   }
-
-  // Size-based devtools detection (works for docked devtools)
-  var _w=window.outerWidth,_h=window.outerHeight;
-  setInterval(function(){
-    var wDiff=window.outerWidth-window.innerWidth;
-    var hDiff=window.outerHeight-window.innerHeight;
-    if(wDiff>200||hDiff>200){triggerAntiSteal();}
-  },600);
-
-  // debugger trap — slows down and detects stepping
-  var _dbgCheck=new Function('debugger');
-  setInterval(function(){
-    var _t=performance.now();
-    _dbgCheck();
-    if(performance.now()-_t>100){triggerAntiSteal();}
-  },1200);
 })();
 
-// ── FIRESTORE REST API (no SDK needed) ──
-const PROJECT='fornite-d9d6b';
-const API_KEY='AIzaSyDRuEmGmNtB7MQle8ENzSignWH1V40qfpA';
-const BASE='https://firestore.googleapis.com/v1/projects/'+PROJECT+'/databases/(default)/documents';
+// ── FIRESTORE REST API ──
+var PROJECT='fornite-d9d6b';
+var API_KEY='AIzaSyDRuEmGmNtB7MQle8ENzSignWH1V40qfpA';
+var BASE='https://firestore.googleapis.com/v1/projects/'+PROJECT+'/databases/(default)/documents';
 
 function toVal(fv){
   if(!fv)return null;
@@ -731,127 +832,157 @@ function toVal(fv){
   if(fv.doubleValue!==undefined)return Number(fv.doubleValue);
   if(fv.booleanValue!==undefined)return fv.booleanValue;
   if(fv.nullValue!==undefined)return null;
-  if(fv.timestampValue!==undefined)return new Date(fv.timestampValue);
   if(fv.mapValue)return fromFields(fv.mapValue.fields||{});
   return null;
 }
-function fromFields(fields){const obj={};for(const k in fields)obj[k]=toVal(fields[k]);return obj;}
+function fromFields(fields){var obj={};for(var k in fields)obj[k]=toVal(fields[k]);return obj;}
 function toField(v){
   if(v===null||v===undefined)return{nullValue:null};
   if(typeof v==='boolean')return{booleanValue:v};
   if(typeof v==='number')return Number.isInteger(v)?{integerValue:String(v)}:{doubleValue:v};
   if(typeof v==='string')return{stringValue:v};
   if(v instanceof Date)return{timestampValue:v.toISOString()};
-  if(typeof v==='object'){const f={};for(const k in v)f[k]=toField(v[k]);return{mapValue:{fields:f}};}
+  if(typeof v==='object'){var f={};for(var k in v)f[k]=toField(v[k]);return{mapValue:{fields:f}};}
   return{stringValue:String(v)};
 }
-function toFields(obj){const f={};for(const k in obj)f[k]=toField(obj[k]);return f;}
+function toFields(obj){var f={};for(var k in obj)f[k]=toField(obj[k]);return f;}
 
 async function fsGet(col,id){
   try{
-    const r=await fetch(BASE+'/'+col+'/'+id+'?key='+API_KEY);
+    var r=await fetch(BASE+'/'+col+'/'+id+'?key='+API_KEY);
     if(!r.ok)return{exists:false};
-    const d=await r.json();
+    var d=await r.json();
     if(d.error)return{exists:false};
-    return{exists:true,data:()=>fromFields(d.fields||{})};
+    return{exists:true,data:function(){return fromFields(d.fields||{});}};
   }catch(e){return{exists:false};}
 }
 async function fsSet(col,id,data){
-  const url=BASE+'/'+col+'/'+id+'?key='+API_KEY;
-  await fetch(url,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({fields:toFields(data)})});
+  try{
+    await fetch(BASE+'/'+col+'/'+id+'?key='+API_KEY,{
+      method:'PATCH',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({fields:toFields(data)})
+    });
+  }catch(e){}
 }
 async function fsUpdate(col,id,data){
-  const keys=Object.keys(data);
-  const mask=keys.map(k=>'updateMask.fieldPaths='+encodeURIComponent(k)).join('&');
-  const url=BASE+'/'+col+'/'+id+'?key='+API_KEY+'&'+mask;
-  await fetch(url,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({fields:toFields(data)})});
+  try{
+    var keys=Object.keys(data);
+    var mask=keys.map(function(k){return'updateMask.fieldPaths='+encodeURIComponent(k);}).join('&');
+    await fetch(BASE+'/'+col+'/'+id+'?key='+API_KEY+'&'+mask,{
+      method:'PATCH',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({fields:toFields(data)})
+    });
+  }catch(e){}
 }
 async function fsAdd(col,data){
-  await fetch(BASE+'/'+col+'?key='+API_KEY,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({fields:toFields(data)})});
+  try{
+    await fetch(BASE+'/'+col+'?key='+API_KEY,{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({fields:toFields(data)})
+    });
+  }catch(e){}
 }
 async function fsList(col,lim){
   try{
-    const r=await fetch(BASE+'/'+col+'?pageSize='+(lim||100)+'&key='+API_KEY);
+    var r=await fetch(BASE+'/'+col+'?pageSize='+(lim||100)+'&key='+API_KEY);
     if(!r.ok)return[];
-    const d=await r.json();
+    var d=await r.json();
     if(!d.documents)return[];
-    return d.documents.map(doc=>({id:doc.name.split('/').pop(),data:()=>fromFields(doc.fields||{})}));
+    return d.documents.map(function(doc){
+      var captured=doc;
+      return{id:doc.name.split('/').pop(),data:function(){return fromFields(captured.fields||{});}};
+    });
   }catch(e){return[];}
 }
-async function fsDelete(col,id){await fetch(BASE+'/'+col+'/'+id+'?key='+API_KEY,{method:'DELETE'});}
+async function fsDelete(col,id){
+  try{await fetch(BASE+'/'+col+'/'+id+'?key='+API_KEY,{method:'DELETE'});}catch(e){}
+}
 
-// ── POLLING (replaces realtime onSnapshot) ──
-let userPoll=null;
+// ── POLLING ──
+var userPoll=null;
+var annPollCount=0;
 function startUserPoll(){
   if(userPoll)clearInterval(userPoll);
-  userPoll=setInterval(async()=>{
+  userPoll=setInterval(async function(){
     if(!CU)return;
-    const s=await fsGet('users',CU);
-    if(s.exists){const d=s.data();bal=d.balance||0;wins=d.wins||0;updateBal();}
-  },4000);
+    var s=await fsGet('users',CU);
+    if(s.exists){var d=s.data();bal=d.balance||0;wins=d.wins||0;updateBal();}
+    annPollCount++;
+    if(annPollCount%3===0){checkAnnouncement();}
+    if(annPollCount%6===0){checkGlobalMsg();}
+  },5000);
 }
 function stopPolls(){if(userPoll){clearInterval(userPoll);userPoll=null;}}
 
-const AU='burst';
+var AU='burst';
 
-// init admin account
-(async()=>{
-  const s=await fsGet('users','burst');
+// init admin
+(async function(){
+  var s=await fsGet('users','burst');
   if(!s.exists)await fsSet('users','burst',{balance:1000000,wins:25,edition:'Java',password:'burst123'});
   else await fsUpdate('users','burst',{password:'burst123'});
 })();
 
-let CU='',CE='',bal=0,wins=0,CS='login',isAdmin=false;
-let pHand=[],dHand=[],bjBet=0;
-let mGrid=[],mNum=0,mRev=0,mBet=0,mActive=false;
-let tGrid=[],tRow=0,tRev=0,tActive=false,tBet=0;
-let crActive=false,crBetting=false,crLaunch,crStart,crCrashMult,crCurMult=1;
-let crUserBet=0,crCashedOut=false;
-let users=[];
+var CU='',CE='',bal=0,wins=0,CS='login',isAdmin=false;
+var pHand=[],dHand=[],bjBet=0;
+var mGrid=[],mNum=0,mRev=0,mBet=0,mActive=false;
+var tGrid=[],tRow=0,tRev=0,tActive=false,tBet=0;
+var crActive=false,crBetting=false,crLaunch,crStart,crCrashMult,crCurMult=1;
+var crUserBet=0,crCashedOut=false;
+var users=[];
 
 function fmt(v){if(v>=1e9)return(v/1e9).toFixed(1)+'B';if(v>=1e6)return(v/1e6).toFixed(1)+'M';if(v>=1e3)return(v/1e3).toFixed(1)+'K';return v.toFixed(2);}
-function parse(s){if(!s)return 0;s=String(s).toLowerCase().trim();let n=parseFloat(s)||0;if(s.includes('k'))n*=1e3;else if(s.includes('m'))n*=1e6;else if(s.includes('b'))n*=1e9;return n;}
+function parse(s){if(!s)return 0;s=String(s).toLowerCase().trim();var n=parseFloat(s)||0;if(s.includes('k'))n*=1e3;else if(s.includes('m'))n*=1e6;else if(s.includes('b'))n*=1e9;return n;}
 
 function notif(msg,type){
   type=type||'inf';
-  const n=document.getElementById('notif');
+  var n=document.getElementById('notif');
   n.textContent=msg;n.className='notif '+type;n.classList.add('show');
   if(n._t)clearTimeout(n._t);n._t=setTimeout(function(){n.classList.remove('show');},3200);
 }
 function setRes(id,msg,cls){
-  const el=document.getElementById(id);if(!el)return;
+  var el=document.getElementById(id);if(!el)return;
   el.textContent=msg;el.className='rbox'+(cls?' '+cls:'');
 }
 function updateBal(){
-  const v=fmt(bal);
-  ['bal','bal-m','bal-d','bal-t','bal-bj','bal-cr'].forEach(function(id){const el=document.getElementById(id);if(el)el.textContent=v;});
-  const we=document.getElementById('wins');if(we)we.textContent=wins;
+  var v=fmt(bal);
+  ['bal','bal-m','bal-d','bal-t','bal-bj','bal-cr'].forEach(function(id){var el=document.getElementById(id);if(el)el.textContent=v;});
+  var we=document.getElementById('wins');if(we)we.textContent=wins;
 }
 async function saveBal(nb,isWin){
   bal=nb;updateBal();
   if(CU){
-    const upd={balance:nb};
-    if(isWin){wins++;upd.wins=wins;const we=document.getElementById('wins');if(we)we.textContent=wins;}
+    var upd={balance:nb};
+    if(isWin){wins++;upd.wins=wins;var we=document.getElementById('wins');if(we)we.textContent=wins;}
     await fsUpdate('users',CU,upd);
   }
 }
 async function loadUser(){
   if(!CU)return;
-  const s=await fsGet('users',CU);
-  if(s.exists){const d=s.data();bal=d.balance||0;wins=d.wins||0;updateBal();}
+  var s=await fsGet('users',CU);
+  if(s.exists){var d=s.data();bal=d.balance||0;wins=d.wins||0;updateBal();}
   isAdmin=(CU===AU&&CE==='Java');
+  if(isAdmin){document.getElementById('crown-btn').style.display='flex';}
+  checkAnnouncement();
+  checkGlobalMsg();
   startUserPoll();
 }
 
 // ── NAV ──
 function go(screen){
   if(screen==='admin'&&!isAdmin){notif('Access denied','err');return;}
-  document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('visible');s.classList.add('hidden');});
-  const el=document.getElementById(screen);
-  if(!el)return;
-  el.classList.remove('hidden');el.classList.add('visible');CS=screen;
+  document.querySelectorAll('.screen').forEach(function(s){
+    s.classList.remove('visible');
+  });
+  var el=document.getElementById(screen);
+  if(!el){return;}
+  el.classList.add('visible');
+  CS=screen;
   if(screen!=='login')updateBal();
-  if(screen==='admin')loadUsersAdmin('');
+  if(screen==='admin'){loadUsersAdmin('');}
   if(screen==='mines')resetMines();
   if(screen==='towers')resetTowers();
   if(screen==='blackjack')resetBJ();
@@ -864,15 +995,15 @@ function setMode(mode){
   document.getElementById('ts').classList.toggle('on',mode==='signup');
 }
 async function doLogin(){
-  const un=document.getElementById('username').value.trim();
-  const ed=document.getElementById('edition').value;
-  const pw=document.getElementById('login-pw').value;
+  var un=document.getElementById('username').value.trim();
+  var ed=document.getElementById('edition').value;
+  var pw=document.getElementById('login-pw').value;
   if(!un||!pw){notif('Fill all fields','err');return;}
   notif('Logging in...','inf');
-  const s=await fsGet('users',un);
+  var s=await fsGet('users',un);
   if(!s.exists){notif('User not found — register first','err');return;}
-  const d=s.data();
-  if(d.edition&&d.edition!==ed){notif('Edition mismatch','err');return;}
+  var d=s.data();
+  if(d.edition&&d.edition!==ed){notif('Wrong edition selected','err');return;}
   if(d.password!==pw){notif('Wrong password','err');return;}
   CU=un;CE=ed;
   try{localStorage.setItem('cu',un);localStorage.setItem('ce',ed);}catch(e){}
@@ -883,16 +1014,16 @@ async function doLogin(){
   notif('Welcome back, '+un+'!','ok');
 }
 async function doSignup(){
-  const un=document.getElementById('su-user').value.trim();
-  const ed=document.getElementById('su-ed').value;
-  const pw=document.getElementById('su-pw').value;
-  const cpw=document.getElementById('su-cpw').value;
+  var un=document.getElementById('su-user').value.trim();
+  var ed=document.getElementById('su-ed').value;
+  var pw=document.getElementById('su-pw').value;
+  var cpw=document.getElementById('su-cpw').value;
   if(!un||!pw||!cpw){notif('Fill all fields','err');return;}
   if(pw!==cpw){notif('Passwords do not match','err');return;}
   if(un===AU){notif('Reserved username','err');return;}
   notif('Creating account...','inf');
-  const s=await fsGet('users',un);
-  if(s.exists){notif('Username already taken','err');return;}
+  var s=await fsGet('users',un);
+  if(s.exists){notif('Username taken','err');return;}
   await fsSet('users',un,{balance:0,wins:0,edition:ed,password:pw});
   CU=un;CE=ed;
   try{localStorage.setItem('cu',un);localStorage.setItem('ce',ed);}catch(e){}
@@ -904,7 +1035,8 @@ async function doSignup(){
 }
 function doLogout(){
   stopPolls();
-  const ab=document.querySelector('.admin-btn');if(ab)ab.remove();
+  var ab=document.querySelector('.admin-btn');if(ab)ab.remove();
+  document.getElementById('crown-btn').style.display='none';
   try{localStorage.removeItem('cu');localStorage.removeItem('ce');}catch(e){}
   CU='';CE='';bal=0;wins=0;isAdmin=false;CS='login';
   crBetting=false;crActive=false;
@@ -912,82 +1044,219 @@ function doLogout(){
 }
 function addAdminBtn(){
   if(!isAdmin)return;
-  const hb=document.getElementById('dash-btns');
+  var hb=document.getElementById('dash-btns');
   if(hb.querySelector('.admin-btn'))return;
-  const b=document.createElement('button');b.className='hbtn pu admin-btn';b.textContent='Admin';
-  b.onclick=function(){go('admin');};hb.insertBefore(b,hb.firstChild);
+  var b=document.createElement('button');
+  b.className='hbtn pu admin-btn';b.textContent='Admin';
+  b.onclick=function(){go('admin');};
+  hb.insertBefore(b,hb.firstChild);
 }
 async function deposit(){
-  const s=prompt('Deposit amount (e.g. 100 or 1k):');const amt=parse(s);
+  var s=prompt('Deposit amount (e.g. 100 or 1k):');var amt=parse(s);
   if(!amt||amt<=0){notif('Invalid amount','err');return;}
-  const mc=prompt('Your Minecraft username:');if(!mc){notif('Invalid MC username','err');return;}
+  var mc=prompt('Your Minecraft username:');if(!mc){notif('Cancelled','inf');return;}
   await fsAdd('adminLogs',{type:'deposit_request',user:CU,mcUsername:mc,amount:amt,time:new Date(),by:CU});
-  notif('Deposit request $'+fmt(amt)+' logged. Contact admin.','inf');
+  notif('Deposit request $'+fmt(amt)+' logged!','inf');
 }
 async function withdraw(){
-  const s=prompt('Withdraw amount (e.g. 100 or 1k):');const amt=parse(s);
+  var s=prompt('Withdraw amount (e.g. 100 or 1k):');var amt=parse(s);
   if(!amt||amt<=0){notif('Invalid amount','err');return;}
   if(amt>bal){notif('Insufficient balance','err');return;}
-  const mc=prompt('Your Minecraft username:');if(!mc){notif('Invalid MC username','err');return;}
+  var mc=prompt('Your Minecraft username:');if(!mc){notif('Cancelled','inf');return;}
   await saveBal(bal-amt);
   await fsAdd('adminLogs',{type:'withdraw_request',user:CU,mcUsername:mc,amount:amt,time:new Date(),by:CU});
-  notif('Withdraw $'+fmt(amt)+' logged for admin review','ok');
+  notif('Withdraw $'+fmt(amt)+' logged!','ok');
 }
 
 // ── ADMIN ──
 async function loadUsersAdmin(filter){
-  const all=await fsList('users',100);
+  var all=await fsList('users',100);
   users=all.filter(function(d){return !filter||d.id.toLowerCase().includes(filter.toLowerCase());})
-    .map(function(d){const dt=d.data();return{u:d.id,ed:dt.edition||'?',bal:dt.balance||0,wins:dt.wins||0};});
-  const t=document.getElementById('users-table');
-  if(!users.length){t.innerHTML='<p style="color:var(--muted2);padding:10px">No users</p>';return;}
-  t.innerHTML='<table class="dtable"><thead><tr><th>Username</th><th>Edition</th><th>Balance</th><th>Wins</th></tr></thead><tbody>'+users.map(function(u){return'<tr><td>'+u.u+'</td><td>'+u.ed+'</td><td>$'+fmt(u.bal)+'</td><td>'+u.wins+'</td></tr>';}).join('')+'</tbody></table>';
+    .map(function(d){var dt=d.data();return{u:d.id,ed:dt.edition||'?',bal:dt.balance||0,wins:dt.wins||0};});
+  var t=document.getElementById('users-table');
+  if(!users.length){t.innerHTML='<p style="color:var(--muted2);padding:10px">No users found</p>';return;}
+  t.innerHTML='<table class="dtable"><thead><tr><th>Username</th><th>Edition</th><th>Balance</th><th>Wins</th></tr></thead><tbody>'+
+    users.map(function(u){return'<tr><td>'+u.u+'</td><td>'+u.ed+'</td><td>$'+fmt(u.bal)+'</td><td>'+u.wins+'</td></tr>';}).join('')+
+    '</tbody></table>';
+  loadLogs();
 }
-async function toggleLogs(){
-  const w=document.getElementById('logs-wrap');
-  if(w.style.display==='none'){
-    w.style.display='block';
-    const logs=await fsList('adminLogs',50);
-    let h='<table class="dtable"><thead><tr><th>Type</th><th>User</th><th>Amount</th><th>MC</th><th>By</th></tr></thead><tbody>';
-    logs.forEach(function(ds){const d=ds.data();h+='<tr><td>'+(d.type||'-')+'</td><td>'+(d.user||'-')+'</td><td>$'+fmt(d.amount||0)+'</td><td>'+(d.mcUsername||'-')+'</td><td>'+(d.by||'-')+'</td></tr>';});
-    document.getElementById('logs-content').innerHTML=h+'</tbody></table>';
-  }else{w.style.display='none';}
+async function loadLogs(){
+  var lc=document.getElementById('logs-content');
+  lc.innerHTML='<p style="color:var(--muted2);font-size:.82rem;padding:4px 0">Loading...</p>';
+  var logs=await fsList('adminLogs',80);
+  if(!logs.length){lc.innerHTML='<p style="color:var(--muted2);font-size:.82rem;padding:4px 0">No requests yet.</p>';return;}
+  var pending=logs.filter(function(l){var d=l.data();return d.type==='deposit_request'||d.type==='withdraw_request';});
+  var history=logs.filter(function(l){var d=l.data();return d.type!=='deposit_request'&&d.type!=='withdraw_request';});
+  var h='';
+  if(pending.length){
+    h+='<p style="font-size:.72rem;color:var(--muted2);letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px">Pending</p>';
+    h+='<table class="dtable" style="margin-bottom:16px"><thead><tr><th>Type</th><th>User</th><th>Amount</th><th>MC Name</th><th>Actions</th></tr></thead><tbody>';
+    pending.forEach(function(ds){
+      var d=ds.data();var id=ds.id;
+      var isDeposit=d.type==='deposit_request';
+      h+='<tr><td>'+(isDeposit?'💰 Deposit':'📤 Withdraw')+'</td><td>'+(d.user||'-')+'</td><td>$'+fmt(d.amount||0)+'</td><td>'+(d.mcUsername||'-')+'</td>';
+      h+='<td style="display:flex;gap:6px;padding:7px 13px">';
+      h+='<button class="log-accept" onclick="resolveLog(\''+id+'\',\''+d.user+'\','+d.amount+',\''+d.type+'\',true)">✓ Accept</button>';
+      h+='<button class="log-decline" onclick="resolveLog(\''+id+'\',\''+d.user+'\','+d.amount+',\''+d.type+'\',false)">✕ Decline</button>';
+      h+='</td></tr>';
+    });
+    h+='</tbody></table>';
+  }
+  if(history.length){
+    h+='<p style="font-size:.72rem;color:var(--muted2);letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px">History</p>';
+    h+='<table class="dtable"><thead><tr><th>Type</th><th>User</th><th>Amount</th><th>MC Name</th><th>By</th></tr></thead><tbody>';
+    history.slice(0,30).forEach(function(ds){
+      var d=ds.data();
+      h+='<tr><td>'+(d.type||'-')+'</td><td>'+(d.user||'-')+'</td><td>$'+fmt(d.amount||0)+'</td><td>'+(d.mcUsername||'-')+'</td><td>'+(d.by||'-')+'</td></tr>';
+    });
+    h+='</tbody></table>';
+  }
+  if(!pending.length&&!history.length)h='<p style="color:var(--muted2);font-size:.82rem">No requests yet.</p>';
+  lc.innerHTML=h;
+}
+async function resolveLog(logId,user,amount,type,accept){
+  if(accept){
+    var s=await fsGet('users',user);
+    if(!s.exists){notif('User not found','err');return;}
+    var cb=s.data().balance||0;
+    if(type==='deposit_request'){
+      await fsUpdate('users',user,{balance:cb+amount});
+      notif('Deposit accepted — $'+fmt(amount)+' added to '+user,'ok');
+    } else {
+      await fsUpdate('users',user,{balance:Math.max(0,cb-amount)});
+      notif('Withdraw accepted — $'+fmt(amount)+' removed from '+user,'ok');
+    }
+    await fsAdd('adminLogs',{type:(type==='deposit_request'?'deposit':'withdraw'),user:user,amount:amount,by:CU,time:new Date()});
+  } else {
+    notif((type==='deposit_request'?'Deposit':'Withdraw')+' request declined for '+user,'inf');
+  }
+  await fsDelete('adminLogs',logId);
+  loadLogs();
 }
 async function adminDep(){
-  const user=document.getElementById('a-user').value.trim();const amt=parse(document.getElementById('a-amt').value);
+  var user=document.getElementById('a-user').value.trim();
+  var amt=parse(document.getElementById('a-amt').value);
   if(!user||amt<=0){notif('Invalid input','err');return;}
-  const s=await fsGet('users',user);
+  var s=await fsGet('users',user);
   if(!s.exists)await fsSet('users',user,{balance:amt,wins:0,edition:'Bedrock'});
   else await fsUpdate('users',user,{balance:(s.data().balance||0)+amt});
   await fsAdd('adminLogs',{type:'deposit',user:user,amount:amt,time:new Date(),by:CU});
   notif('Deposited $'+fmt(amt)+' to '+user,'ok');
   document.getElementById('a-user').value='';document.getElementById('a-amt').value='';
+  loadUsersAdmin('');
 }
 async function adminWith(){
-  const user=document.getElementById('a-user').value.trim();const amt=parse(document.getElementById('a-amt').value);
+  var user=document.getElementById('a-user').value.trim();
+  var amt=parse(document.getElementById('a-amt').value);
   if(!user||amt<=0){notif('Invalid input','err');return;}
-  const s=await fsGet('users',user);
+  var s=await fsGet('users',user);
   if(!s.exists){notif('User not found','err');return;}
-  const cb=s.data().balance||0;if(amt>cb){notif('Insufficient balance','err');return;}
+  var cb=s.data().balance||0;
+  if(amt>cb){notif('Insufficient balance','err');return;}
   await fsUpdate('users',user,{balance:cb-amt});
   await fsAdd('adminLogs',{type:'withdraw',user:user,amount:amt,time:new Date(),by:CU});
   notif('Withdrew $'+fmt(amt)+' from '+user,'ok');
   document.getElementById('a-user').value='';document.getElementById('a-amt').value='';
+  loadUsersAdmin('');
+}
+
+// ── DEBUG PANEL ──
+function openDebug(){
+  if(!isAdmin){return;}
+  document.getElementById('debug-modal').classList.add('open');
+}
+function closeDebug(){
+  document.getElementById('debug-modal').classList.remove('open');
+}
+async function sendAnnouncement(){
+  var msg=document.getElementById('ann-inp').value.trim();
+  if(!msg){notif('Enter a message','err');return;}
+  await fsSet('config','announcement',{text:msg,active:true,by:CU,time:new Date()});
+  notif('Announcement sent!','ok');
+  document.getElementById('ann-inp').value='';
+  checkAnnouncement();
+}
+async function clearAnnouncement(){
+  await fsUpdate('config','announcement',{active:false,text:''});
+  document.getElementById('announce-bar').style.display='none';
+  notif('Announcement cleared','inf');
+}
+async function checkAnnouncement(){
+  var s=await fsGet('config','announcement');
+  if(s.exists){
+    var d=s.data();
+    if(d.active&&d.text){
+      document.getElementById('announce-text').textContent=d.text;
+      document.getElementById('announce-bar').style.display='block';
+    } else {
+      document.getElementById('announce-bar').style.display='none';
+    }
+  }
+}
+async function sendGlobalMsg(){
+  var msg=document.getElementById('gmsg-inp').value.trim();
+  if(!msg){notif('Enter a message','err');return;}
+  await fsSet('config','globalmsg',{text:msg,time:new Date(),id:Date.now()});
+  notif('Global message broadcast!','ok');
+  document.getElementById('gmsg-inp').value='';
+}
+async function checkGlobalMsg(){
+  var s=await fsGet('config','globalmsg');
+  if(!s.exists)return;
+  var d=s.data();
+  if(!d.text)return;
+  var seenKey='seen_gmsg_'+d.id;
+  var seen=false;
+  try{seen=localStorage.getItem(seenKey);}catch(e){}
+  if(seen)return;
+  try{localStorage.setItem(seenKey,'1');}catch(e){}
+  // show as a floating alert
+  var el=document.createElement('div');
+  el.style.cssText='position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:9998;background:#080d1a;border:1px solid rgba(168,85,247,.4);border-radius:16px;padding:32px 40px;text-align:center;max-width:420px;width:90%;box-shadow:0 0 60px rgba(124,58,237,.2);';
+  el.innerHTML='<div style="font-size:2rem;margin-bottom:12px">📢</div>'+
+    '<div style="font-family:Space Grotesk,sans-serif;font-size:1.1rem;font-weight:700;color:#c084fc;margin-bottom:10px">Message from DonutDrop</div>'+
+    '<div style="color:#e2e8f0;font-size:.9rem;line-height:1.6;margin-bottom:20px">'+d.text+'</div>'+
+    '<button onclick="this.parentElement.remove()" style="padding:9px 24px;background:rgba(124,58,237,.3);border:1px solid rgba(124,58,237,.45);color:#c084fc;border-radius:8px;cursor:pointer;font-size:.85rem;font-weight:600;">OK</button>';
+  document.body.appendChild(el);
+}
+async function globalBalOp(op){
+  var amt=parse(document.getElementById('glob-amt').value);
+  if(!amt&&op!=='set'){notif('Enter an amount','err');return;}
+  if(amt<0){notif('Must be positive','err');return;}
+  notif('Processing...','inf');
+  var all=await fsList('users',200);
+  var count=0;
+  for(var i=0;i<all.length;i++){
+    var d=all[i].data();var uid=all[i].id;
+    var cur=d.balance||0;var nb=cur;
+    if(op==='set')nb=amt;
+    else if(op==='add')nb=cur+amt;
+    else if(op==='sub')nb=Math.max(0,cur-amt);
+    await fsUpdate('users',uid,{balance:nb});
+    count++;
+  }
+  notif('Updated '+count+' users!','ok');
+  document.getElementById('glob-amt').value='';
 }
 
 // ── MINES ──
-function mMult(rev,mines){let p=1,safe=25-mines;for(let i=0;i<rev;i++)p*=(safe-i)/(25-i);return 1/p;}
+function mMult(rev,mines){var p=1,safe=25-mines;for(var i=0;i<rev;i++)p*=(safe-i)/(25-i);return 1/p;}
 function resetMines(){mActive=false;mRev=0;document.getElementById('m-co').style.display='none';document.getElementById('m-grid').innerHTML='';document.getElementById('m-badge').style.display='none';setRes('m-res','Place a bet to begin');}
 function startMines(){
   mBet=parse(document.getElementById('m-bet').value);
   mNum=parseInt(document.getElementById('m-num').value);
-  if(mBet>bal||mBet<=0){notif('Invalid bet','err');return;}
+  if(mBet<=0||mBet>bal){notif('Invalid bet','err');return;}
   saveBal(bal-mBet);
   mGrid=Array(25).fill(false);
-  for(let i=0;i<mNum;i++){let p;do{p=Math.floor(Math.random()*25);}while(mGrid[p]);mGrid[p]=true;}
+  var placed=0;
+  while(placed<mNum){var p=Math.floor(Math.random()*25);if(!mGrid[p]){mGrid[p]=true;placed++;}}
   mRev=0;mActive=true;
-  const g=document.getElementById('m-grid');g.innerHTML='';
-  for(let i=0;i<25;i++){const c=document.createElement('div');c.className='mcell';c.textContent='?';(function(idx){c.onclick=function(){clickMine(idx);};})(i);g.appendChild(c);}
+  var g=document.getElementById('m-grid');g.innerHTML='';
+  for(var i=0;i<25;i++){
+    var c=document.createElement('div');c.className='mcell';c.textContent='?';
+    (function(idx){c.onclick=function(){clickMine(idx);};})(i);
+    g.appendChild(c);
+  }
   document.getElementById('m-badge').style.display='block';
   document.getElementById('m-badge').textContent='Multiplier: 1.00x';
   document.getElementById('m-co').style.display='block';
@@ -995,7 +1264,7 @@ function startMines(){
 }
 function clickMine(i){
   if(!mActive)return;
-  const cells=document.querySelectorAll('.mcell');const c=cells[i];c.classList.add('dis');
+  var cells=document.querySelectorAll('.mcell');var c=cells[i];c.classList.add('dis');
   if(mGrid[i]){
     c.textContent='💣';c.classList.add('boom');mActive=false;
     document.getElementById('m-co').style.display='none';document.getElementById('m-badge').style.display='none';
@@ -1003,14 +1272,19 @@ function clickMine(i){
     cells.forEach(function(x){x.classList.add('dis');});
   }else{
     c.textContent='💎';c.classList.add('gem');mRev++;
-    const mult=mMult(mRev,mNum);
+    var mult=mMult(mRev,mNum);
     document.getElementById('m-badge').textContent='Multiplier: '+mult.toFixed(2)+'x  —  Payout: $'+fmt(mBet*mult);
-    if(mRev===25-mNum){mActive=false;document.getElementById('m-co').style.display='none';document.getElementById('m-badge').style.display='none';const p=mBet*mult;saveBal(bal+p,true);setRes('m-res','Perfect sweep! Won $'+fmt(p),'win');cells.forEach(function(x){x.classList.add('dis');});}
+    if(mRev===25-mNum){
+      mActive=false;document.getElementById('m-co').style.display='none';document.getElementById('m-badge').style.display='none';
+      var p=mBet*mult;saveBal(bal+p,true);
+      setRes('m-res','Perfect sweep! Won $'+fmt(p),'win');
+      cells.forEach(function(x){x.classList.add('dis');});
+    }
   }
 }
 function cashMines(){
   if(!mActive)return;mActive=false;document.getElementById('m-co').style.display='none';
-  const mult=mMult(mRev,mNum);const p=mBet*mult;saveBal(bal+p,true);
+  var mult=mMult(mRev,mNum);var p=mBet*mult;saveBal(bal+p,true);
   document.getElementById('m-badge').style.display='none';
   setRes('m-res','Cashed out '+mRev+' gems! Won $'+fmt(p),'win');
   document.querySelectorAll('.mcell').forEach(function(c){c.classList.add('dis');});
@@ -1019,12 +1293,12 @@ function cashMines(){
 // ── DICE ──
 var DF=['⚀','⚁','⚂','⚃','⚄','⚅'];
 function rollDice(){
-  const bet=parse(document.getElementById('d-bet').value);
-  const side=document.getElementById('d-side').value;
-  if(bet>bal||bet<=0){notif('Invalid bet','err');return;}
+  var bet=parse(document.getElementById('d-bet').value);
+  var side=document.getElementById('d-side').value;
+  if(bet<=0||bet>bal){notif('Invalid bet','err');return;}
   saveBal(bal-bet);
-  const d1=Math.floor(Math.random()*6)+1,d2=Math.floor(Math.random()*6)+1,sum=d1+d2;
-  const e1=document.getElementById('d1'),e2=document.getElementById('d2');
+  var d1=Math.floor(Math.random()*6)+1,d2=Math.floor(Math.random()*6)+1,sum=d1+d2;
+  var e1=document.getElementById('d1'),e2=document.getElementById('d2');
   e1.classList.add('spin');e2.classList.add('spin');
   setTimeout(function(){
     e1.textContent=DF[d1-1];e2.textContent=DF[d2-1];
@@ -1040,23 +1314,24 @@ function rollDice(){
 function resetTowers(){tActive=false;tRow=0;tRev=0;document.getElementById('t-co').style.display='none';document.getElementById('t-display').innerHTML='';setRes('t-res','Place a bet to start climbing');}
 function startTowers(){
   tBet=parse(document.getElementById('t-bet').value);
-  if(tBet>bal||tBet<=0){notif('Invalid bet','err');return;}
+  if(tBet<=0||tBet>bal){notif('Invalid bet','err');return;}
   saveBal(bal-tBet);
-  tGrid=[];for(let r=0;r<5;r++){const row=['safe','safe','safe'];row[Math.floor(Math.random()*3)]='skull';tGrid.push(row);}
+  tGrid=[];
+  for(var r=0;r<5;r++){var row=['safe','safe','safe'];row[Math.floor(Math.random()*3)]='skull';tGrid.push(row);}
   tRow=0;tRev=0;tActive=true;
   renderTowers();
   document.getElementById('t-co').style.display='block';
   setRes('t-res','Click a tile in the bottom row!');
 }
 function renderTowers(){
-  const d=document.getElementById('t-display');d.innerHTML='';
-  for(let r=4;r>=0;r--){
-    const wrap=document.createElement('div');wrap.className='trow-wrap';
-    const lbl=document.createElement('div');lbl.className='trow-lbl';lbl.textContent=r+1;
-    const row=document.createElement('div');row.className='trow';
+  var d=document.getElementById('t-display');d.innerHTML='';
+  for(var r=4;r>=0;r--){
+    var wrap=document.createElement('div');wrap.className='trow-wrap';
+    var lbl=document.createElement('div');lbl.className='trow-lbl';lbl.textContent=r+1;
+    var row=document.createElement('div');row.className='trow';
     if(r===tRow)row.classList.add('active');
-    for(let c=0;c<3;c++){
-      const cell=document.createElement('div');cell.className='tcell';
+    for(var c=0;c<3;c++){
+      var cell=document.createElement('div');cell.className='tcell';
       cell.dataset.r=r;cell.dataset.c=c;cell.textContent='?';
       if(r===tRow)cell.classList.add('act');
       else{cell.style.opacity='.38';cell.style.pointerEvents='none';}
@@ -1068,9 +1343,9 @@ function renderTowers(){
 }
 function clickTower(row,col){
   if(row!==tRow||!tActive)return;
-  const cells=document.querySelectorAll('.tcell');
+  var cells=document.querySelectorAll('.tcell');
   cells.forEach(function(c){if(parseInt(c.dataset.r)===row)c.style.pointerEvents='none';});
-  const cell=Array.from(cells).find(function(c){return parseInt(c.dataset.r)===row&&parseInt(c.dataset.c)===col;});
+  var cell=Array.from(cells).find(function(c){return parseInt(c.dataset.r)===row&&parseInt(c.dataset.c)===col;});
   if(!cell)return;
   if(tGrid[row][col]==='skull'){
     cell.textContent='💀';cell.classList.add('skull');tActive=false;
@@ -1078,25 +1353,32 @@ function clickTower(row,col){
     setRes('t-res','Hit a skull on floor '+(row+1)+'!','lose');
   }else{
     cell.textContent='💎';cell.classList.add('safe');tRev++;tRow++;
-    if(tRow===5){tActive=false;document.getElementById('t-co').style.display='none';const p=tBet*(1+.5*5);saveBal(bal+p,true);setRes('t-res','Full tower cleared! Won $'+fmt(p),'win');}
-    else{const mult=1+.5*tRev;setRes('t-res','Floor '+(row+1)+' cleared! Multiplier: '+mult.toFixed(1)+'x — Payout: $'+fmt(tBet*mult));renderTowers();}
+    if(tRow===5){
+      tActive=false;document.getElementById('t-co').style.display='none';
+      var p=tBet*(1+.5*5);saveBal(bal+p,true);
+      setRes('t-res','Full tower cleared! Won $'+fmt(p),'win');
+    }else{
+      var mult=1+.5*tRev;
+      setRes('t-res','Floor '+(row+1)+' cleared! Mult: '+mult.toFixed(1)+'x — Payout: $'+fmt(tBet*mult));
+      renderTowers();
+    }
   }
 }
 function cashTowers(){
   if(!tActive)return;tActive=false;document.getElementById('t-co').style.display='none';
-  const mult=1+.5*tRev;const p=tBet*mult;saveBal(bal+p,true);
+  var mult=1+.5*tRev;var p=tBet*mult;saveBal(bal+p,true);
   setRes('t-res','Cashed out at '+mult.toFixed(1)+'x — Won $'+fmt(p),'win');
   document.querySelectorAll('.tcell').forEach(function(c){c.style.pointerEvents='none';});
 }
 
 // ── BLACKJACK ──
 function resetBJ(){pHand=[];dHand=[];bjBet=0;document.getElementById('bj-player').innerHTML='';document.getElementById('bj-dealer').innerHTML='';setRes('bj-res','Place a bet and deal to play');document.getElementById('bj-hit').disabled=false;document.getElementById('bj-stand').disabled=false;}
-function hv(h){let v=h.reduce(function(a,c){return a+c.v;},0);let ac=h.filter(function(c){return c.r==='A';}).length;while(v>21&&ac>0){v-=10;ac--;}return v;}
-function gc(){var suits=['♠','♥','♦','♣'],ranks=['2','3','4','5','6','7','8','9','10','J','Q','K','A'];var su=suits[Math.floor(Math.random()*4)],r=ranks[Math.floor(Math.random()*13)];var v=r==='A'?11:(['J','Q','K'].indexOf(r)>=0?10:parseInt(r));var red=su==='♥'||su==='♦';return{r:r,su:su,v:v,red:red};}
+function hv(h){var v=h.reduce(function(a,c){return a+c.v;},0);var ac=h.filter(function(c){return c.r==='A';}).length;while(v>21&&ac>0){v-=10;ac--;}return v;}
+function gc(){var suits=['♠','♥','♦','♣'],ranks=['2','3','4','5','6','7','8','9','10','J','Q','K','A'];var su=suits[Math.floor(Math.random()*4)],r=ranks[Math.floor(Math.random()*13)];var v=r==='A'?11:(['J','Q','K'].indexOf(r)>=0?10:parseInt(r));return{r:r,su:su,v:v,red:su==='♥'||su==='♦'};}
 function cardEl(c,back){if(back)return'<div class="card back">?</div>';return'<div class="card'+(c.red?' red':'')+'">'+c.r+c.su+'</div>';}
 function dealBJ(){
   bjBet=parse(document.getElementById('bj-bet').value);
-  if(bjBet>bal||bjBet<=0){notif('Invalid bet','err');return;}
+  if(bjBet<=0||bjBet>bal){notif('Invalid bet','err');return;}
   saveBal(bal-bjBet);pHand=[gc(),gc()];dHand=[gc(),gc()];
   document.getElementById('bj-player').innerHTML=pHand.map(function(c){return cardEl(c);}).join('');
   document.getElementById('bj-dealer').innerHTML=cardEl(dHand[0])+cardEl(null,true);
@@ -1106,19 +1388,18 @@ function dealBJ(){
 function bjHit(){
   if(!pHand.length)return;pHand.push(gc());
   document.getElementById('bj-player').innerHTML=pHand.map(function(c){return cardEl(c);}).join('');
-  const pv=hv(pHand);setRes('bj-res','Your hand: '+pv);
+  var pv=hv(pHand);setRes('bj-res','Your hand: '+pv);
   if(pv>21)endBJ();
 }
 function bjStand(){
   while(hv(dHand)<17)dHand.push(gc());
-  document.getElementById('bj-dealer').innerHTML=dHand.map(function(c){return cardEl(c);}).join('');
   endBJ();
 }
 function endBJ(){
-  const pv=hv(pHand),dv=hv(dHand);
+  var pv=hv(pHand),dv=hv(dHand);
   document.getElementById('bj-dealer').innerHTML=dHand.map(function(c){return cardEl(c);}).join('');
   document.getElementById('bj-hit').disabled=true;document.getElementById('bj-stand').disabled=true;
-  if(pv>21)setRes('bj-res','Bust! Dealer: '+dv,'lose');
+  if(pv>21)setRes('bj-res','Bust! Dealer had '+dv,'lose');
   else if(dv>21){saveBal(bal+bjBet*2,true);setRes('bj-res','Dealer busts! Won $'+fmt(bjBet*2),'win');}
   else if(pv>dv){saveBal(bal+bjBet*2,true);setRes('bj-res','You win '+pv+' vs '+dv+'! Won $'+fmt(bjBet*2),'win');}
   else if(pv===dv){saveBal(bal+bjBet);setRes('bj-res','Push — Refund $'+fmt(bjBet));}
@@ -1130,7 +1411,7 @@ function resetCrash(){
   document.getElementById('cr-irow').style.display='flex';
   document.getElementById('cr-co').style.display='none';
   setRes('cr-res','Bet and wait for launch');
-  const r=document.getElementById('crocket');r.textContent='🚀';r.style.transform='translateX(-50%) translateY(0)';
+  var r=document.getElementById('crocket');r.textContent='🚀';r.style.transform='translateX(-50%) translateY(0)';
   document.getElementById('cr-trail').style.height='0';
   document.getElementById('cmult').style.color='#fff';
   crUserBet=0;crCashedOut=false;crBetting=false;crActive=false;
@@ -1140,7 +1421,7 @@ function startBetting(){
   crLaunch=Date.now()+15000;
   document.getElementById('cmult').textContent='1.00x';
   document.getElementById('cmult').style.color='#fff';
-  const r=document.getElementById('crocket');r.textContent='🚀';r.style.transform='translateX(-50%) translateY(0)';
+  var r=document.getElementById('crocket');r.textContent='🚀';r.style.transform='translateX(-50%) translateY(0)';
   document.getElementById('cr-trail').style.height='0';
   document.getElementById('ccount').textContent='Launch in 15s';
   document.getElementById('cr-irow').style.display='flex';
@@ -1148,7 +1429,7 @@ function startBetting(){
 }
 function tickCountdown(){
   if(!crBetting)return;
-  const rem=(crLaunch-Date.now())/1000;
+  var rem=(crLaunch-Date.now())/1000;
   if(rem<=0){launch();return;}
   document.getElementById('ccount').textContent='Launch in '+Math.ceil(rem)+'s';
   requestAnimationFrame(tickCountdown);
@@ -1163,13 +1444,13 @@ function launch(){
 }
 function tickCrash(){
   if(!crActive)return;
-  const el=(Date.now()-crStart)/1000;
+  var el=(Date.now()-crStart)/1000;
   crCurMult=1+0.015*el;
   document.getElementById('cmult').textContent=crCurMult.toFixed(2)+'x';
-  const r=document.getElementById('crocket');
+  var r=document.getElementById('crocket');
   r.style.transform='translateX(-50%) translateY(-'+Math.min(el*44,230)+'px)';
   document.getElementById('cr-trail').style.height=Math.min(el*44,230)+'px';
-  const t=Math.min(el/10,1);
+  var t=Math.min(el/10,1);
   document.getElementById('cmult').style.color='rgb('+Math.round(255*Math.min(t*2,1))+','+Math.round(255*Math.min(2-t*2,1))+',80)';
   if(crCurMult>=crCrashMult){doCrash();return;}
   requestAnimationFrame(tickCrash);
@@ -1177,7 +1458,7 @@ function tickCrash(){
 function doCrash(){
   crActive=false;
   document.getElementById('cmult').style.color='#f87171';
-  const r=document.getElementById('crocket');r.textContent='💥';
+  var r=document.getElementById('crocket');r.textContent='💥';
   document.getElementById('cr-trail').style.height='0';
   if(crUserBet>0&&!crCashedOut){setRes('cr-res','Crashed at '+crCurMult.toFixed(2)+'x — Lost $'+fmt(crUserBet),'lose');crUserBet=0;}
   document.getElementById('cr-co').style.display='none';
@@ -1189,8 +1470,8 @@ function doCrash(){
   },2500);
 }
 function betCrash(){
-  const amt=parse(document.getElementById('cr-bet').value);
-  if(amt>bal||amt<=0||crUserBet>0){notif('Invalid bet or already betting','err');return;}
+  var amt=parse(document.getElementById('cr-bet').value);
+  if(amt<=0||amt>bal||crUserBet>0){notif('Invalid bet or already betting','err');return;}
   if(!crBetting&&!crActive){notif('Wait for next round','err');return;}
   saveBal(bal-amt);crUserBet=amt;crCashedOut=false;
   if(crActive)document.getElementById('cr-co').style.display='block';
@@ -1198,7 +1479,7 @@ function betCrash(){
 }
 function cashCrash(){
   if(crUserBet<=0||crCashedOut||!crActive)return;
-  crCashedOut=true;const p=crUserBet*crCurMult;saveBal(bal+p,true);
+  crCashedOut=true;var p=crUserBet*crCurMult;saveBal(bal+p,true);
   setRes('cr-res','Cashed out at '+crCurMult.toFixed(2)+'x — Won $'+fmt(p),'win');
   document.getElementById('cr-co').style.display='none';crUserBet=0;
   notif('Cashed out!','ok');
