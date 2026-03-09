@@ -1,2166 +1,1224 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎮</text></svg>">
-    <title>Minecraft Gamble Hub 🎮💎</title>
-    <!-- Firebase SDK v12.4.0 -->
-    <script type="module">
-        import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js';
-        import { getFirestore, collection, doc, getDoc, setDoc, updateDoc, addDoc, onSnapshot, query, orderBy, limit, deleteDoc } from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js';
-        window.firebaseApp = { initializeApp, getFirestore, collection, doc, getDoc, setDoc, updateDoc, addDoc, onSnapshot, query, orderBy, limit, deleteDoc };
-    </script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Roboto:wght@300;400&display=swap');
-       
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-       
-        body {
-            font-family: 'Orbitron', monospace;
-            background: radial-gradient(circle at 20% 25%, #1b2a40 0%, #04060b 55%, #000000 100%);
-            color: #fff;
-            overflow-x: hidden;
-            min-height: 100vh;
-            position: relative;
-        }
-       
-        body::before {
-            content: '';
-            position: fixed;
-            inset: 0;
-            background: url('data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'100\' height=\'100\'%3E%3Ccircle cx=\'50\' cy=\'50\' r=\'0.6\' fill=\'rgba(255,255,255,0.18)\'/%3E%3C/svg%3E') repeat;
-            opacity: 0.18;
-            pointer-events: none;
-            z-index: -2;
-        }
-       
-        body::after {
-            content: '';
-            position: fixed;
-            inset: 0;
-            background: radial-gradient(circle at 20% 20%, rgba(123, 44, 191, 0.4), transparent 60%),
-                        radial-gradient(circle at 80% 40%, rgba(0, 255, 200, 0.25), transparent 55%),
-                        radial-gradient(circle at 50% 90%, rgba(255, 255, 255, 0.12), transparent 55%);
-            opacity: 0.9;
-            filter: blur(38px);
-            pointer-events: none;
-            z-index: -1;
-            animation: nebulaShift 25s ease-in-out infinite alternate;
-        }
-       
-        @keyframes nebulaShift {
-            0% { transform: translate(0, 0) scale(1); }
-            50% { transform: translate(-10px, 10px) scale(1.02); }
-            100% { transform: translate(10px, -10px) scale(1); }
-        }
-       
-        body.logged-in .screen {
-            left: 300px;
-            width: calc(100% - 300px);
-        }
-       
-        body:not(.logged-in) .screen {
-            left: 0;
-            width: 100%;
-        }
-       
-        .chat-sidebar {
-            position: fixed;
-            left: 0;
-            top: 0;
-            width: 300px;
-            height: 100vh;
-            background: linear-gradient(145deg, rgba(0, 0, 0, 0.8), rgba(123, 44, 191, 0.2));
-            backdrop-filter: blur(10px);
-            z-index: 5;
-            display: none;
-            flex-direction: column;
-            box-shadow: 2px 0 20px rgba(0, 0, 0, 0.5);
-        }
-       
-        body.logged-in .chat-sidebar {
-            display: flex;
-        }
-       
-        #messages {
-            flex: 1;
-            overflow-y: auto;
-            padding: 15px;
-            margin-bottom: 10px;
-        }
-       
-        .message {
-            padding: 10px;
-            margin: 8px 0;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 10px;
-            word-wrap: break-word;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-       
-        .message small {
-            opacity: 0.7;
-            font-size: 0.8em;
-            display: block;
-            margin-bottom: 5px;
-        }
-        .message-content {
-            flex: 1;
-        }
-       
-        #chat-input-container {
-            padding: 15px;
-            border-top: 1px solid rgba(123, 44, 191, 0.3);
-            display: flex;
-            gap: 10px;
-        }
-       
-        #chat-input {
-            flex: 1;
-            padding: 10px;
-            border-radius: 15px;
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(123, 44, 191, 0.3);
-            color: #fff;
-            font-family: 'Roboto', sans-serif;
-        }
-       
-        #chat-input:focus {
-            outline: none;
-            box-shadow: 0 0 10px #7b2cbf;
-        }
-       
-        .screen {
-            position: absolute;
-            top: 0;
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-            transition: opacity 0.4s ease, transform 0.4s ease;
-            z-index: 1;
-        }
-       
-        .hidden {
-            opacity: 0;
-            pointer-events: none;
-            transform: translateY(30px);
-        }
-       
-        .visible {
-            opacity: 1;
-            pointer-events: auto;
-            transform: translateY(0);
-        }
-       
-        .header {
-            width: 100%;
-            padding: 15px 30px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: rgba(0, 0, 0, 0.7);
-            backdrop-filter: blur(20px);
-            border-bottom: 1px solid rgba(123, 44, 191, 0.5);
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
-            z-index: 10;
-            position: relative;
-        }
-       
-        .header-left {
-            display: flex;
-            align-items: center;
-            gap: 20px;
-        }
-       
-        .header-left h1 {
-            font-size: 1.8em;
-            text-shadow: 0 0 10px #7b2cbf;
-            animation: glow 2s ease-in-out infinite alternate;
-        }
-       
-        @keyframes glow {
-            from { text-shadow: 0 0 10px #7b2cbf; }
-            to { text-shadow: 0 0 20px #7b2cbf, 0 0 30px #7b2cbf; }
-        }
-       
-        .header-right {
-            display: flex;
-            flex-direction: column;
-            align-items: flex-end;
-            gap: 10px;
-        }
-       
-        .balance {
-            font-size: 1.3em;
-            padding: 8px 15px;
-            background: linear-gradient(145deg, rgba(0, 31, 63, 0.9), rgba(123, 44, 191, 0.3));
-            border-radius: 20px;
-            animation: pulse 2s ease-in-out infinite;
-            box-shadow: 0 4px 15px rgba(123, 44, 191, 0.4);
-        }
-       
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.03); }
-        }
-       
-        .header-buttons {
-            display: flex;
-            gap: 10px;
-        }
-       
-        .btn {
-            font-family: 'Roboto', sans-serif;
-            padding: 8px 15px;
-            border: none;
-            border-radius: 20px;
-            background: linear-gradient(145deg, rgba(255, 255, 255, 0.1), rgba(123, 44, 191, 0.3));
-            color: #ffffff;
-            font-size: 0.9em;
-            cursor: pointer;
-            transition: all 0.25s ease;
-            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
-            backdrop-filter: blur(10px);
-            position: relative;
-            overflow: hidden;
-        }
-       
-        .btn::after {
-            content: '';
-            position: absolute;
-            left: 50%;
-            top: 50%;
-            width: 0;
-            height: 0;
-            background: rgba(255, 255, 255, 0.25);
-            border-radius: 50%;
-            transform: translate(-50%, -50%);
-            transition: width 0.4s ease, height 0.4s ease, opacity 0.4s ease;
-            opacity: 0;
-        }
-       
-        .btn:active::after {
-            width: 220px;
-            height: 220px;
-            opacity: 0.3;
-            transition: none;
-        }
-       
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 20px rgba(123, 44, 191, 0.5);
-            background: linear-gradient(145deg, rgba(255, 255, 255, 0.2), rgba(123, 44, 191, 0.4));
-        }
-       
-        .logout {
-            background: linear-gradient(145deg, rgba(255, 0, 0, 0.3), rgba(123, 44, 191, 0.2)) !important;
-        }
-       
-        .logout:hover {
-            background: linear-gradient(145deg, rgba(255, 0, 0, 0.5), rgba(123, 44, 191, 0.3)) !important;
-        }
-       
-        .main-content {
-            flex: 1;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 40px;
-        }
-       
-        .games-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 30px;
-            width: 100%;
-            max-width: 900px;
-            padding: 20px;
-        }
-       
-        .game-card {
-            aspect-ratio: 1;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            background: linear-gradient(145deg, rgba(0, 0, 0, 0.55), rgba(123, 44, 191, 0.2));
-            border-radius: 28px;
-            box-shadow: 0 10px 44px rgba(0, 0, 0, 0.55);
-            transition: all 0.4s ease;
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            position: relative;
-            overflow: hidden;
-            cursor: pointer;
-        }
-       
-        .game-card::before {
-            content: '';
-            position: absolute;
-            top: -70px;
-            left: -70px;
-            width: 240px;
-            height: 240px;
-            background: radial-gradient(circle at 30% 30%, rgba(123, 44, 191, 0.6), transparent 65%);
-            opacity: 0;
-            transition: opacity 0.4s ease, transform 0.4s ease;
-            transform: scale(0.7);
-        }
-       
-        .game-card:hover::before {
-            opacity: 1;
-            transform: scale(1);
-        }
-       
-        .game-card:hover {
-            transform: translateY(-12px) scale(1.04);
-            border-color: rgba(123, 44, 191, 0.8);
-            box-shadow: 0 16px 55px rgba(123, 44, 191, 0.6);
-        }
-       
-        .game-icon {
-            font-size: 4.2em;
-            margin-bottom: 15px;
-            filter: drop-shadow(0 0 14px rgba(123, 44, 191, 0.6));
-            transition: transform 0.3s ease, filter 0.3s ease;
-            animation: float 3.5s ease-in-out infinite;
-        }
-       
-        @keyframes float {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-10px); }
-        }
-       
-        .game-card:hover .game-icon {
-            transform: scale(1.3) translateY(-6px);
-            filter: drop-shadow(0 0 20px rgba(255, 255, 255, 0.8));
-        }
-       
-        .game-title {
-            font-size: 1.4em;
-            font-weight: 700;
-            text-align: center;
-            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
-        }
-       
-        .coming-soon {
-            opacity: 0.6;
-            cursor: not-allowed;
-        }
-       
-        .coming-soon:hover {
-            transform: none;
-            border-color: transparent;
-            box-shadow: none;
-        }
-       
-        .game-area {
-            width: 100%;
-            max-width: 800px;
-            padding: 40px;
-            background: linear-gradient(145deg, rgba(0, 0, 0, 0.7), rgba(123, 44, 191, 0.1));
-            border-radius: 20px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
-            animation: slideIn 0.6s ease-out;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 20px;
-        }
-       
-        @keyframes slideIn {
-            from { opacity: 0; transform: translateY(30px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-       
-        .back-btn {
-            align-self: flex-start;
-            background: linear-gradient(145deg, rgba(123, 44, 191, 0.3), rgba(0, 0, 0, 0.5));
-        }
-       
-        .input-group {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            flex-wrap: wrap;
-            justify-content: center;
-        }
-       
-        input, select {
-            padding: 12px 18px;
-            border-radius: 15px;
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(123, 44, 191, 0.3);
-            color: #fff;
-            font-size: 1em;
-            min-width: 80px;
-        }
-       
-        input:focus, select:focus {
-            outline: none;
-            box-shadow: 0 0 15px #7b2cbf;
-            border-color: #7b2cbf;
-        }
-       
-        .controls {
-            display: flex;
-            gap: 15px;
-            flex-wrap: wrap;
-            justify-content: center;
-        }
-       
-        .controls button {
-            padding: 12px 20px;
-            font-size: 1em;
-            border-radius: 15px;
-            background: linear-gradient(145deg, rgba(0, 255, 0, 0.2), rgba(123, 44, 191, 0.3));
-        }
-       
-        .result {
-            font-size: 1.2em;
-            text-align: center;
-            padding: 15px;
-            background: rgba(0, 0, 0, 0.5);
-            border-radius: 10px;
-            min-height: 20px;
-        }
-       
-        .mine-grid {
-            display: grid;
-            grid-template-columns: repeat(5, 1fr);
-            gap: 8px;
-            margin: 20px 0;
-        }
-       
-        .mine-cell {
-            width: 60px;
-            height: 60px;
-            background: linear-gradient(145deg, rgba(255,255,255,0.1), rgba(123, 44, 191, 0.2));
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-size: 1.5em;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
-        }
-       
-        .mine-cell:hover {
-            transform: scale(1.1);
-            box-shadow: 0 4px 20px rgba(123, 44, 191, 0.5);
-            background: linear-gradient(145deg, rgba(255,255,255,0.2), rgba(123, 44, 191, 0.3));
-        }
-       
-        .mine-cell.boom {
-            background: linear-gradient(145deg, #ff0000, #cc0000);
-            animation: explode 0.5s ease;
-            transform: scale(1.2);
-        }
-       
-        .mine-cell.disabled {
-            pointer-events: none;
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-       
-        @keyframes explode {
-            0% { transform: scale(1); }
-            100% { transform: scale(1.5); opacity: 0; }
-        }
-       
-        .dice-display {
-            font-size: 4em;
-            margin: 20px 0;
-            text-shadow: 0 0 10px #ffff00;
-        }
-       
-        .tower-display {
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-            margin: 20px 0;
-        }
-       
-        .tower-row {
-            display: flex;
-            gap: 5px;
-            justify-content: center;
-        }
-       
-        .tower-cell {
-            width: 40px;
-            height: 40px;
-            background: linear-gradient(145deg, rgba(255,255,255,0.1), rgba(123, 44, 191, 0.2));
-            border-radius: 5px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-size: 1.2em;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
-        }
-       
-        .tower-cell:hover {
-            transform: scale(1.05);
-            box-shadow: 0 4px 15px rgba(123, 44, 191, 0.5);
-            background: linear-gradient(145deg, rgba(255,255,255,0.2), rgba(123, 44, 191, 0.3));
-        }
-       
-        .tower-cell.revealed {
-            pointer-events: none;
-        }
-       
-        .tower-cell.safe {
-            background: linear-gradient(145deg, #00ff00, #00cc00);
-        }
-       
-        .tower-cell.skull {
-            background: linear-gradient(145deg, #ff0000, #cc0000);
-            animation: explode 0.5s ease;
-        }
-       
-        .card-display {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            gap: 10px;
-            margin: 20px 0;
-        }
-       
-        .card {
-            display: inline-block;
-            background: linear-gradient(145deg, #001f3f, #7b2cbf);
-            padding: 10px 15px;
-            border-radius: 10px;
-            font-weight: bold;
-            font-size: 1.2em;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-            animation: flip 0.6s ease;
-            min-width: 50px;
-            text-align: center;
-        }
-       
-        @keyframes flip {
-            0% { transform: rotateY(0); }
-            50% { transform: rotateY(90deg); }
-            100% { transform: rotateY(0); }
-        }
-       
-        #crash-area {
-            position: relative;
-            height: 400px;
-            width: 100%;
-            background: linear-gradient(to top, #001f3f, #000);
-            border-radius: 10px;
-            overflow: hidden;
-        }
-       
-        #rocket {
-            position: absolute;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            font-size: 3em;
-            transition: transform 0.1s ease-out;
-            z-index: 2;
-        }
-       
-        #multiplier {
-            position: absolute;
-            top: 60px;
-            left: 50%;
-            transform: translateX(-50%);
-            font-size: 2em;
-            color: #00ff00;
-            text-shadow: 0 0 10px #00ff00;
-            z-index: 2;
-        }
-        #countdown {
-            position: absolute;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            font-size: 2em;
-            color: #ffff00;
-            text-shadow: 0 0 10px #ffff00;
-            z-index: 2;
-        }
-       
-        .notification {
-            position: fixed;
-            top: 80px;
-            right: 20px;
-            padding: 15px 20px;
-            background: rgba(0, 31, 63, 0.95);
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(123, 44, 191, 0.5);
-            z-index: 1000;
-            border-left: 4px solid #7b2cbf;
-            opacity: 0;
-            transform: translateX(20px);
-            transition: opacity 0.25s ease, transform 0.25s ease;
-        }
-       
-        .notification.show {
-            opacity: 1;
-            transform: translateX(0);
-        }
-       
-        @keyframes slideInRight {
-            from { transform: translateX(100%); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
-        }
-       
-        .coming-soon-content {
-            text-align: center;
-            font-size: 1.5em;
-            opacity: 0.7;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 10px;
-            overflow: hidden;
-        }
-        th, td {
-            padding: 12px;
-            text-align: left;
-            border-bottom: 1px solid rgba(123, 44, 191, 0.3);
-        }
-        th {
-            background: rgba(123, 44, 191, 0.2);
-            font-weight: bold;
-        }
-        #cashout-btn, #cashout-btn-towers, #cashout-btn-crash {
-            background: linear-gradient(145deg, rgba(255, 215, 0, 0.3), rgba(123, 44, 191, 0.3)) !important;
-            padding: 12px 24px;
-            font-size: 1em;
-        }
-        #cashout-btn:hover, #cashout-btn-towers:hover, #cashout-btn-crash:hover {
-            background: linear-gradient(145deg, rgba(255, 215, 0, 0.5), rgba(123, 44, 191, 0.4)) !important;
-        }
-        .leaderboard {
-            background: rgba(0, 0, 0, 0.7);
-            border-radius: 15px;
-            padding: 20px;
-            margin: 20px 0;
-            max-height: 300px;
-            overflow-y: auto;
-        }
-        .leaderboard h3 {
-            text-align: center;
-            margin-bottom: 15px;
-            text-shadow: 0 0 10px #ffff00;
-        }
-        .leaderboard-item {
-            display: flex;
-            justify-content: space-between;
-            padding: 10px;
-            margin: 5px 0;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 10px;
-        }
-        #leaderboard {
-            margin-top: 20px;
-        }
-        .auth-card {
-            max-width: 420px;
-            width: 100%;
-            padding: 35px 30px;
-            background: rgba(0, 0, 0, 0.55);
-            border: 1px solid rgba(255, 255, 255, 0.12);
-            border-radius: 26px;
-            box-shadow: 0 14px 40px rgba(0, 0, 0, 0.5);
-            backdrop-filter: blur(16px);
-        }
-        .auth-title {
-            font-size: 2.4em;
-            margin-bottom: 20px;
-            text-align: center;
-            text-shadow: 0 0 14px rgba(123, 44, 191, 0.6);
-        }
-        .auth-submit {
-            width: 100%;
-            padding: 15px;
-            font-size: 1.15em;
-        }
-        .auth-footer {
-            margin-top: 22px;
-            opacity: 0.75;
-            font-family: 'Roboto', sans-serif;
-            text-align: center;
-            font-size: 0.95em;
-        }
-        .auth-toggle {
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-        .auth-toggle .btn {
-            padding: 8px 12px;
-            font-size: 0.9em;
-        }
-        .auth-form input, .auth-form select {
-            width: 100%;
-            margin-bottom: 15px;
-        }
-        .auth-form input[type="password"] {
-            padding: 12px;
-            border-radius: 15px;
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(123, 44, 191, 0.3);
-            color: #fff;
-            font-size: 1em;
-        }
-        .auth-form input[type="password"]:focus {
-            outline: none;
-            box-shadow: 0 0 15px #7b2cbf;
-            border-color: #7b2cbf;
-        }
-        .delete-btn {
-            padding: 5px 10px;
-            background: rgba(255, 0, 0, 0.5);
-            border: none;
-            border-radius: 5px;
-            color: white;
-            cursor: pointer;
-            font-size: 0.8em;
-        }
-        .delete-btn:hover {
-            background: rgba(255, 0, 0, 0.8);
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DonutDrop</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#04060c;
+  --bg2:#080d1a;
+  --bg3:#0d1428;
+  --card:rgba(255,255,255,0.04);
+  --card-h:rgba(255,255,255,0.07);
+  --border:rgba(255,255,255,0.07);
+  --border2:rgba(255,255,255,0.12);
+  --p:#7c3aed;
+  --pl:#a855f7;
+  --cyan:#06b6d4;
+  --green:#10b981;
+  --gold:#f59e0b;
+  --red:#ef4444;
+  --text:#f0f4ff;
+  --muted:#4a5568;
+  --muted2:#718096;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{height:100%;overflow:hidden;}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);}
+/* Make screens scrollable individually */
+.screen{overflow-y:auto;overflow-x:hidden;}
+
+/* ── CANVAS BACKGROUND ── */
+#bgCanvas{position:fixed;inset:0;z-index:0;pointer-events:none;}
+
+/* ── BG GLOWS ── */
+.glow-wrap{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;}
+.glow{position:absolute;border-radius:50%;filter:blur(90px);animation:glowFloat 18s ease-in-out infinite alternate;}
+.g1{width:600px;height:600px;top:-200px;left:-150px;background:rgba(124,58,237,0.09);animation-duration:20s;}
+.g2{width:500px;height:500px;bottom:-150px;right:-120px;background:rgba(6,182,212,0.07);animation-duration:15s;animation-delay:-7s;}
+.g3{width:350px;height:350px;top:40%;left:40%;background:rgba(168,85,247,0.05);animation-duration:12s;animation-delay:-3s;}
+@keyframes glowFloat{0%{transform:translate(0,0) scale(1);}50%{transform:translate(30px,-20px) scale(1.05);}100%{transform:translate(-15px,25px) scale(0.97);}};
+
+/* ── SCREENS ── */
+.screen{position:absolute;inset:0;display:flex;flex-direction:column;transition:opacity .3s ease,transform .3s ease;z-index:1;}
+.hidden{opacity:0;pointer-events:none;transform:translateY(14px);}
+.visible{opacity:1;pointer-events:all;transform:translateY(0);}
+
+/* ── LOGIN ── */
+#login{justify-content:center;align-items:center;}
+.login-wrap{position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;gap:32px;animation:riseUp .55s cubic-bezier(.16,1,.3,1);}
+@keyframes riseUp{from{opacity:0;transform:translateY(28px);}to{opacity:1;transform:translateY(0);}}
+.brand{text-align:center;}
+.brand-name{
+  font-family:'Space Grotesk',sans-serif;
+  font-size:clamp(2.8rem,7vw,4.5rem);
+  font-weight:800;letter-spacing:-.03em;line-height:1;
+  background:linear-gradient(135deg,#c084fc 0%,#818cf8 45%,#38bdf8 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  filter:drop-shadow(0 0 40px rgba(168,85,247,.35));
+}
+.brand-tag{
+  font-size:.75rem;font-weight:500;letter-spacing:.18em;
+  color:var(--muted2);text-transform:uppercase;margin-top:8px;
+}
+.auth-card{
+  width:380px;
+  background:rgba(13,20,40,.75);
+  border:1px solid var(--border2);
+  border-radius:20px;padding:30px;
+  backdrop-filter:blur(28px);
+  box-shadow:0 0 0 1px rgba(255,255,255,.02),0 24px 64px rgba(0,0,0,.55);
+}
+.tab-row{display:flex;gap:4px;background:rgba(0,0,0,.35);border-radius:10px;padding:4px;margin-bottom:22px;}
+.atab{
+  flex:1;padding:9px;text-align:center;font-size:.82rem;font-weight:500;
+  border-radius:7px;cursor:pointer;color:var(--muted2);
+  background:transparent;border:none;transition:all .2s;
+}
+.atab.on{background:rgba(124,58,237,.22);color:#c084fc;box-shadow:0 0 0 1px rgba(124,58,237,.35);}
+.fld{margin-bottom:13px;}
+.fld label{display:block;font-size:.72rem;font-weight:500;color:var(--muted2);margin-bottom:5px;letter-spacing:.05em;}
+.fld input,.fld select{
+  width:100%;padding:11px 14px;
+  background:rgba(0,0,0,.4);border:1px solid var(--border2);
+  border-radius:9px;color:var(--text);font-family:'Inter',sans-serif;font-size:.9rem;
+  transition:border-color .2s,box-shadow .2s;outline:none;
+}
+.fld select option{background:#0d1428;}
+.fld input:focus,.fld select:focus{border-color:rgba(124,58,237,.6);box-shadow:0 0 0 3px rgba(124,58,237,.1);}
+.fld input::placeholder{color:var(--muted);}
+.sbtn{
+  width:100%;padding:13px;font-family:'Inter',sans-serif;font-size:.9rem;font-weight:600;
+  background:linear-gradient(135deg,rgba(124,58,237,.85),rgba(168,85,247,.65));
+  border:1px solid rgba(168,85,247,.45);color:#fff;border-radius:10px;cursor:pointer;
+  transition:all .2s ease;box-shadow:0 4px 20px rgba(124,58,237,.22);margin-top:4px;
+  position:relative;overflow:hidden;
+}
+.sbtn:hover{transform:translateY(-2px);box-shadow:0 8px 32px rgba(124,58,237,.42);border-color:rgba(168,85,247,.75);}
+.sbtn:active{transform:translateY(0);}
+
+/* ── HEADER ── */
+.hdr{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 24px;height:60px;flex-shrink:0;
+  background:rgba(4,6,12,.9);backdrop-filter:blur(20px);
+  border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100;
+}
+.hdr-logo{font-family:'Space Grotesk',sans-serif;font-size:1.2rem;font-weight:700;background:linear-gradient(135deg,#c084fc,#38bdf8);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.hdr-user{display:flex;align-items:center;gap:8px;padding:5px 12px;background:rgba(124,58,237,.09);border:1px solid rgba(124,58,237,.2);border-radius:20px;}
+.hdr-user .uname{font-size:.82rem;font-weight:600;color:#c084fc;}
+.hdr-user .ued{font-size:.72rem;color:var(--muted2);}
+.bal-pill{
+  display:flex;align-items:center;gap:10px;padding:7px 16px;
+  background:rgba(0,0,0,.4);border:1px solid rgba(245,158,11,.2);border-radius:12px;
+}
+.bi{display:flex;flex-direction:column;align-items:center;gap:1px;}
+.bl{font-size:.6rem;font-weight:500;letter-spacing:.08em;color:var(--muted2);text-transform:uppercase;}
+.bv{font-size:.92rem;font-weight:700;}
+.bv.m{color:var(--gold);}
+.bv.w{color:#a855f7;}
+.bsep{width:1px;height:26px;background:var(--border);}
+.hbtns{display:flex;align-items:center;gap:6px;}
+.hbtn{
+  display:flex;align-items:center;gap:5px;padding:7px 13px;
+  font-size:.75rem;font-weight:500;
+  background:rgba(255,255,255,.04);border:1px solid var(--border);
+  color:var(--muted2);border-radius:8px;cursor:pointer;
+  transition:all .18s ease;white-space:nowrap;
+}
+.hbtn:hover{background:rgba(255,255,255,.08);color:var(--text);border-color:var(--border2);transform:translateY(-1px);}
+.hbtn.r{color:rgba(239,68,68,.75);border-color:rgba(239,68,68,.15);}
+.hbtn.r:hover{background:rgba(239,68,68,.08);color:var(--red);border-color:rgba(239,68,68,.35);}
+.hbtn.g{color:rgba(245,158,11,.8);border-color:rgba(245,158,11,.15);}
+.hbtn.g:hover{background:rgba(245,158,11,.08);color:var(--gold);}
+.hbtn.pu{color:rgba(168,85,247,.85);border-color:rgba(168,85,247,.2);}
+.hbtn.pu:hover{background:rgba(168,85,247,.1);color:var(--pl);}
+
+/* ── MAIN ── */
+.main{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:36px 24px;position:relative;z-index:2;overflow-y:auto;}
+.main-inner{width:100%;max-width:960px;display:flex;flex-direction:column;align-items:center;}
+
+/* ── GAMES GRID ── */
+.ggrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:14px;width:100%;max-width:960px;}
+.gcard{
+  position:relative;overflow:hidden;aspect-ratio:1;
+  display:flex;flex-direction:column;justify-content:flex-end;padding:22px;
+  background:var(--card);border:1px solid var(--border);border-radius:18px;cursor:pointer;
+  transition:transform .25s cubic-bezier(.34,1.56,.64,1),border-color .25s,box-shadow .25s;
+}
+.gcard::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,var(--ca,rgba(124,58,237,.15)),var(--cb,rgba(6,182,212,.05)));opacity:0;transition:opacity .3s;border-radius:inherit;}
+.gcard:hover{transform:translateY(-6px) scale(1.02);border-color:var(--cc,rgba(124,58,237,.5));box-shadow:0 20px 40px rgba(0,0,0,.4),0 0 0 1px var(--cc,rgba(124,58,237,.2));}
+.gcard:hover::before{opacity:1;}
+.gcard.off{opacity:.4;cursor:not-allowed;}
+.gcard.off:hover{transform:none;border-color:var(--border);box-shadow:none;}
+.gcard.off:hover::before{opacity:0;}
+.gcard-ico{
+  position:absolute;top:18px;right:18px;font-size:2.6rem;
+  transition:transform .3s cubic-bezier(.34,1.56,.64,1),filter .3s;
+}
+.gcard:hover .gcard-ico{transform:scale(1.3) rotate(-6deg);filter:drop-shadow(0 0 14px var(--cg,rgba(124,58,237,.7)));}
+.gcard-name{font-family:'Space Grotesk',sans-serif;font-size:1.1rem;font-weight:700;position:relative;z-index:1;}
+.gcard-sub{font-size:.7rem;color:var(--muted2);margin-top:3px;position:relative;z-index:1;}
+.shine{position:absolute;top:-60%;left:-60%;width:55%;height:55%;background:radial-gradient(circle,rgba(255,255,255,.07) 0%,transparent 70%);opacity:0;transition:transform .5s,opacity .3s;}
+.gcard:hover .shine{opacity:1;transform:translate(120%,120%);}
+
+.cm{--ca:rgba(239,68,68,.12);--cb:rgba(245,158,11,.06);--cc:rgba(239,68,68,.45);--cg:rgba(239,68,68,.7);}
+.cd{--ca:rgba(6,182,212,.12);--cb:rgba(99,102,241,.06);--cc:rgba(6,182,212,.45);--cg:rgba(6,182,212,.7);}
+.ct{--ca:rgba(16,185,129,.12);--cb:rgba(6,182,212,.06);--cc:rgba(16,185,129,.45);--cg:rgba(16,185,129,.7);}
+.cbj{--ca:rgba(245,158,11,.12);--cb:rgba(239,68,68,.06);--cc:rgba(245,158,11,.45);--cg:rgba(245,158,11,.7);}
+.ccr{--ca:rgba(124,58,237,.15);--cb:rgba(6,182,212,.08);--cc:rgba(124,58,237,.5);--cg:rgba(168,85,247,.7);}
+
+/* ── GAME AREA ── */
+.game-hdr{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:14px 24px;flex-shrink:0;
+  background:rgba(4,6,12,.88);backdrop-filter:blur(20px);
+  border-bottom:1px solid var(--border);
+}
+.back-btn{
+  display:flex;align-items:center;gap:5px;padding:7px 13px;
+  font-size:.8rem;font-weight:500;background:rgba(255,255,255,.04);
+  border:1px solid var(--border);color:var(--muted2);border-radius:8px;cursor:pointer;
+  transition:all .18s;
+}
+.back-btn:hover{background:rgba(255,255,255,.08);color:var(--text);transform:translateX(-2px);}
+.gtitle{font-family:'Space Grotesk',sans-serif;font-size:1.15rem;font-weight:700;}
+.game-main{flex:1;display:flex;justify-content:center;padding:32px 24px;overflow-y:auto;}
+.gpanel{width:100%;max-width:660px;display:flex;flex-direction:column;align-items:center;gap:18px;margin:0 auto;}
+
+/* Input row */
+.irow{
+  display:flex;align-items:center;gap:9px;flex-wrap:wrap;justify-content:center;
+  padding:18px 22px;background:var(--card);border:1px solid var(--border);border-radius:14px;width:100%;
+}
+.irow label{font-size:.76rem;font-weight:500;color:var(--muted2);}
+.ginput{
+  padding:9px 13px;background:rgba(0,0,0,.45);border:1px solid var(--border2);
+  border-radius:8px;color:var(--text);font-family:'Inter',sans-serif;font-size:.88rem;
+  width:110px;outline:none;transition:border-color .2s,box-shadow .2s;
+}
+.ginput:focus{border-color:rgba(124,58,237,.55);box-shadow:0 0 0 3px rgba(124,58,237,.1);}
+.gsel{
+  padding:9px 13px;background:rgba(0,0,0,.45);border:1px solid var(--border2);
+  border-radius:8px;color:var(--text);font-family:'Inter',sans-serif;font-size:.83rem;
+  outline:none;cursor:pointer;transition:border-color .2s;
+}
+.gsel option{background:#0d1428;}
+.abtn{
+  padding:9px 20px;font-size:.84rem;font-weight:600;
+  background:linear-gradient(135deg,rgba(124,58,237,.75),rgba(168,85,247,.55));
+  border:1px solid rgba(168,85,247,.35);color:#fff;border-radius:8px;cursor:pointer;
+  transition:all .2s;box-shadow:0 2px 12px rgba(124,58,237,.2);white-space:nowrap;
+}
+.abtn:hover{transform:translateY(-2px);box-shadow:0 6px 24px rgba(124,58,237,.4);border-color:rgba(168,85,247,.65);}
+.abtn:active{transform:translateY(0);}
+
+.cobtn{
+  padding:12px 32px;font-size:.95rem;font-weight:700;
+  background:linear-gradient(135deg,rgba(245,158,11,.75),rgba(251,191,36,.55));
+  border:1px solid rgba(251,191,36,.45);color:#fff;border-radius:10px;cursor:pointer;
+  transition:all .2s;animation:coPulse 1.6s ease-in-out infinite;
+}
+@keyframes coPulse{0%,100%{box-shadow:0 4px 20px rgba(245,158,11,.2);}50%{box-shadow:0 4px 32px rgba(245,158,11,.55),0 0 0 4px rgba(245,158,11,.1);}}
+.cobtn:hover{transform:translateY(-2px);box-shadow:0 8px 32px rgba(245,158,11,.5);}
+
+/* Result */
+.rbox{
+  width:100%;padding:15px 20px;background:var(--card);border:1px solid var(--border);
+  border-radius:12px;text-align:center;font-size:.88rem;color:var(--muted2);
+  min-height:50px;display:flex;align-items:center;justify-content:center;transition:all .3s;
+}
+.rbox.win{border-color:rgba(16,185,129,.4);color:#34d399;background:rgba(16,185,129,.06);}
+.rbox.lose{border-color:rgba(239,68,68,.4);color:#f87171;background:rgba(239,68,68,.06);}
+
+/* Mult badge */
+.mbadge{
+  padding:8px 20px;background:rgba(124,58,237,.1);border:1px solid rgba(124,58,237,.25);
+  border-radius:20px;font-size:.88rem;font-weight:600;color:#c084fc;letter-spacing:.04em;
+}
+
+/* ── MINES ── */
+.mgrid{display:grid;grid-template-columns:repeat(5,1fr);gap:7px;width:100%;max-width:370px;}
+.mcell{
+  aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-size:1.3rem;
+  background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:11px;
+  cursor:pointer;transition:all .2s cubic-bezier(.34,1.56,.64,1);user-select:none;position:relative;overflow:hidden;
+}
+.mcell::after{content:'';position:absolute;inset:0;background:radial-gradient(circle at 50% 0%,rgba(124,58,237,.18),transparent 70%);opacity:0;transition:opacity .2s;}
+.mcell:hover:not(.dis){transform:scale(1.09);border-color:rgba(124,58,237,.55);box-shadow:0 0 20px rgba(124,58,237,.25);}
+.mcell:hover::after{opacity:1;}
+.mcell.gem{background:rgba(16,185,129,.12);border-color:rgba(16,185,129,.4);animation:gemPop .35s cubic-bezier(.34,1.56,.64,1);}
+@keyframes gemPop{0%{transform:scale(.4) rotate(-15deg);opacity:0;}100%{transform:scale(1);opacity:1;}}
+.mcell.boom{background:rgba(239,68,68,.14);border-color:rgba(239,68,68,.5);animation:boomShake .4s ease;}
+@keyframes boomShake{0%,100%{transform:translateX(0);}20%{transform:translateX(-5px) rotate(-3deg);}40%{transform:translateX(5px) rotate(3deg);}60%{transform:translateX(-3px);}80%{transform:translateX(3px);}}
+.mcell.dis{pointer-events:none;}
+
+/* ── DICE ── */
+.dicewrap{display:flex;align-items:center;gap:18px;padding:24px;background:var(--card);border:1px solid var(--border);border-radius:16px;}
+.die{width:76px;height:76px;display:flex;align-items:center;justify-content:center;font-size:3.2rem;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:14px;}
+.die.spin{animation:dSpin .5s ease;}
+@keyframes dSpin{0%{transform:rotateY(0);}25%{transform:rotateY(90deg) scale(.8);}75%{transform:rotateY(270deg) scale(.8);}100%{transform:rotateY(360deg);}}
+.dplus{font-size:1.4rem;color:var(--muted2);}
+.dsum{font-family:'Space Grotesk',sans-serif;font-size:2rem;font-weight:700;}
+
+/* ── TOWERS ── */
+.twrap{display:flex;flex-direction:column;gap:7px;width:100%;max-width:310px;}
+.trow-wrap{display:flex;align-items:center;gap:9px;}
+.trow-lbl{font-size:.68rem;font-weight:600;color:var(--muted2);width:18px;text-align:right;}
+.trow{display:flex;gap:7px;flex:1;}
+.tcell{
+  flex:1;height:50px;display:flex;align-items:center;justify-content:center;font-size:1.2rem;
+  background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:9px;
+  cursor:pointer;transition:all .2s cubic-bezier(.34,1.56,.64,1);user-select:none;
+}
+.tcell.act:hover{transform:scale(1.07);border-color:rgba(16,185,129,.55);box-shadow:0 0 18px rgba(16,185,129,.25);background:rgba(16,185,129,.08);}
+.tcell.safe{background:rgba(16,185,129,.13);border-color:rgba(16,185,129,.4);animation:sPop .35s cubic-bezier(.34,1.56,.64,1);}
+@keyframes sPop{0%{transform:scale(.6);opacity:0;}100%{transform:scale(1);opacity:1;}}
+.tcell.skull{background:rgba(239,68,68,.13);border-color:rgba(239,68,68,.4);animation:sShk .4s ease;}
+@keyframes sShk{0%,100%{transform:translateX(0);}25%{transform:translateX(-4px);}75%{transform:translateX(4px);}}
+.trow.active .tcell:not(.safe):not(.skull){border-color:rgba(124,58,237,.4);box-shadow:0 0 10px rgba(124,58,237,.15);}
+
+/* ── BLACKJACK ── */
+.bjtable{width:100%;display:flex;flex-direction:column;gap:18px;padding:22px;background:var(--card);border:1px solid var(--border);border-radius:16px;}
+.bjlbl{font-size:.7rem;font-weight:600;color:var(--muted2);letter-spacing:.08em;text-transform:uppercase;}
+.cards-row{display:flex;flex-wrap:wrap;gap:7px;min-height:62px;align-items:center;}
+.card{
+  width:50px;height:70px;display:flex;align-items:center;justify-content:center;
+  font-size:.88rem;font-weight:700;
+  background:linear-gradient(145deg,#1a2545,#0d1428);
+  border:1px solid rgba(124,58,237,.3);border-radius:8px;
+  box-shadow:0 4px 12px rgba(0,0,0,.4);animation:cFlip .4s ease;color:var(--text);
+}
+.card.red{color:#f87171;}
+.card.back{background:linear-gradient(135deg,#1a1f35,#2a1050);font-size:1.1rem;}
+@keyframes cFlip{0%{transform:rotateY(90deg) scale(.8);opacity:0;}100%{transform:rotateY(0) scale(1);opacity:1;}}
+.bjbtns{display:flex;gap:9px;justify-content:center;}
+.bjbtn{
+  padding:10px 26px;font-size:.87rem;font-weight:600;
+  border-radius:9px;cursor:pointer;transition:all .2s;
+}
+.bjbtn.hit{background:linear-gradient(135deg,rgba(16,185,129,.6),rgba(6,182,212,.4));border:1px solid rgba(16,185,129,.4);color:#fff;}
+.bjbtn.hit:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(16,185,129,.3);}
+.bjbtn.stand{background:linear-gradient(135deg,rgba(239,68,68,.5),rgba(245,158,11,.3));border:1px solid rgba(239,68,68,.35);color:#fff;}
+.bjbtn.stand:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(239,68,68,.3);}
+.bjbtn:disabled{opacity:.4;cursor:not-allowed;transform:none!important;}
+
+/* ── CRASH ── */
+.cvp{
+  width:100%;height:310px;
+  background:linear-gradient(to top,rgba(0,0,24,.85),rgba(4,6,12,.6));
+  border:1px solid var(--border);border-radius:16px;position:relative;overflow:hidden;
+}
+.cvp::after{content:'';position:absolute;bottom:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(124,58,237,.5),transparent);}
+.cstar{position:absolute;background:#fff;border-radius:50%;animation:ctw var(--d,2s) ease-in-out infinite;}
+@keyframes ctw{0%,100%{opacity:.15;}50%{opacity:.9;}}
+#crocket{position:absolute;bottom:36px;left:50%;transform:translateX(-50%);font-size:2.6rem;transition:transform .08s ease-out;z-index:3;filter:drop-shadow(0 0 14px rgba(168,85,247,.8));}
+#cmult{position:absolute;top:50%;left:50%;transform:translate(-50%,-55%);font-family:'Space Grotesk',sans-serif;font-size:2.8rem;font-weight:700;color:#fff;text-shadow:0 0 30px rgba(124,58,237,.8);z-index:3;letter-spacing:-.02em;transition:color .3s;pointer-events:none;}
+#ccount{position:absolute;top:14px;left:50%;transform:translateX(-50%);font-size:.82rem;font-weight:600;letter-spacing:.08em;color:var(--muted2);z-index:3;padding:5px 13px;background:rgba(0,0,0,.4);border:1px solid var(--border);border-radius:20px;}
+.ctrail{position:absolute;bottom:58px;left:50%;transform:translateX(-50%);width:3px;background:linear-gradient(to top,rgba(124,58,237,.9),rgba(168,85,247,.3),transparent);border-radius:2px;z-index:2;height:0;transition:height .08s ease;}
+
+/* ── ADMIN ── */
+.admin-cont{flex:1;padding:22px;overflow-y:auto;position:relative;z-index:2;}
+.admin-inner{max-width:880px;margin:0 auto;display:flex;flex-direction:column;gap:18px;}
+.acard{background:var(--card);border:1px solid var(--border);border-radius:15px;padding:22px;}
+.acard h3{font-family:'Space Grotesk',sans-serif;font-size:.9rem;font-weight:600;margin-bottom:14px;color:var(--muted2);}
+.arow{display:flex;gap:9px;align-items:center;flex-wrap:wrap;}
+.ainp{padding:9px 13px;background:rgba(0,0,0,.4);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-size:.84rem;outline:none;transition:border-color .2s;}
+.ainp:focus{border-color:rgba(124,58,237,.55);}
+.abtng{padding:9px 17px;font-size:.82rem;font-weight:600;background:rgba(16,185,129,.14);border:1px solid rgba(16,185,129,.3);color:#34d399;border-radius:8px;cursor:pointer;transition:all .18s;}
+.abtng:hover{background:rgba(16,185,129,.24);}
+.abtnr{padding:9px 17px;font-size:.82rem;font-weight:600;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.25);color:#f87171;border-radius:8px;cursor:pointer;transition:all .18s;}
+.abtnr:hover{background:rgba(239,68,68,.2);}
+.dtable{width:100%;border-collapse:collapse;font-size:.8rem;}
+.dtable th{padding:9px 13px;text-align:left;background:rgba(255,255,255,.03);color:var(--muted2);font-weight:500;letter-spacing:.04em;border-bottom:1px solid var(--border);}
+.dtable td{padding:9px 13px;border-bottom:1px solid rgba(255,255,255,.025);color:var(--text);}
+.dtable tr:hover td{background:rgba(255,255,255,.02);}
+
+/* ── NOTIF ── */
+.notif{
+  position:fixed;top:72px;right:18px;z-index:9999;padding:11px 17px;border-radius:11px;
+  font-size:.8rem;font-weight:500;backdrop-filter:blur(16px);box-shadow:0 8px 32px rgba(0,0,0,.4);
+  opacity:0;transform:translateX(10px);transition:opacity .2s,transform .2s;pointer-events:none;
+  max-width:300px;border-left:3px solid transparent;
+}
+.notif.show{opacity:1;transform:translateX(0);}
+.notif.ok{background:rgba(4,20,10,.95);border-color:var(--green);color:#34d399;}
+.notif.err{background:rgba(20,4,4,.95);border-color:var(--red);color:#f87171;}
+.notif.inf{background:rgba(4,6,20,.95);border-color:var(--p);color:#c084fc;}
+
+/* Scrollbar */
+::-webkit-scrollbar{width:4px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:rgba(124,58,237,.3);border-radius:2px;}
+</style>
 </head>
 <body>
-    <div id="chat-sidebar" class="chat-sidebar">
-        <div id="messages"></div>
-        <div id="chat-input-container">
-            <input type="text" id="chat-input" placeholder="Type a message..." onkeypress="if(event.key==='Enter') sendMessage()">
-            <button class="btn" onclick="sendMessage()">Send</button>
-        </div>
-    </div>
-   
-    <div id="login" class="screen visible">
-        <div class="main-content">
-            <div class="auth-card">
-                <h1 class="auth-title">Minecraft Gamble Hub 🎮💎</h1>
-                <div class="auth-toggle">
-                    <button class="btn" onclick="setMode('login')">Login</button>
-                    <button class="btn" onclick="setMode('signup')">Sign Up</button>
-                </div>
-                <div id="login-form" class="auth-form">
-                    <input type="text" id="username" placeholder="Enter Username 👤" maxlength="20">
-                    <select id="edition">
-                        <option value="Bedrock">Bedrock Edition 🛏️</option>
-                        <option value="Java">Java Edition ☕</option>
-                    </select>
-                    <input type="password" id="login-password" placeholder="Enter Password 🔒">
-                    <button class="btn auth-submit" onclick="login()">Login & Play 🎯</button>
-                </div>
-                <div id="signup-form" class="auth-form" style="display: none;">
-                    <input type="text" id="signup-username" placeholder="Choose Username 👤" maxlength="20">
-                    <select id="signup-edition">
-                        <option value="Bedrock">Bedrock Edition 🛏️</option>
-                        <option value="Java">Java Edition ☕</option>
-                    </select>
-                    <input type="password" id="signup-password" placeholder="Choose Password 🔒">
-                    <input type="password" id="confirm-password" placeholder="Confirm Password 🔐">
-                    <button class="btn auth-submit" onclick="signUp()">Sign Up & Play 🎯</button>
-                </div>
-                <p class="auth-footer">Powered by Pixels & Bets ✨ | Now with Global Sync!</p>
-            </div>
-        </div>
-    </div>
-   
-    <div id="dashboard" class="screen hidden">
-        <div class="header">
-            <div class="header-left">
-                <h1>Welcome, <span id="user"></span> (<span id="ed"></span>) 💎</h1>
-            </div>
-            <div class="header-right">
-                <div class="balance">Balance: $<span id="balance">0.00</span> 💰 | Wins: <span id="wins">0</span> 🏆</div>
-                <div class="header-buttons">
-                    <button class="btn" onclick="showLeaderboard()">🏆 Leaderboard</button>
-                    <button class="btn" onclick="deposit()">💳 Deposit</button>
-                    <button class="btn" onclick="withdraw()">🏦 Withdraw</button>
-                    <button class="btn logout" onclick="logout()">🚪 Logout</button>
-                </div>
-            </div>
-        </div>
-        <div class="main-content">
-            <div class="games-grid">
-                <div class="game-card" onclick="showScreen('mines')">
-                    <div class="game-icon">💎💣</div>
-                    <h3 class="game-title">Mines</h3>
-                </div>
-                <div class="game-card" onclick="showScreen('dice')">
-                    <div class="game-icon">🎲🎲</div>
-                    <h3 class="game-title">Dice</h3>
-                </div>
-                <div class="game-card" onclick="showScreen('towers')">
-                    <div class="game-icon">🏗️</div>
-                    <h3 class="game-title">Towers</h3>
-                </div>
-                <div class="game-card" onclick="showScreen('blackjack')">
-                    <div class="game-icon">🃏</div>
-                    <h3 class="game-title">Blackjack</h3>
-                </div>
-                <div class="game-card" onclick="showScreen('crash')">
-                    <div class="game-icon">🚀</div>
-                    <h3 class="game-title">Crash</h3>
-                </div>
-                <div class="game-card coming-soon" onclick="showComingSoon()">
-                    <div class="game-icon">⏳</div>
-                    <h3 class="game-title">Coming Soon</h3>
-                </div>
-            </div>
-            <div id="leaderboard" class="leaderboard" style="display: none;">
-                <h3>Global Leaderboard 🏆</h3>
-                <div id="lb-content"></div>
-            </div>
-        </div>
-    </div>
-    <div id="admin" class="screen hidden">
-        <div class="header">
-            <div class="header-left">
-                <button class="btn back-btn" onclick="showScreen('dashboard')">← Back</button>
-                <h1>Admin Dashboard 🔧</h1>
-            </div>
-            <div class="header-right">
-                <div class="balance">Admin Mode Active 👑</div>
-                <div class="header-buttons">
-                    <button class="btn" onclick="showAdminLogs()">📜 Admin Logs</button>
-                    <button class="btn" onclick="downloadLog()">📥 Download Log</button>
-                    <button class="btn logout" onclick="logout()">🚪 Logout</button>
-                </div>
-            </div>
-        </div>
-        <div class="main-content">
-            <div style="max-width: 800px; width: 100%;">
-                <h2 style="text-align: center; margin-bottom: 20px;">User Management</h2>
-                <div style="margin-bottom: 20px; display: flex; align-items: center; justify-content: center; gap: 10px;">
-                    <input type="text" id="userSearch" placeholder="Search users..." style="width: 300px; padding: 10px; border-radius: 10px; background: rgba(255,255,255,0.1); border: 1px solid #7b2cbf; color: white;">
-                    <button class="btn" onclick="loadUsers('')">Refresh 🔄</button>
-                </div>
-                <div id="usersTable" style="overflow-y: auto; max-height: 400px; background: rgba(0,0,0,0.3); border-radius: 10px; padding: 10px;"></div>
-                <div style="margin-top: 20px; padding: 20px; background: rgba(0,0,0,0.5); border-radius: 15px; display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 10px;">
-                    <h3 style="margin: 0; flex-basis: 100%; text-align: center;">Adjust Balance for User</h3>
-                    <input type="text" id="selectedUser" placeholder="Enter Username (e.g. NewUser)" style="width: 200px; padding: 10px; border-radius: 10px; background: rgba(255,255,255,0.1); border: 1px solid #7b2cbf; color: white;">
-                    <input type="text" id="adjustAmount" placeholder="Amount (e.g. 100k)" style="width: 150px; padding: 10px; border-radius: 10px; background: rgba(255,255,255,0.1); border: 1px solid #7b2cbf; color: white;">
-                    <button class="btn" onclick="doDeposit()" style="background: linear-gradient(145deg, rgba(0,255,0,0.3), rgba(0,200,0,0.2));">Deposit 💳</button>
-                    <button class="btn" onclick="doWithdraw()" style="background: linear-gradient(145deg, rgba(255,0,0,0.3), rgba(200,0,0,0.2));">Withdraw 🏦</button>
-                </div>
-                <div id="admin-logs" style="display: none; margin-top: 20px; overflow-y: auto; max-height: 400px; background: rgba(0,0,0,0.3); border-radius: 10px; padding: 10px;"></div>
-            </div>
-        </div>
-    </div>
-   
-    <div id="mines-screen" class="screen hidden">
-        <div class="header">
-            <div class="header-left">
-                <button class="btn back-btn" onclick="showScreen('dashboard')">← Back</button>
-                <h1>Mines 💣</h1>
-            </div>
-            <div class="header-right">
-                <div class="balance">Balance: $<span id="balance-mines">0.00</span> 💰</div>
-                <div class="header-buttons">
-                    <button class="btn" onclick="deposit()">💳 Deposit</button>
-                    <button class="btn" onclick="withdraw()">🏦 Withdraw</button>
-                    <button class="btn logout" onclick="logout()">🚪 Logout</button>
-                </div>
-            </div>
-        </div>
-        <div class="main-content">
-            <div class="game-area">
-                <div class="input-group">
-                    <label>Bet: $</label>
-                    <input type="text" id="minesbet" placeholder="10 or 1k" value="10">
-                    <label>Mines:</label>
-                    <select id="minesnum">
-                        <option>1</option>
-                        <option>3</option>
-                        <option>5</option>
-                    </select>
-                    <button class="btn" onclick="startMines()">Start 🔍</button>
-                </div>
-                <div id="mine-grid" class="mine-grid"></div>
-                <button id="cashout-btn" class="btn" onclick="cashOutMines()" style="display: none;">Cash Out 💰</button>
-                <div id="mines-result" class="result"></div>
-            </div>
-        </div>
-    </div>
-   
-    <div id="dice-screen" class="screen hidden">
-        <div class="header">
-            <div class="header-left">
-                <button class="btn back-btn" onclick="showScreen('dashboard')">← Back</button>
-                <h1>Dice 🎲</h1>
-            </div>
-            <div class="header-right">
-                <div class="balance">Balance: $<span id="balance-dice">0.00</span> 💰</div>
-                <div class="header-buttons">
-                    <button class="btn" onclick="deposit()">💳 Deposit</button>
-                    <button class="btn" onclick="withdraw()">🏦 Withdraw</button>
-                    <button class="btn logout" onclick="logout()">🚪 Logout</button>
-                </div>
-            </div>
-        </div>
-        <div class="main-content">
-            <div class="game-area">
-                <div class="input-group">
-                    <label>Bet: $</label>
-                    <input type="text" id="dicebet" placeholder="10 or 1k" value="10">
-                    <select id="dicechoice">
-                        <option value="over">Over 7 (Win if >7)</option>
-                        <option value="under">Under 7 (Win if <7)</option>
-                    </select>
-                    <button class="btn" onclick="playDice()">Roll 🎲</button>
-                </div>
-                <div id="dice-display" class="dice-display"></div>
-                <div id="dice-result" class="result"></div>
-            </div>
-        </div>
-    </div>
-   
-    <div id="towers-screen" class="screen hidden">
-        <div class="header">
-            <div class="header-left">
-                <button class="btn back-btn" onclick="showScreen('dashboard')">← Back</button>
-                <h1>Towers 🏗️</h1>
-            </div>
-            <div class="header-right">
-                <div class="balance">Balance: $<span id="balance-towers">0.00</span> 💰</div>
-                <div class="header-buttons">
-                    <button class="btn" onclick="deposit()">💳 Deposit</button>
-                    <button class="btn" onclick="withdraw()">🏦 Withdraw</button>
-                    <button class="btn logout" onclick="logout()">🚪 Logout</button>
-                </div>
-            </div>
-        </div>
-        <div class="main-content">
-            <div class="game-area">
-                <div class="input-group">
-                    <label>Bet: $</label>
-                    <input type="text" id="towersbet" placeholder="10 or 1k" value="10">
-                    <button class="btn" onclick="startTowers()">Build & Climb 🧗</button>
-                </div>
-                <div id="towers-display" class="tower-display"></div>
-                <button id="cashout-btn-towers" class="btn" onclick="cashOutTowers()" style="display: none;">Cash Out 💰</button>
-                <div id="towers-result" class="result"></div>
-            </div>
-        </div>
-    </div>
-   
-    <div id="blackjack-screen" class="screen hidden">
-        <div class="header">
-            <div class="header-left">
-                <button class="btn back-btn" onclick="showScreen('dashboard')">← Back</button>
-                <h1>Blackjack 🃏</h1>
-            </div>
-            <div class="header-right">
-                <div class="balance">Balance: $<span id="balance-blackjack">0.00</span> 💰</div>
-                <div class="header-buttons">
-                    <button class="btn" onclick="deposit()">💳 Deposit</button>
-                    <button class="btn" onclick="withdraw()">🏦 Withdraw</button>
-                    <button class="btn logout" onclick="logout()">🚪 Logout</button>
-                </div>
-            </div>
-        </div>
-        <div class="main-content">
-            <div class="game-area">
-                <div class="input-group">
-                    <label>Bet: $</label>
-                    <input type="text" id="bet" placeholder="10 or 1k" value="10">
-                    <button class="btn" onclick="playBlackjack()">Deal Cards 🎴</button>
-                </div>
-                <div id="bj-hand-player" class="card-display"></div>
-                <div style="text-align: center; margin: 10px 0;">vs</div>
-                <div id="bj-hand-dealer" class="card-display"></div>
-                <div class="controls">
-                    <button class="btn" onclick="bjHit()">Hit ➡️</button>
-                    <button class="btn" onclick="bjStand()">Stand 🛑</button>
-                </div>
-                <div id="bj-result" class="result"></div>
-            </div>
-        </div>
-    </div>
-    <div id="crash-screen" class="screen hidden">
-        <div class="header">
-            <div class="header-left">
-                <button class="btn back-btn" onclick="showScreen('dashboard')">← Back</button>
-                <h1>Crash 🚀</h1>
-            </div>
-            <div class="header-right">
-                <div class="balance">Balance: $<span id="balance-crash">0.00</span> 💰</div>
-                <div class="header-buttons">
-                    <button class="btn" onclick="deposit()">💳 Deposit</button>
-                    <button class="btn" onclick="withdraw()">🏦 Withdraw</button>
-                    <button class="btn logout" onclick="logout()">🚪 Logout</button>
-                </div>
-            </div>
-        </div>
-        <div class="main-content">
-            <div class="game-area">
-                <div class="input-group" id="crash-input">
-                    <label>Bet: $</label>
-                    <input type="text" id="crashbet" placeholder="10 or 1k" value="10">
-                    <button class="btn" onclick="betOnCrash()">Bet 🚀</button>
-                </div>
-                <div id="crash-area" style="display: none;">
-                    <div id="countdown"></div>
-                    <div id="rocket">🚀</div>
-                    <div id="multiplier">1.00x</div>
-                </div>
-                <button id="cashout-btn-crash" class="btn" onclick="cashOutCrash()" style="display: none;">Cash Out 💰</button>
-                <div id="crash-result" class="result"></div>
-            </div>
-        </div>
-    </div>
-   
-    <div id="notification"></div>
-    <script type="module">
-        console.log('Minecraft Gamble Hub v2 - NEW Firebase + burst123 FIXED 🎮💎');
 
-        // === NEW FIREBASE CONFIG (your fornite-d9d6b project) ===
-        const firebaseConfig = {
-          apiKey: "AIzaSyDRuEmGmNtB7MQle8ENzSignWH1V40qfpA",
-          authDomain: "fornite-d9d6b.firebaseapp.com",
-          projectId: "fornite-d9d6b",
-          storageBucket: "fornite-d9d6b.firebasestorage.app",
-          messagingSenderId: "78189590137",
-          appId: "1:78189590137:web:bc82f5320a7570e5e6c6a8",
-          measurementId: "G-CGPPYQKJ04"
-        };
+<!-- Shooting stars canvas -->
+<canvas id="bgCanvas"></canvas>
+<div class="glow-wrap">
+  <div class="glow g1"></div>
+  <div class="glow g2"></div>
+  <div class="glow g3"></div>
+</div>
 
-        const { initializeApp, getFirestore, collection, doc, getDoc, setDoc, updateDoc, addDoc, onSnapshot, query, orderBy, limit, deleteDoc } = window.firebaseApp;
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
+<!-- ══════════ LOGIN ══════════ -->
+<div id="login" class="screen visible">
+  <div class="login-wrap">
+    <div class="brand">
+      <div class="brand-name">DonutDrop</div>
+    </div>
+    <div class="auth-card">
+      <div class="tab-row">
+        <button class="atab on" id="tl" onclick="setMode('login')">Login</button>
+        <button class="atab" id="ts" onclick="setMode('signup')">Sign Up</button>
+      </div>
+      <div id="login-form">
+        <div class="fld"><label>Username</label><input type="text" id="username" placeholder="Enter username" maxlength="20"></div>
+        <div class="fld"><label>Edition</label><select id="edition"><option value="Bedrock">Bedrock Edition</option><option value="Java">Java Edition</option></select></div>
+        <div class="fld"><label>Password</label><input type="password" id="login-pw" placeholder="Enter password"></div>
+        <button class="sbtn" onclick="doLogin()">Login</button>
+      </div>
+      <div id="signup-form" style="display:none">
+        <div class="fld"><label>Username</label><input type="text" id="su-user" placeholder="Choose username" maxlength="20"></div>
+        <div class="fld"><label>Edition</label><select id="su-ed"><option value="Bedrock">Bedrock Edition</option><option value="Java">Java Edition</option></select></div>
+        <div class="fld"><label>Password</label><input type="password" id="su-pw" placeholder="Choose password"></div>
+        <div class="fld"><label>Confirm Password</label><input type="password" id="su-cpw" placeholder="Confirm password"></div>
+        <button class="sbtn" onclick="doSignup()">Register</button>
+      </div>
+    </div>
+  </div>
+</div>
 
-        // === ADMIN FIXED (burst / burst123) ===
-        const ADMIN_USERNAME = 'burst';
-        const ADMIN_PASSWORD = 'burst123';
+<!-- ══════════ DASHBOARD ══════════ -->
+<div id="dashboard" class="screen hidden">
+  <div class="hdr">
+    <div style="display:flex;align-items:center;gap:14px;">
+      <div class="hdr-logo">DonutDrop</div>
+      <div class="hdr-user"><span class="uname" id="u-name">Player</span><span class="ued" id="u-ed">Bedrock</span></div>
+    </div>
+    <div class="bal-pill">
+      <div class="bi"><div class="bl">Balance</div><div class="bv m">$<span id="bal">0</span></div></div>
+      <div class="bsep"></div>
+      <div class="bi"><div class="bl">Wins</div><div class="bv w"><span id="wins">0</span></div></div>
+    </div>
+    <div class="hbtns" id="dash-btns">
+      <button class="hbtn g" onclick="deposit()">Deposit</button>
+      <button class="hbtn" onclick="withdraw()">Withdraw</button>
+      <button class="hbtn r" onclick="doLogout()">Logout</button>
+    </div>
+  </div>
+  <div class="main">
+    <div class="main-inner">
+      <div class="ggrid">
+        <div class="gcard cm" onclick="go('mines')"><div class="shine"></div><div class="gcard-ico">💣</div><div class="gcard-name">Mines</div><div class="gcard-sub">Avoid the bombs</div></div>
+        <div class="gcard cd" onclick="go('dice')"><div class="shine"></div><div class="gcard-ico">🎲</div><div class="gcard-name">Dice</div><div class="gcard-sub">Roll over or under 7</div></div>
+        <div class="gcard ct" onclick="go('towers')"><div class="shine"></div><div class="gcard-ico">🏗️</div><div class="gcard-name">Towers</div><div class="gcard-sub">Climb without a skull</div></div>
+        <div class="gcard cbj" onclick="go('blackjack')"><div class="shine"></div><div class="gcard-ico">🃏</div><div class="gcard-name">Blackjack</div><div class="gcard-sub">Beat the dealer</div></div>
+        <div class="gcard ccr" onclick="go('crash')"><div class="shine"></div><div class="gcard-ico">🚀</div><div class="gcard-name">Crash</div><div class="gcard-sub">Cash out in time</div></div>
+        <div class="gcard off"><div class="shine"></div><div class="gcard-ico">⏳</div><div class="gcard-name">Coming Soon</div><div class="gcard-sub">Stay tuned</div></div>
+      </div>
+    </div>
+  </div>
+</div>
 
-        async function initAdminAccount() {
-            const adminRef = doc(db, 'users', 'burst');
-            const adminSnap = await getDoc(adminRef);
-            if (!adminSnap.exists()) {
-                await setDoc(adminRef, {
-                    balance: 1000000,
-                    wins: 25,
-                    edition: 'Java',
-                    password: 'burst123'
-                });
-                console.log('✅ Admin account created (burst / burst123)');
-            } else {
-                await updateDoc(adminRef, { password: 'burst123' });
-                console.log('✅ Admin password updated to burst123');
-            }
-        }
-        initAdminAccount();
+<!-- ══════════ ADMIN ══════════ -->
+<div id="admin" class="screen hidden">
+  <div class="game-hdr">
+    <button class="back-btn" onclick="go('dashboard')">← Back</button>
+    <div class="gtitle">Admin Panel</div>
+    <div class="hbtns">
+      <button class="hbtn" onclick="toggleLogs()">Logs</button>
+      <button class="hbtn r" onclick="doLogout()">Logout</button>
+    </div>
+  </div>
+  <div class="admin-cont">
+    <div class="admin-inner">
+      <div class="acard">
+        <h3>Adjust Balance</h3>
+        <div class="arow">
+          <input class="ainp" id="a-user" placeholder="Username" style="width:180px">
+          <input class="ainp" id="a-amt" placeholder="Amount (e.g. 100k)" style="width:160px">
+          <button class="abtng" onclick="adminDep()">+ Deposit</button>
+          <button class="abtnr" onclick="adminWith()">- Withdraw</button>
+        </div>
+      </div>
+      <div class="acard">
+        <h3>Users</h3>
+        <input class="ainp" id="a-search" placeholder="Search..." style="width:240px;margin-bottom:12px" oninput="loadUsersAdmin(this.value)">
+        <div id="users-table"></div>
+      </div>
+      <div id="logs-wrap" style="display:none">
+        <div class="acard"><div id="logs-content"></div></div>
+      </div>
+    </div>
+  </div>
+</div>
 
-        let currentUser = '';
-        let currentEdition = '';
-        let balance = 0.00;
-        let wins = 0;
-        let currentScreen = 'login';
-        let isAdmin = false;
-        let userDoc = null;
-        let messagesUnsub = null;
-        let leaderboardUnsub = null;
-        let usersUnsub = null;
-        let userUnsub = null;
-        let logsUnsub = null;
+<!-- ══════════ MINES ══════════ -->
+<div id="mines" class="screen hidden">
+  <div class="game-hdr">
+    <button class="back-btn" onclick="go('dashboard')">← Back</button>
+    <div class="gtitle">Mines</div>
+    <div class="bal-pill"><div class="bi"><div class="bl">Balance</div><div class="bv m">$<span id="bal-m">0</span></div></div></div>
+  </div>
+  <div class="game-main"><div class="gpanel">
+    <div class="irow">
+      <label>Bet $</label>
+      <input class="ginput" id="m-bet" value="10" placeholder="10 or 1k">
+      <label>Mines</label>
+      <select class="gsel" id="m-num"><option>1</option><option>3</option><option>5</option></select>
+      <button class="abtn" onclick="startMines()">Start Game</button>
+    </div>
+    <div id="m-grid" class="mgrid"></div>
+    <div id="m-badge" class="mbadge" style="display:none">Multiplier: 1.00x</div>
+    <button id="m-co" class="cobtn" onclick="cashMines()" style="display:none">Cash Out</button>
+    <div id="m-res" class="rbox">Place a bet to begin</div>
+  </div></div>
+</div>
 
-        // Game state variables (local for gameplay)
-        let playerHand = [], dealerHand = [], bjBet = 0;
-        let minesGrid = [], minesNum = 0, minesRevealed = 0, minesBet = 0, gameActive = false;
-        let diceBet = 0;
-        let towersGrid = [], currentTowerRow = 0, towersRevealed = 0, towersGameActive = false, towersBet = 0;
-        let users = [];
+<!-- ══════════ DICE ══════════ -->
+<div id="dice" class="screen hidden">
+  <div class="game-hdr">
+    <button class="back-btn" onclick="go('dashboard')">← Back</button>
+    <div class="gtitle">Dice</div>
+    <div class="bal-pill"><div class="bi"><div class="bl">Balance</div><div class="bv m">$<span id="bal-d">0</span></div></div></div>
+  </div>
+  <div class="game-main"><div class="gpanel">
+    <div class="irow">
+      <label>Bet $</label>
+      <input class="ginput" id="d-bet" value="10" placeholder="10 or 1k">
+      <select class="gsel" id="d-side">
+        <option value="over">Over 7</option>
+        <option value="under">Under 7</option>
+      </select>
+      <button class="abtn" onclick="rollDice()">Roll</button>
+    </div>
+    <div class="dicewrap">
+      <div class="die" id="d1">🎲</div>
+      <div class="dplus">+</div>
+      <div class="die" id="d2">🎲</div>
+      <div class="dplus">=</div>
+      <div class="dsum" id="d-sum">?</div>
+    </div>
+    <div id="d-res" class="rbox">Choose a side and roll</div>
+  </div></div>
+</div>
 
-        // Crash global state (still local per tab for simplicity; could sync if needed)
-        let globalCrashActive = false;
-        let globalBettingActive = false;
-        let globalStartTime;
-        let globalLaunchTime;
-        let globalCrashMultiplier;
-        let globalCurrentMultiplier = 1.00;
-        let userCrashBet = 0;
-        let userCashedOut = false;
+<!-- ══════════ TOWERS ══════════ -->
+<div id="towers" class="screen hidden">
+  <div class="game-hdr">
+    <button class="back-btn" onclick="go('dashboard')">← Back</button>
+    <div class="gtitle">Towers</div>
+    <div class="bal-pill"><div class="bi"><div class="bl">Balance</div><div class="bv m">$<span id="bal-t">0</span></div></div></div>
+  </div>
+  <div class="game-main"><div class="gpanel">
+    <div class="irow">
+      <label>Bet $</label>
+      <input class="ginput" id="t-bet" value="10" placeholder="10 or 1k">
+      <button class="abtn" onclick="startTowers()">Build Tower</button>
+    </div>
+    <div id="t-display" class="twrap"></div>
+    <button id="t-co" class="cobtn" onclick="cashTowers()" style="display:none">Cash Out</button>
+    <div id="t-res" class="rbox">Place a bet to start climbing</div>
+  </div></div>
+</div>
 
-        function formatBalance(bal) {
-            if (bal >= 1e9) return (bal / 1e9).toFixed(1) + 'B';
-            if (bal >= 1e6) return (bal / 1e6).toFixed(1) + 'M';
-            if (bal >= 1e3) return (bal / 1e3).toFixed(1) + 'K';
-            return bal.toFixed(2);
-        }
-        function parseBet(str) {
-            str = str.toLowerCase().trim();
-            let num = parseFloat(str);
-            if (isNaN(num)) num = 0;
-            if (str.includes('k')) num *= 1000;
-            else if (str.includes('m')) num *= 1e6;
-            else if (str.includes('b')) num *= 1e9;
-            return num;
-        }
-        async function loadUserData() {
-            try {
-                if (!currentUser) return;
-                const userRef = doc(db, 'users', currentUser);
-                userDoc = userRef;
-                if (userUnsub) userUnsub();
-                userUnsub = onSnapshot(userRef, (snap) => {
-                    if (snap.exists()) {
-                        const data = snap.data();
-                        if (!data.edition) {
-                            updateDoc(userRef, { edition: currentEdition });
-                            data.edition = currentEdition;
-                        }
-                        balance = data.balance || 0;
-                        wins = data.wins || 0;
-                        updateAllBalances();
-                        document.getElementById('wins').textContent = wins;
-                    } else {
-                        showNotification('User data not found! ⚠️', 'error');
-                    }
-                });
-                isAdmin = currentUser === ADMIN_USERNAME && currentEdition === 'Java';
-            } catch (error) {
-                console.error('Load user data error:', error);
-                showNotification('Failed to load user data! ⚠️', 'error');
-            }
-        }
-        function updateAllBalances() {
-            const formatted = formatBalance(balance);
-            ['balance', 'balance-mines', 'balance-dice', 'balance-towers', 'balance-blackjack', 'balance-crash'].forEach(id => {
-                const el = document.getElementById(id);
-                if (el) el.textContent = formatted;
-            });
-        }
-        function updateUserWins(newWins) {
-            wins = newWins;
-            document.getElementById('wins').textContent = wins;
-            if (userDoc) {
-                updateDoc(userDoc, { wins: newWins });
-            }
-        }
-        function updateUserBalance(newBalance, isWin = false) {
-            balance = newBalance;
-            updateAllBalances();
-            if (userDoc) {
-                updateDoc(userDoc, { balance: newBalance });
-                if (isWin) {
-                    updateUserWins(wins + 1);
-                }
-            }
-        }
-        // Synced Chat
-        function loadMessages() {
-            if (messagesUnsub) messagesUnsub();
-            const messagesDiv = document.getElementById('messages');
-            messagesDiv.innerHTML = '';
-            const q = query(collection(db, 'messages'), orderBy('time', 'asc'), limit(50));
-            messagesUnsub = onSnapshot(q, (snapshot) => {
-                messagesDiv.innerHTML = '';
-                snapshot.forEach((docSnap) => {
-                    const data = docSnap.data();
-                    const div = document.createElement('div');
-                    div.className = 'message';
-                    div.innerHTML = `<div class="message-content"><small>${new Date(data.time.toDate()).toLocaleTimeString()} - ${data.username}</small><br>${data.text}</div>`;
-                    if (isAdmin) {
-                        const delBtn = document.createElement('button');
-                        delBtn.className = 'delete-btn';
-                        delBtn.textContent = 'Delete';
-                        delBtn.onclick = () => deleteMessage(docSnap.id);
-                        div.appendChild(delBtn);
-                    }
-                    messagesDiv.appendChild(div);
-                });
-                messagesDiv.scrollTop = messagesDiv.scrollHeight;
-            });
-        }
-        async function deleteMessage(id) {
-            if (!isAdmin) return;
-            try {
-                await deleteDoc(doc(db, 'messages', id));
-                showNotification('Message deleted!', 'success');
-            } catch (error) {
-                console.error('Delete message error:', error);
-                showNotification('Failed to delete message!', 'error');
-            }
-        }
-        async function sendMessage() {
-            const input = document.getElementById('chat-input');
-            const text = input.value.trim();
-            if (!text || !currentUser) return;
-            await addDoc(collection(db, 'messages'), {
-                text,
-                username: currentUser,
-                time: new Date()
-            });
-            input.value = '';
-        }
-        // Global Leaderboard (by wins)
-        function showLeaderboard() {
-            const lb = document.getElementById('leaderboard');
-            if (lb.style.display === 'none') {
-                lb.style.display = 'block';
-                if (leaderboardUnsub) leaderboardUnsub();
-                const q = query(collection(db, 'users'), orderBy('wins', 'desc'), limit(10));
-                leaderboardUnsub = onSnapshot(q, (snapshot) => {
-                    const content = document.getElementById('lb-content');
-                    content.innerHTML = '';
-                    let rank = 1;
-                    snapshot.forEach((doc) => {
-                        const data = doc.data();
-                        const item = document.createElement('div');
-                        item.className = 'leaderboard-item';
-                        item.innerHTML = `<span>#${rank} ${data.edition || 'Bedrock'} ${doc.id}</span><span>🏆${data.wins} | $${formatBalance(data.balance)}</span>`;
-                        content.appendChild(item);
-                        rank++;
-                    });
-                });
-            } else {
-                lb.style.display = 'none';
-                if (leaderboardUnsub) leaderboardUnsub();
-            }
-        }
-        function loadUsers(filter = '') {
-            if (usersUnsub) usersUnsub();
-            users = [];
-            const usersRef = collection(db, 'users');
-            const q = query(usersRef, limit(100));
-            usersUnsub = onSnapshot(q, (snap) => {
-                users = [];
-                snap.docs.forEach((d) => {
-                    const data = d.data();
-                    const username = d.id;
-                    if (filter === '' || username.toLowerCase().includes(filter.toLowerCase())) {
-                        users.push({ username, edition: data.edition || 'Unknown', balance: data.balance || 0, wins: data.wins || 0 });
-                    }
-                });
-                renderUsersTable();
-            });
-        }
-        function renderUsersTable() {
-            const tableDiv = document.getElementById('usersTable');
-            if (users.length === 0) {
-                tableDiv.innerHTML = '<p style="text-align: center; color: #ccc; padding: 20px;">No users found.</p>';
-                return;
-            }
-            let html = '<table>';
-            html += '<tr><th>Username</th><th>Edition</th><th>Balance</th><th>Wins</th></tr>';
-            users.forEach(user => {
-                html += `<tr><td>${user.username}</td><td>${user.edition}</td><td>$${formatBalance(user.balance)}</td><td>${user.wins}</td></tr>`;
-            });
-            html += '</table>';
-            tableDiv.innerHTML = html;
-        }
-        function showAdminLogs() {
-            const logsDiv = document.getElementById('admin-logs');
-            if (logsDiv.style.display === 'none') {
-                logsDiv.style.display = 'block';
-                if (logsUnsub) logsUnsub();
-                const q = query(collection(db, 'adminLogs'), orderBy('time', 'desc'), limit(50));
-                logsUnsub = onSnapshot(q, (snapshot) => {
-                    let html = '<table><tr><th>Time</th><th>Type</th><th>User</th><th>Amount</th><th>MC Username</th><th>By</th><th>Action</th></tr>';
-                    snapshot.forEach((docSnap) => {
-                        const data = docSnap.data();
-                        html += `<tr><td>${new Date(data.time.toDate()).toLocaleString()}</td><td>${data.type}</td><td>${data.user || '-'}</td><td>$${formatBalance(data.amount)}</td><td>${data.mcUsername || '-'}</td><td>${data.by}</td><td><button class="delete-btn" onclick="deleteLog('${docSnap.id}')">Delete</button></td></tr>`;
-                    });
-                    html += '</table>';
-                    logsDiv.innerHTML = html;
-                });
-            } else {
-                logsDiv.style.display = 'none';
-                if (logsUnsub) logsUnsub();
-            }
-        }
-        async function deleteLog(id) {
-            if (!isAdmin) return;
-            try {
-                await deleteDoc(doc(db, 'adminLogs', id));
-                showNotification('Log deleted!', 'success');
-            } catch (error) {
-                console.error('Delete log error:', error);
-                showNotification('Failed to delete log!', 'error');
-            }
-        }
-        async function doDeposit() {
-            const user = document.getElementById('selectedUser').value.trim();
-            const amtStr = document.getElementById('adjustAmount').value;
-            const amt = parseBet(amtStr);
-            if (!user || isNaN(amt) || amt <= 0) {
-                showNotification('Invalid input! ⚠️', 'error');
-                return;
-            }
-            const userRef = doc(db, 'users', user);
-            const userSnap = await getDoc(userRef);
-            let newBal;
-            if (!userSnap.exists()) {
-                newBal = amt;
-                await setDoc(userRef, { balance: newBal, wins: 0, edition: 'Bedrock' });
-                showNotification(`Created & Deposited $${formatBalance(amt)} to ${user} 💳`, 'success');
-            } else {
-                const currentBal = userSnap.data().balance || 0;
-                newBal = currentBal + amt;
-                await updateDoc(userRef, { balance: newBal });
-                showNotification(`Deposited $${formatBalance(amt)} to ${user}. New: $${formatBalance(newBal)} 💳`, 'success');
-            }
-            await addDoc(collection(db, 'adminLogs'), {
-                type: 'deposit',
-                user: user,
-                amount: amt,
-                time: new Date(),
-                by: currentUser
-            });
-            document.getElementById('selectedUser').value = '';
-            document.getElementById('adjustAmount').value = '';
-            loadUsers(document.getElementById('userSearch').value);
-        }
-        async function doWithdraw() {
-            const user = document.getElementById('selectedUser').value.trim();
-            const amtStr = document.getElementById('adjustAmount').value;
-            const amt = parseBet(amtStr);
-            if (!user || isNaN(amt) || amt <= 0) {
-                showNotification('Invalid input! ⚠️', 'error');
-                return;
-            }
-            const userRef = doc(db, 'users', user);
-            const userSnap = await getDoc(userRef);
-            if (!userSnap.exists()) {
-                showNotification('User not found! ⚠️', 'error');
-                return;
-            }
-            const currentBal = userSnap.data().balance || 0;
-            if (amt > currentBal) {
-                showNotification(`Insufficient balance for ${user}! Current: $${formatBalance(currentBal)} 🏦`, 'error');
-                return;
-            }
-            const newBal = currentBal - amt;
-            await updateDoc(userRef, { balance: newBal });
-            await addDoc(collection(db, 'adminLogs'), {
-                type: 'withdraw',
-                user: user,
-                amount: amt,
-                time: new Date(),
-                by: currentUser
-            });
-            showNotification(`Withdrew $${formatBalance(amt)} from ${user}. New: $${formatBalance(newBal)} 🏦`, 'success');
-            document.getElementById('selectedUser').value = '';
-            document.getElementById('adjustAmount').value = '';
-            loadUsers(document.getElementById('userSearch').value);
-        }
-        async function deposit() {
-            const amtStr = prompt('Enter deposit amount (e.g. 100 or 1k):');
-            const amt = parseBet(amtStr);
-            if (isNaN(amt) || amt <= 0) {
-                showNotification('Invalid amount! ⚠️', 'error');
-                return;
-            }
-            const mcUser = prompt('Enter your MC username |NOTE THIS IS UR MC USER| :');
-            if (!mcUser) {
-                showNotification('Invalid MC username! ⚠️', 'error');
-                return;
-            }
-            await addDoc(collection(db, 'adminLogs'), {
-                type: 'deposit_request',
-                user: currentUser,
-                mcUsername: mcUser,
-                amount: amt,
-                time: new Date(),
-                by: currentUser
-            });
-            showNotification(`Deposit request for $${formatBalance(amt)} with MC username ${mcUser} logged. Contact admin to complete. 💳`, 'info');
-        }
-        async function withdraw() {
-            const amtStr = prompt('Enter withdraw amount (e.g. 100 or 1k):');
-            const amt = parseBet(amtStr);
-            if (isNaN(amt) || amt <= 0) {
-                showNotification('Invalid amount! ⚠️', 'error');
-                return;
-            }
-            if (amt > balance) {
-                showNotification('Insufficient balance! 💸', 'error');
-                return;
-            }
-            const mcUser = prompt('Enter your MC username |NOTE THIS IS UR MC USER| :');
-            if (!mcUser) {
-                showNotification('Invalid MC username! ⚠️', 'error');
-                return;
-            }
-            updateUserBalance(balance - amt);
-            await addDoc(collection(db, 'adminLogs'), {
-                type: 'withdraw_request',
-                user: currentUser,
-                mcUsername: mcUser,
-                amount: amt,
-                time: new Date(),
-                by: currentUser
-            });
-            showNotification(`Withdrew $${formatBalance(amt)} with MC username ${mcUser}. Logged for admin review. 🏦`, 'success');
-        }
-        function showScreen(screen) {
-            document.querySelectorAll('.screen').forEach(s => {
-                s.classList.remove('visible');
-                s.classList.add('hidden');
-            });
-            const target = document.getElementById(`${screen}-screen`) || document.getElementById(screen);
-            if (target) {
-                target.classList.remove('hidden');
-                target.classList.add('visible');
-                currentScreen = screen;
-                if (screen !== 'login') {
-                    updateAllBalances();
-                    if (screen === 'dashboard') loadMessages();
-                }
-                if (screen === 'admin') {
-                    loadUsers('');
-                }
-                if (screen === 'mines') {
-                    resetMines();
-                }
-                if (screen === 'towers') {
-                    resetTowers();
-                }
-                if (screen === 'blackjack') {
-                    resetBlackjack();
-                }
-                if (screen === 'crash') {
-                    resetCrash();
-                    if (!globalBettingActive && !globalCrashActive) {
-                        startBettingPhase();
-                    }
-                }
-            }
-        }
-        function setMode(mode) {
-            if (mode === 'signup') {
-                document.getElementById('login-form').style.display = 'none';
-                document.getElementById('signup-form').style.display = 'block';
-            } else {
-                document.getElementById('signup-form').style.display = 'none';
-                document.getElementById('login-form').style.display = 'block';
-            }
-        }
-        async function signUp() {
-            try {
-                const username = document.getElementById('signup-username').value.trim();
-                const edition = document.getElementById('signup-edition').value;
-                const password = document.getElementById('signup-password').value;
-                const confirm = document.getElementById('confirm-password').value;
-                if (!username || !edition || !password || !confirm || password !== confirm) {
-                    showNotification('Please fill all fields and ensure passwords match! ⚠️', 'error');
-                    return;
-                }
-                if (username === ADMIN_USERNAME) {
-                    showNotification('Admin username cannot be registered! Use login. ⚠️', 'error');
-                    return;
-                }
-                const userRef = doc(db, 'users', username);
-                const userSnap = await getDoc(userRef);
-                if (userSnap.exists()) {
-                    showNotification('User already exists! Please login instead. ⚠️', 'error');
-                    return;
-                }
-                await setDoc(userRef, { balance: 0, wins: 0, edition: edition, password: password });
-                currentUser = username;
-                currentEdition = edition;
-                try {
-                    localStorage.setItem('currentUser', currentUser);
-                    localStorage.setItem('currentEdition', currentEdition);
-                } catch (e) {
-                    console.warn('LocalStorage access denied:', e);
-                }
-                await loadUserData();
-                document.body.classList.add('logged-in');
-                showScreen('dashboard');
-                document.getElementById('user').textContent = currentUser;
-                document.getElementById('ed').textContent = currentEdition;
-                addAdminButton();
-                loadMessages();
-                showNotification(`Welcome, ${username}! Edition: ${edition} 🎮`, 'success');
-                if (isAdmin) {
-                    showNotification('Admin mode active! Access the Admin Panel 🔧', 'success');
-                }
-            } catch (error) {
-                console.error('Sign up error:', error);
-                showNotification('Sign up failed! Check console for details. ⚠️', 'error');
-            }
-        }
-        async function login() {
-            try {
-                const username = document.getElementById('username').value.trim();
-                const edition = document.getElementById('edition').value;
-                const password = document.getElementById('login-password').value;
-                if (!username || !edition || !password) {
-                    showNotification('Please fill all fields! ⚠️', 'error');
-                    return;
-                }
-                const userRef = doc(db, 'users', username);
-                const userSnap = await getDoc(userRef);
-                if (!userSnap.exists()) {
-                    showNotification('User not found! Please sign up. ⚠️', 'error');
-                    return;
-                }
-                const data = userSnap.data();
-                if (data.edition && data.edition !== edition) {
-                    showNotification('Edition mismatch! Logout and try again. ⚠️', 'error');
-                    return;
-                }
-                let passwordMatch = data.password === password;
-                if (!passwordMatch) {
-                    showNotification('Incorrect password! ⚠️', 'error');
-                    return;
-                }
-                currentUser = username;
-                currentEdition = edition;
-                try {
-                    localStorage.setItem('currentUser', currentUser);
-                    localStorage.setItem('currentEdition', currentEdition);
-                } catch (e) {
-                    console.warn('LocalStorage access denied:', e);
-                }
-                await loadUserData();
-                document.body.classList.add('logged-in');
-                showScreen('dashboard');
-                document.getElementById('user').textContent = currentUser;
-                document.getElementById('ed').textContent = currentEdition;
-                addAdminButton();
-                loadMessages();
-                showNotification(`Welcome back, ${username}! Edition: ${edition} 🎮`, 'success');
-                if (isAdmin) {
-                    showNotification('Admin mode active! Access the Admin Panel 🔧', 'success');
-                }
-            } catch (error) {
-                console.error('Login error:', error);
-                showNotification('Login failed! Check console for details. ⚠️', 'error');
-            }
-        }
-        function logout() {
-            if (messagesUnsub) messagesUnsub();
-            if (leaderboardUnsub) leaderboardUnsub();
-            if (usersUnsub) usersUnsub();
-            if (userUnsub) userUnsub();
-            if (logsUnsub) logsUnsub();
-            const adminBtn = document.querySelector('.admin-btn');
-            if (adminBtn) adminBtn.remove();
-            try {
-                localStorage.removeItem('currentUser');
-                localStorage.removeItem('currentEdition');
-            } catch (e) {
-                console.warn('LocalStorage access denied:', e);
-            }
-            document.body.classList.remove('logged-in');
-            document.querySelectorAll('.screen').forEach(s => {
-                s.classList.remove('visible');
-                s.classList.add('hidden');
-            });
-            document.getElementById('login').classList.remove('hidden');
-            document.getElementById('login').classList.add('visible');
-            document.getElementById('username').value = '';
-            document.getElementById('login-password').value = '';
-            document.getElementById('signup-username').value = '';
-            document.getElementById('signup-password').value = '';
-            document.getElementById('confirm-password').value = '';
-            currentUser = '';
-            currentEdition = '';
-            balance = 0;
-            wins = 0;
-            isAdmin = false;
-            userDoc = null;
-            showNotification('Logged out safely! 👋', 'info');
-            currentScreen = 'login';
-            document.getElementById('leaderboard').style.display = 'none';
-        }
-        function addAdminButton() {
-            if (!isAdmin) return;
-            const headerButtons = document.querySelector('#dashboard .header-buttons');
-            if (headerButtons.querySelector('.admin-btn')) return;
-            const adminBtn = document.createElement('button');
-            adminBtn.className = 'btn admin-btn';
-            adminBtn.textContent = 'Admin Panel 🔧';
-            adminBtn.onclick = () => showScreen('admin');
-            headerButtons.insertBefore(adminBtn, headerButtons.firstChild);
-        }
-        function showNotification(message, type = 'info') {
-            const notif = document.getElementById('notification');
-            notif.textContent = message;
-            notif.style.background = type === 'error' ? 'rgba(255,0,0,0.95)' : type === 'success' ? 'rgba(0,255,0,0.95)' : 'rgba(0,31,63,0.95)';
-            notif.style.borderLeftColor = type === 'error' ? '#ff0000' : type === 'success' ? '#00ff00' : '#7b2cbf';
-            notif.classList.add('notification', 'show');
-            if (notif._hideTimer) clearTimeout(notif._hideTimer);
-            notif._hideTimer = setTimeout(() => {
-                notif.classList.remove('show');
-            }, 3000);
-        }
-        function showComingSoon() {
-            showNotification('Coming Soon! Stay tuned ⏳', 'info');
-        }
-        function downloadLog() {
-            showNotification('Logs synced to Firestore! Check console for export. 📊', 'info');
-            console.log('Full user data:', users);
-        }
-        // Reset functions
-        function resetBlackjack() {
-            playerHand = [];
-            dealerHand = [];
-            bjBet = 0;
-            document.getElementById('bj-hand-player').innerHTML = '';
-            document.getElementById('bj-hand-dealer').innerHTML = '';
-            document.getElementById('bj-result').textContent = '';
-            document.querySelectorAll('#blackjack-screen .controls button').forEach(btn => btn.disabled = false);
-        }
-        function resetMines() {
-            gameActive = false;
-            minesRevealed = 0;
-            document.getElementById('cashout-btn').style.display = 'none';
-            document.getElementById('mine-grid').innerHTML = '';
-            document.getElementById('mines-result').textContent = '';
-        }
-        function resetTowers() {
-            towersGameActive = false;
-            currentTowerRow = 0;
-            towersRevealed = 0;
-            document.getElementById('cashout-btn-towers').style.display = 'none';
-            document.getElementById('towers-display').innerHTML = '';
-            document.getElementById('towers-result').textContent = '';
-        }
-        function resetCrash() {
-            const inputGroup = document.getElementById('crash-input');
-            if (inputGroup) inputGroup.style.display = 'flex';
-            document.getElementById('crash-area').style.display = 'block';
-            document.getElementById('cashout-btn-crash').style.display = 'none';
-            document.getElementById('crash-result').textContent = '';
-            const rocket = document.getElementById('rocket');
-            if (rocket) {
-                rocket.innerHTML = '🚀';
-                rocket.style.transform = 'translateX(-50%) translateY(0px)';
-            }
-            userCrashBet = 0;
-            userCashedOut = false;
-            globalBettingActive = false;
-            globalCrashActive = false;
-        }
-        // Game functions
-        function computeMinesMultiplier(revealed, mines) {
-            const total = 25;
-            const safe = total - mines;
-            if (revealed === 0) return 1.0;
-            let prob = 1.0;
-            for (let i = 0; i < revealed; i++) {
-                prob *= (safe - i) / (total - i);
-            }
-            return 1.0 / prob;
-        }
-        async function startMines() {
-            const betStr = document.getElementById('minesbet').value;
-            minesBet = parseBet(betStr);
-            minesNum = parseInt(document.getElementById('minesnum').value);
-            if (minesBet > balance || minesBet <= 0) {
-                showNotification('Invalid bet! ⚠️', 'error');
-                return;
-            }
-            updateUserBalance(balance - minesBet);
-           
-            minesGrid = Array(25).fill(false);
-            for (let i = 0; i < minesNum; i++) {
-                let pos;
-                do { pos = Math.floor(Math.random() * 25); } while (minesGrid[pos]);
-                minesGrid[pos] = true;
-            }
-            minesRevealed = 0;
-            gameActive = true;
-            renderMines();
-            const multiplier = computeMinesMultiplier(minesRevealed, minesNum);
-            document.getElementById('mines-result').textContent = `Revealed: ${minesRevealed}/${25 - minesNum} | Potential Payout: x${multiplier.toFixed(2)}`;
-            document.getElementById('cashout-btn').style.display = 'block';
-        }
-        function renderMines() {
-            const grid = document.getElementById('mine-grid');
-            grid.innerHTML = '';
-            for (let i = 0; i < 25; i++) {
-                const cell = document.createElement('div');
-                cell.classList.add('mine-cell');
-                cell.textContent = '?';
-                cell.onclick = () => revealMine(i);
-                grid.appendChild(cell);
-            }
-        }
-        function revealMine(idx) {
-            if (!gameActive) return;
-            const cells = document.querySelectorAll('#mine-grid .mine-cell');
-            const cell = cells[idx];
-            cell.classList.add('disabled');
-            if (minesGrid[idx]) {
-                cell.textContent = '💣';
-                cell.classList.add('boom');
-                gameActive = false;
-                document.getElementById('cashout-btn').style.display = 'none';
-                endMines(false);
-            } else {
-                cell.textContent = '💎';
-                minesRevealed++;
-                const multiplier = computeMinesMultiplier(minesRevealed, minesNum);
-                document.getElementById('mines-result').textContent = `Revealed: ${minesRevealed}/${25 - minesNum} | Potential Payout: x${multiplier.toFixed(2)}`;
-                if (minesRevealed === 25 - minesNum) {
-                    gameActive = false;
-                    document.getElementById('cashout-btn').style.display = 'none';
-                    endMines(true);
-                }
-            }
-        }
-        function cashOutMines() {
-            if (!gameActive) return;
-            gameActive = false;
-            document.getElementById('cashout-btn').style.display = 'none';
-            const multiplier = computeMinesMultiplier(minesRevealed, minesNum);
-            const payout = minesBet * multiplier;
-            updateUserBalance(balance + payout, true);
-            document.getElementById('mines-result').textContent += ` | Cashed out! +$${formatBalance(payout)} 💰`;
-            document.querySelectorAll('.mine-cell').forEach(cell => cell.classList.add('disabled'));
-        }
-        function endMines(win) {
-            if (win) {
-                const multiplier = computeMinesMultiplier(minesRevealed, minesNum);
-                const payout = minesBet * multiplier;
-                updateUserBalance(balance + payout, true);
-                document.getElementById('mines-result').textContent += ` | Win! +$${formatBalance(payout)} 🎉`;
-            } else {
-                document.getElementById('mines-result').textContent += ` | Boom! Loss 💥`;
-            }
-            document.querySelectorAll('.mine-cell').forEach(cell => cell.classList.add('disabled'));
-        }
-        async function playDice() {
-            const betStr = document.getElementById('dicebet').value;
-            diceBet = parseBet(betStr);
-            const choice = document.getElementById('dicechoice').value;
-            if (diceBet > balance || diceBet <= 0) {
-                showNotification('Invalid bet! ⚠️', 'error');
-                return;
-            }
-            updateUserBalance(balance - diceBet);
-           
-            const die1 = Math.floor(Math.random() * 6) + 1;
-            const die2 = Math.floor(Math.random() * 6) + 1;
-            const sum = die1 + die2;
-            document.getElementById('dice-display').innerHTML = `🎲 ${die1} + 🎲 ${die2} = ${sum}`;
-           
-            let win = false;
-            if (choice === 'over' && sum > 7) win = true;
-            else if (choice === 'under' && sum < 7) win = true;
-            else if (sum === 7) {
-                updateUserBalance(balance + diceBet);
-                document.getElementById('dice-result').textContent = `Push on 7! Refund: $${formatBalance(diceBet)} 💤`;
-            }
-           
-            if (win) {
-                const payout = diceBet * 2;
-                updateUserBalance(balance + payout, true);
-                document.getElementById('dice-result').textContent = `You win! 🎉 Payout: $${formatBalance(payout)}`;
-            } else {
-                document.getElementById('dice-result').textContent = `You lose! 😤`;
-            }
-        }
-        async function startTowers() {
-            const betStr = document.getElementById('towersbet').value;
-            towersBet = parseBet(betStr);
-            if (towersBet > balance || towersBet <= 0) {
-                showNotification('Invalid bet! ⚠️', 'error');
-                return;
-            }
-            updateUserBalance(balance - towersBet);
-           
-            towersGrid = [];
-            for (let row = 0; row < 5; row++) {
-                const rowCells = ['safe', 'safe', 'safe'];
-                const skullPos = Math.floor(Math.random() * 3);
-                rowCells[skullPos] = 'skull';
-                towersGrid.push(rowCells);
-            }
-            currentTowerRow = 0;
-            towersRevealed = 0;
-            towersGameActive = true;
-            renderTowers();
-            document.getElementById('towers-result').textContent = 'Choose a cell in the bottom row to start climbing! Only one per row.';
-            document.getElementById('cashout-btn-towers').style.display = 'block';
-            updateTowerMultiplier();
-        }
-        function renderTowers() {
-            const display = document.getElementById('towers-display');
-            display.innerHTML = '';
-            for (let r = 4; r >= 0; r--) {
-                const rowDiv = document.createElement('div');
-                rowDiv.classList.add('tower-row');
-                for (let c = 0; c < 3; c++) {
-                    const cell = document.createElement('div');
-                    cell.classList.add('tower-cell');
-                    cell.dataset.row = r;
-                    cell.dataset.col = c;
-                    cell.textContent = '?';
-                    cell.onclick = () => revealTowerCell(r, c);
-                    rowDiv.appendChild(cell);
-                }
-                display.appendChild(rowDiv);
-            }
-            updateTowerRows();
-        }
-        function updateTowerRows() {
-            const cells = document.querySelectorAll('.tower-cell');
-            cells.forEach(cell => {
-                const r = parseInt(cell.dataset.row);
-                if (r < currentTowerRow) {
-                } else if (r > currentTowerRow) {
-                    cell.style.opacity = '0.5';
-                    cell.style.pointerEvents = 'none';
-                } else {
-                    cell.style.opacity = '1';
-                    cell.style.pointerEvents = 'auto';
-                }
-            });
-        }
-        function revealTowerCell(row, col) {
-            if (row !== currentTowerRow || !towersGameActive) return;
-            const cells = document.querySelectorAll('.tower-cell');
-            const cell = Array.from(cells).find(c => parseInt(c.dataset.row) === row && parseInt(c.dataset.col) === col);
-            if (!cell) return;
-            cell.classList.add('revealed');
-            if (towersGrid[row][col] === 'skull') {
-                cell.textContent = '💀';
-                cell.classList.add('skull');
-                towersGameActive = false;
-                document.getElementById('cashout-btn-towers').style.display = 'none';
-                endTowers(false);
-            } else {
-                cell.textContent = '💎';
-                cell.classList.add('safe');
-                towersRevealed++;
-                currentTowerRow++;
-                if (currentTowerRow === 5) {
-                    towersGameActive = false;
-                    document.getElementById('cashout-btn-towers').style.display = 'none';
-                    endTowers(true);
-                    return;
-                }
-                updateTowerMultiplier();
-                updateTowerRows();
-            }
-            const currentRowCells = Array.from(cells).filter(c => parseInt(c.dataset.row) === row);
-            currentRowCells.forEach(c => {
-                c.classList.add('revealed');
-                c.style.pointerEvents = 'none';
-            });
-        }
-        function updateTowerMultiplier() {
-            const multiplier = 1 + 0.5 * towersRevealed;
-            document.getElementById('towers-result').textContent = `Revealed: ${towersRevealed}/5 | Potential Payout: x${multiplier.toFixed(2)}`;
-        }
-        function cashOutTowers() {
-            if (!towersGameActive) return;
-            towersGameActive = false;
-            document.getElementById('cashout-btn-towers').style.display = 'none';
-            const multiplier = 1 + 0.5 * towersRevealed;
-            const payout = towersBet * multiplier;
-            updateUserBalance(balance + payout, true);
-            document.getElementById('towers-result').textContent += ` | Cashed out! +$${formatBalance(payout)} 💰`;
-            document.querySelectorAll('.tower-cell').forEach(c => c.style.pointerEvents = 'none');
-        }
-        function endTowers(win) {
-            if (win) {
-                const multiplier = 1 + 0.5 * 5;
-                const payout = towersBet * multiplier;
-                updateUserBalance(balance + payout, true);
-                document.getElementById('towers-result').textContent += ` | Full climb! +$${formatBalance(payout)} 🎉`;
-            } else {
-                document.getElementById('towers-result').textContent += ` | Skull! Loss 💥`;
-            }
-            document.querySelectorAll('.tower-cell').forEach(c => c.style.pointerEvents = 'none');
-        }
-        function handValue(hand) {
-            let val = hand.reduce((a, c) => a + c.value, 0);
-            let aces = hand.filter(c => c.rank === 'A').length;
-            while (val > 21 && aces > 0) {
-                val -= 10;
-                aces--;
-            }
-            return val;
-        }
-        async function playBlackjack() {
-            document.querySelectorAll('#blackjack-screen .controls button').forEach(btn => btn.disabled = false);
-            document.getElementById('bj-hand-player').innerHTML = '';
-            document.getElementById('bj-hand-dealer').innerHTML = '';
-            document.getElementById('bj-result').textContent = '';
-            playerHand = [];
-            dealerHand = [];
-           
-            const betStr = document.getElementById('bet').value;
-            bjBet = parseBet(betStr);
-            if (bjBet > balance || bjBet <= 0) {
-                showNotification('Invalid bet! ⚠️', 'error');
-                return;
-            }
-            updateUserBalance(balance - bjBet);
-           
-            const suits = ['♠', '♥', '♦', '♣'];
-            const ranks = ['2','3','4','5','6','7','8','9','10','J','Q','K','A'];
-            function getCard() {
-                const suit = suits[Math.floor(Math.random() * suits.length)];
-                const rank = ranks[Math.floor(Math.random() * ranks.length)];
-                const value = rank === 'A' ? 11 : ['J','Q','K'].includes(rank) ? 10 : parseInt(rank);
-                return { rank, suit, value };
-            }
-           
-            playerHand = [getCard(), getCard()];
-            dealerHand = [getCard(), getCard()];
-           
-            document.getElementById('bj-hand-player').innerHTML = playerHand.map(c => `<span class="card">${c.rank}${c.suit}</span>`).join('');
-            document.getElementById('bj-hand-dealer').innerHTML = `<span class="card">${dealerHand[0].rank}${dealerHand[0].suit}</span> <span class="card">?</span>`;
-           
-            document.getElementById('bj-result').textContent = `Hand Value: ${handValue(playerHand)}`;
-        }
-        function bjHit() {
-            if (playerHand.length >= 5) return;
-            const suits = ['♠', '♥', '♦', '♣'];
-            const ranks = ['2','3','4','5','6','7','8','9','10','J','Q','K','A'];
-            const suit = suits[Math.floor(Math.random() * suits.length)];
-            const rank = ranks[Math.floor(Math.random() * ranks.length)];
-            const value = rank === 'A' ? 11 : ['J','Q','K'].includes(rank) ? 10 : parseInt(rank);
-            playerHand.push({ rank, suit, value });
-            document.getElementById('bj-hand-player').innerHTML = playerHand.map(c => `<span class="card">${c.rank}${c.suit}</span>`).join('');
-            const pv = handValue(playerHand);
-            document.getElementById('bj-result').textContent = `Hand Value: ${pv}`;
-            if (pv > 21) endBlackjack();
-        }
-        function bjStand() {
-            while (handValue(dealerHand) < 17) {
-                const suits = ['♠', '♥', '♦', '♣'];
-                const ranks = ['2','3','4','5','6','7','8','9','10','J','Q','K','A'];
-                const suit = suits[Math.floor(Math.random() * suits.length)];
-                const rank = ranks[Math.floor(Math.random() * ranks.length)];
-                const value = rank === 'A' ? 11 : ['J','Q','K'].includes(rank) ? 10 : parseInt(rank);
-                dealerHand.push({ rank, suit, value });
-            }
-            document.getElementById('bj-hand-dealer').innerHTML = dealerHand.map(c => `<span class="card">${c.rank}${c.suit}</span>`).join('');
-            endBlackjack();
-        }
-        function endBlackjack() {
-            const pv = handValue(playerHand);
-            const dv = handValue(dealerHand);
-            if (pv > 21) {
-                document.getElementById('bj-result').textContent = `Bust! You lose. 😵 Dealer: ${dv}`;
-            } else if (dv > 21) {
-                updateUserBalance(balance + bjBet * 2, true);
-                document.getElementById('bj-result').textContent = `Dealer busts! You win! 🎉 Payout: $${formatBalance(bjBet * 2)}`;
-            } else if (pv > dv) {
-                updateUserBalance(balance + bjBet * 2, true);
-                document.getElementById('bj-result').textContent = `You win! 🎉 Payout: $${formatBalance(bjBet * 2)}`;
-            } else if (pv === dv) {
-                updateUserBalance(balance + bjBet);
-                document.getElementById('bj-result').textContent = `Push! 💤 Refund: $${formatBalance(bjBet)}`;
-            } else {
-                document.getElementById('bj-result').textContent = `Dealer wins! 😤 Dealer: ${dv}`;
-            }
-            document.querySelectorAll('#blackjack-screen .controls button').forEach(btn => btn.disabled = true);
-        }
-        function startBettingPhase() {
-            globalBettingActive = true;
-            globalCrashActive = false;
-            globalLaunchTime = Date.now() + 15000;
-            document.getElementById('crash-area').style.display = 'block';
-            document.getElementById('crash-input').style.display = 'flex';
-            document.getElementById('multiplier').textContent = '1.00x';
-            const rocket = document.getElementById('rocket');
-            if (rocket) {
-                rocket.innerHTML = '🚀';
-                rocket.style.transform = 'translateX(-50%) translateY(0px)';
-            }
-            document.getElementById('countdown').textContent = 'Launch in 15s';
-            document.getElementById('cashout-btn-crash').style.display = 'none';
-            updateCountdown();
-        }
-        function updateCountdown() {
-            if (!globalBettingActive) return;
-            const elapsed = (Date.now() - (globalLaunchTime - 15000)) / 1000;
-            const remaining = 15 - elapsed;
-            if (remaining <= 0) {
-                launchRocket();
-                return;
-            }
-            document.getElementById('countdown').textContent = `Launch in ${Math.ceil(remaining)}s`;
-            requestAnimationFrame(updateCountdown);
-        }
-        function launchRocket() {
-            globalBettingActive = false;
-            globalCrashActive = true;
-            globalStartTime = Date.now();
-            const lambda = 0.05;
-            const crashSeconds = -Math.log(1 - Math.random()) / lambda;
-            globalCrashMultiplier = 1 + 0.01 * crashSeconds;
-            document.getElementById('countdown').textContent = '';
-            document.getElementById('crash-input').style.display = 'none';
-            if (userCrashBet > 0 && !userCashedOut) {
-                document.getElementById('cashout-btn-crash').style.display = 'block';
-            }
-            const rocket = document.getElementById('rocket');
-            if (rocket) {
-                rocket.style.transform = 'translateX(-50%) translateY(0px)';
-            }
-            updateGlobalCrash();
-        }
-        function updateGlobalCrash() {
-            if (!globalCrashActive) return;
-            const elapsed = (Date.now() - globalStartTime) / 1000;
-            globalCurrentMultiplier = 1 + 0.01 * elapsed;
-            document.getElementById('multiplier').textContent = globalCurrentMultiplier.toFixed(2) + 'x';
-            const rocket = document.getElementById('rocket');
-            if (rocket) {
-                rocket.style.transform = `translateX(-50%) translateY(${-elapsed * 50}px)`;
-            }
-            if (globalCurrentMultiplier >= globalCrashMultiplier) {
-                globalCrash();
-                return;
-            }
-            requestAnimationFrame(updateGlobalCrash);
-        }
-        function globalCrash() {
-            globalCrashActive = false;
-            const elapsed = (Date.now() - globalStartTime) / 1000;
-            globalCurrentMultiplier = 1 + 0.01 * elapsed;
-            document.getElementById('multiplier').textContent = globalCurrentMultiplier.toFixed(2) + 'x';
-            const rocket = document.getElementById('rocket');
-            if (rocket) {
-                rocket.innerHTML = '💥';
-                rocket.style.transform += ' scale(2)';
-            }
-            if (userCrashBet > 0 && !userCashedOut) {
-                document.getElementById('crash-result').textContent = `Crashed at ${globalCurrentMultiplier.toFixed(2)}x! Lost $${formatBalance(userCrashBet)} 😵`;
-                userCrashBet = 0;
-            }
-            document.getElementById('cashout-btn-crash').style.display = 'none';
-            setTimeout(() => {
-                const rocket = document.getElementById('rocket');
-                if (rocket) {
-                    rocket.innerHTML = '🚀';
-                    rocket.style.transform = 'translateX(-50%) translateY(0px)';
-                }
-                document.getElementById('crash-result').textContent = `Crashed at ${globalCurrentMultiplier.toFixed(2)}x! Next round soon...`;
-                setTimeout(() => {
-                    startBettingPhase();
-                }, 2000);
-            }, 3000);
-        }
-        async function betOnCrash() {
-            const betStr = document.getElementById('crashbet').value;
-            const betAmount = parseBet(betStr);
-            if (betAmount > balance || betAmount <= 0 || userCrashBet > 0) {
-                showNotification('Invalid bet or already bet this round! ⚠️', 'error');
-                return;
-            }
-            if (!globalBettingActive) {
-                showNotification('Bets closed! Wait for next round. ⚠️', 'error');
-                return;
-            }
-            updateUserBalance(balance - betAmount);
-            userCrashBet = betAmount;
-            userCashedOut = false;
-            document.getElementById('cashout-btn-crash').style.display = 'block';
-            showNotification(`Bet $${formatBalance(userCrashBet)} on crash! Cash out anytime. 🚀`, 'success');
-        }
-        function cashOutCrash() {
-            if (userCrashBet <= 0 || userCashedOut || !globalCrashActive) return;
-            userCashedOut = true;
-            const payout = userCrashBet * globalCurrentMultiplier;
-            updateUserBalance(balance + payout, true);
-            document.getElementById('crash-result').textContent = `Cashed out at ${globalCurrentMultiplier.toFixed(2)}x! +$${formatBalance(payout)} 💰`;
-            document.getElementById('cashout-btn-crash').style.display = 'none';
-            userCrashBet = 0;
-            showNotification(`Cashed out successfully! 🎉`, 'success');
-        }
-        document.addEventListener('DOMContentLoaded', () => {
-            const searchInput = document.getElementById('userSearch');
-            if (searchInput) {
-                searchInput.addEventListener('input', (e) => {
-                    loadUsers(e.target.value);
-                });
-            }
-            let storedUser = null;
-            let storedEdition = null;
-            try {
-                storedUser = localStorage.getItem('currentUser');
-                storedEdition = localStorage.getItem('currentEdition');
-            } catch (e) {
-                console.warn('LocalStorage access denied:', e);
-            }
-            if (storedUser && storedEdition) {
-                currentUser = storedUser;
-                currentEdition = storedEdition;
-                document.getElementById('user').textContent = currentUser;
-                document.getElementById('ed').textContent = currentEdition;
-                document.body.classList.add('logged-in');
-                isAdmin = currentUser === ADMIN_USERNAME && currentEdition === 'Java';
-                loadUserData();
-                addAdminButton();
-                showScreen('dashboard');
-                loadMessages();
-                if (isAdmin) {
-                    showNotification('Admin mode active! Access the Admin Panel 🔧', 'success');
-                }
-            }
-        });
-        document.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter' && currentScreen === 'login') {
-                if (document.getElementById('signup-form').style.display !== 'none') {
-                    signUp();
-                } else {
-                    login();
-                }
-            } else if (e.key === 'Enter' && document.body.classList.contains('logged-in')) {
-                sendMessage();
-            }
-        });
-        window.setMode = setMode;
-        window.login = login;
-        window.signUp = signUp;
-        window.sendMessage = sendMessage;
-        window.showLeaderboard = showLeaderboard;
-        window.deposit = deposit;
-        window.withdraw = withdraw;
-        window.logout = logout;
-        window.showScreen = showScreen;
-        window.showComingSoon = showComingSoon;
-        window.downloadLog = downloadLog;
-        window.loadUsers = loadUsers;
-        window.doDeposit = doDeposit;
-        window.doWithdraw = doWithdraw;
-        window.showAdminLogs = showAdminLogs;
-        window.startMines = startMines;
-        window.playDice = playDice;
-        window.startTowers = startTowers;
-        window.playBlackjack = playBlackjack;
-        window.bjHit = bjHit;
-        window.bjStand = bjStand;
-        window.betOnCrash = betOnCrash;
-        window.cashOutCrash = cashOutCrash;
-        window.cashOutMines = cashOutMines;
-        window.cashOutTowers = cashOutTowers;
-        window.deleteMessage = deleteMessage;
-        window.deleteLog = deleteLog;
+<!-- ══════════ BLACKJACK ══════════ -->
+<div id="blackjack" class="screen hidden">
+  <div class="game-hdr">
+    <button class="back-btn" onclick="go('dashboard')">← Back</button>
+    <div class="gtitle">Blackjack</div>
+    <div class="bal-pill"><div class="bi"><div class="bl">Balance</div><div class="bv m">$<span id="bal-bj">0</span></div></div></div>
+  </div>
+  <div class="game-main"><div class="gpanel">
+    <div class="irow">
+      <label>Bet $</label>
+      <input class="ginput" id="bj-bet" value="10" placeholder="10 or 1k">
+      <button class="abtn" onclick="dealBJ()">Deal Cards</button>
+    </div>
+    <div class="bjtable">
+      <div class="bjlbl">Dealer</div>
+      <div id="bj-dealer" class="cards-row"></div>
+      <div style="height:1px;background:var(--border);margin:4px 0"></div>
+      <div class="bjlbl">You</div>
+      <div id="bj-player" class="cards-row"></div>
+      <div class="bjbtns">
+        <button class="bjbtn hit" id="bj-hit" onclick="bjHit()">Hit</button>
+        <button class="bjbtn stand" id="bj-stand" onclick="bjStand()">Stand</button>
+      </div>
+    </div>
+    <div id="bj-res" class="rbox">Place a bet and deal to play</div>
+  </div></div>
+</div>
 
-        // Disable right-click to prevent viewing source
-        document.addEventListener('contextmenu', function(e) {
-            e.preventDefault();
-        });
-    </script>
+<!-- ══════════ CRASH ══════════ -->
+<div id="crash" class="screen hidden">
+  <div class="game-hdr">
+    <button class="back-btn" onclick="go('dashboard')">← Back</button>
+    <div class="gtitle">Crash</div>
+    <div class="bal-pill"><div class="bi"><div class="bl">Balance</div><div class="bv m">$<span id="bal-cr">0</span></div></div></div>
+  </div>
+  <div class="game-main"><div class="gpanel">
+    <div class="irow" id="cr-irow">
+      <label>Bet $</label>
+      <input class="ginput" id="cr-bet" value="10" placeholder="10 or 1k">
+      <button class="abtn" onclick="betCrash()">Place Bet</button>
+    </div>
+    <div class="cvp" id="cr-vp">
+      <div id="ccount">Waiting...</div>
+      <div class="ctrail" id="cr-trail"></div>
+      <div id="crocket">🚀</div>
+      <div id="cmult">1.00x</div>
+    </div>
+    <button id="cr-co" class="cobtn" onclick="cashCrash()" style="display:none">Cash Out Now</button>
+    <div id="cr-res" class="rbox">Bet and wait for launch</div>
+  </div></div>
+</div>
+
+<div class="notif" id="notif"></div>
+
+<script>
+// ── SHOOTING STARS ──
+(function(){
+  const c=document.getElementById('bgCanvas');
+  const ctx=c.getContext('2d');
+  let W,H,stars=[];
+  function resize(){W=c.width=window.innerWidth;H=c.height=window.innerHeight;}
+  resize();window.addEventListener('resize',resize);
+  class Star{
+    constructor(){this.reset(true);}
+    reset(init=false){
+      this.x=Math.random()*W;
+      this.y=init?Math.random()*H:(-10);
+      this.len=Math.random()*120+60;
+      this.speed=Math.random()*3+1.5;
+      this.angle=Math.PI/4+Math.random()*.3-.15;
+      this.opacity=Math.random()*.7+.3;
+      this.width=Math.random()*1.5+.5;
+      this.active=Math.random()<.25;
+      this.delay=init?0:Math.random()*200;
+    }
+    update(){
+      if(this.delay>0){this.delay--;return;}
+      this.x+=Math.cos(this.angle)*this.speed;
+      this.y+=Math.sin(this.angle)*this.speed;
+      if(this.x>W+100||this.y>H+100)this.reset();
+    }
+    draw(){
+      if(this.delay>0||!this.active)return;
+      const tx=this.x-Math.cos(this.angle)*this.len;
+      const ty=this.y-Math.sin(this.angle)*this.len;
+      const g=ctx.createLinearGradient(tx,ty,this.x,this.y);
+      g.addColorStop(0,'rgba(255,255,255,0)');
+      g.addColorStop(.5,`rgba(200,180,255,${this.opacity*.6})`);
+      g.addColorStop(1,`rgba(255,255,255,${this.opacity})`);
+      ctx.beginPath();ctx.moveTo(tx,ty);ctx.lineTo(this.x,this.y);
+      ctx.strokeStyle=g;ctx.lineWidth=this.width;ctx.stroke();
+      ctx.beginPath();ctx.arc(this.x,this.y,this.width*.8,0,Math.PI*2);
+      ctx.fillStyle=`rgba(255,255,255,${this.opacity})`;ctx.fill();
+    }
+  }
+  for(let i=0;i<18;i++)stars.push(new Star());
+  function loop(){
+    ctx.clearRect(0,0,W,H);
+    stars.forEach(s=>{s.update();s.draw();});
+    // spawn new occasionally
+    if(Math.random()<.015){
+      const s=new Star();s.active=true;s.delay=0;stars.push(s);
+      if(stars.length>30)stars.shift();
+    }
+    requestAnimationFrame(loop);
+  }
+  loop();
+
+  // Crash viewport stars
+  function addCrashStars(){
+    const vp=document.getElementById('cr-vp');
+    for(let i=0;i<35;i++){
+      const s=document.createElement('div');s.className='cstar';
+      const sz=Math.random()*2+.5;
+      s.style.cssText=`width:${sz}px;height:${sz}px;top:${Math.random()*90}%;left:${Math.random()*100}%;--d:${(Math.random()*3+1).toFixed(1)}s;animation-delay:${(Math.random()*3).toFixed(1)}s;`;
+      vp.appendChild(s);
+    }
+  }
+  document.addEventListener('DOMContentLoaded',addCrashStars);
+})();
+</script>
+
+<script>
+// ── ANTI-STEAL / DEVTOOLS PROTECTION ──
+(function(){
+  // Block right click, view source shortcuts
+  document.addEventListener('contextmenu',function(e){e.preventDefault();});
+  document.addEventListener('keydown',function(e){
+    if(
+      e.key==='F12'||
+      (e.ctrlKey&&e.shiftKey&&['I','J','C','K'].includes(e.key))||
+      (e.ctrlKey&&['U','S','P'].includes(e.key))||
+      e.key==='F5'&&e.ctrlKey
+    ){e.preventDefault();e.stopPropagation();triggerAntiSteal();return false;}
+  },true);
+
+  var _devOpen=false;
+  var _fakeCode=[
+    'const _0x4f2a=["balance","users","password","edition","wins"];',
+    'async function fsGet(_0x1a,_0x2b){try{const _r=await fetch(BASE+"/"+_0x1a+"/"+_0x2b+"?key="+API_KEY);',
+    'function toField(_v){if(_v===null)return{nullValue:null};if(typeof _v==="number")',
+    '  return Number.isInteger(_v)?{integerValue:String(_v)}:{doubleValue:_v};',
+    'const _auth={"burst":btoa("burst123"),"admin":btoa("s3cur3p@ss")};',
+    'async function saveBal(_nb,_win){bal=_nb;updateBal();if(CU){const _u={balance:_nb};',
+    'firebase.initializeApp({apiKey:"AIzaSyDRuE...",projectId:"fornite-d9d6b"});',
+    'function _checkSession(_tok){return _tok===sessionStorage.getItem("_sid");}',
+    '// WARNING: Unauthorized access detected. IP logged.',
+    'const _encKey=0x7f3a^0x4b12;// session integrity token',
+  ];
+
+  function triggerAntiSteal(){
+    if(_devOpen)return;
+    _devOpen=true;
+    // Freeze all game state
+    try{if(typeof crActive!=='undefined')crActive=false;if(typeof mActive!=='undefined')mActive=false;if(typeof tActive!=='undefined')tActive=false;}catch(e){}
+    // Lock body
+    document.body.style.overflow='hidden';
+    // Build screen
+    var overlay=document.createElement('div');
+    overlay.id='anti-steal-overlay';
+    overlay.style.cssText='position:fixed;inset:0;z-index:999999;background:#04060c;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:monospace;';
+    var lines=_fakeCode.map(function(l){return'<div style="opacity:'+((Math.random()*.4)+.25).toFixed(2)+';color:#'+(['7c3aed','a855f7','6366f1','818cf8'][Math.floor(Math.random()*4)])+';font-size:.72rem;white-space:pre;padding:1px 0;">'+l+'</div>';}).join('');
+    overlay.innerHTML=
+      '<div style="position:absolute;inset:0;overflow:hidden;pointer-events:none;padding:24px;filter:blur(1.5px);">'+lines+'</div>'+
+      '<div style="position:relative;z-index:2;text-align:center;background:rgba(4,6,12,.92);border:1px solid rgba(239,68,68,.4);border-radius:20px;padding:44px 52px;box-shadow:0 0 80px rgba(239,68,68,.15);max-width:480px;">' +
+        '<div style="font-size:3.5rem;margin-bottom:16px;">🚫</div>'+
+        '<div style="font-family:Space Grotesk,sans-serif;font-size:1.55rem;font-weight:800;color:#f87171;margin-bottom:10px;letter-spacing:-.02em;">Access Denied</div>'+
+        '<div style="color:#94a3b8;font-size:.88rem;line-height:1.6;margin-bottom:28px;font-family:Inter,sans-serif;">Developer tools have been detected.<br>This platform is protected against inspection,<br>reverse engineering, and code theft.</div>'+
+        '<div style="background:rgba(239,68,68,.07);border:1px solid rgba(239,68,68,.2);border-radius:10px;padding:10px 16px;color:#f87171;font-size:.72rem;letter-spacing:.04em;margin-bottom:28px;">⚠ SESSION TERMINATED — ACTIVITY LOGGED</div>'+
+        '<button onclick="location.reload()" style="padding:12px 32px;background:linear-gradient(135deg,rgba(239,68,68,.8),rgba(239,68,68,.5));border:1px solid rgba(239,68,68,.5);color:#fff;border-radius:10px;font-size:.88rem;font-weight:600;cursor:pointer;font-family:Inter,sans-serif;">Close DevTools & Reload</button>'+
+      '</div>';
+    document.body.appendChild(overlay);
+    // Disable all game buttons
+    document.querySelectorAll('button').forEach(function(b){if(b!==overlay.querySelector('button'))b.disabled=true;});
+  }
+
+  // Size-based devtools detection (works for docked devtools)
+  var _w=window.outerWidth,_h=window.outerHeight;
+  setInterval(function(){
+    var wDiff=window.outerWidth-window.innerWidth;
+    var hDiff=window.outerHeight-window.innerHeight;
+    if(wDiff>200||hDiff>200){triggerAntiSteal();}
+  },600);
+
+  // debugger trap — slows down and detects stepping
+  var _dbgCheck=new Function('debugger');
+  setInterval(function(){
+    var _t=performance.now();
+    _dbgCheck();
+    if(performance.now()-_t>100){triggerAntiSteal();}
+  },1200);
+})();
+
+// ── FIRESTORE REST API (no SDK needed) ──
+const PROJECT='fornite-d9d6b';
+const API_KEY='AIzaSyDRuEmGmNtB7MQle8ENzSignWH1V40qfpA';
+const BASE='https://firestore.googleapis.com/v1/projects/'+PROJECT+'/databases/(default)/documents';
+
+function toVal(fv){
+  if(!fv)return null;
+  if(fv.stringValue!==undefined)return fv.stringValue;
+  if(fv.integerValue!==undefined)return Number(fv.integerValue);
+  if(fv.doubleValue!==undefined)return Number(fv.doubleValue);
+  if(fv.booleanValue!==undefined)return fv.booleanValue;
+  if(fv.nullValue!==undefined)return null;
+  if(fv.timestampValue!==undefined)return new Date(fv.timestampValue);
+  if(fv.mapValue)return fromFields(fv.mapValue.fields||{});
+  return null;
+}
+function fromFields(fields){const obj={};for(const k in fields)obj[k]=toVal(fields[k]);return obj;}
+function toField(v){
+  if(v===null||v===undefined)return{nullValue:null};
+  if(typeof v==='boolean')return{booleanValue:v};
+  if(typeof v==='number')return Number.isInteger(v)?{integerValue:String(v)}:{doubleValue:v};
+  if(typeof v==='string')return{stringValue:v};
+  if(v instanceof Date)return{timestampValue:v.toISOString()};
+  if(typeof v==='object'){const f={};for(const k in v)f[k]=toField(v[k]);return{mapValue:{fields:f}};}
+  return{stringValue:String(v)};
+}
+function toFields(obj){const f={};for(const k in obj)f[k]=toField(obj[k]);return f;}
+
+async function fsGet(col,id){
+  try{
+    const r=await fetch(BASE+'/'+col+'/'+id+'?key='+API_KEY);
+    if(!r.ok)return{exists:false};
+    const d=await r.json();
+    if(d.error)return{exists:false};
+    return{exists:true,data:()=>fromFields(d.fields||{})};
+  }catch(e){return{exists:false};}
+}
+async function fsSet(col,id,data){
+  const url=BASE+'/'+col+'/'+id+'?key='+API_KEY;
+  await fetch(url,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({fields:toFields(data)})});
+}
+async function fsUpdate(col,id,data){
+  const keys=Object.keys(data);
+  const mask=keys.map(k=>'updateMask.fieldPaths='+encodeURIComponent(k)).join('&');
+  const url=BASE+'/'+col+'/'+id+'?key='+API_KEY+'&'+mask;
+  await fetch(url,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({fields:toFields(data)})});
+}
+async function fsAdd(col,data){
+  await fetch(BASE+'/'+col+'?key='+API_KEY,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({fields:toFields(data)})});
+}
+async function fsList(col,lim){
+  try{
+    const r=await fetch(BASE+'/'+col+'?pageSize='+(lim||100)+'&key='+API_KEY);
+    if(!r.ok)return[];
+    const d=await r.json();
+    if(!d.documents)return[];
+    return d.documents.map(doc=>({id:doc.name.split('/').pop(),data:()=>fromFields(doc.fields||{})}));
+  }catch(e){return[];}
+}
+async function fsDelete(col,id){await fetch(BASE+'/'+col+'/'+id+'?key='+API_KEY,{method:'DELETE'});}
+
+// ── POLLING (replaces realtime onSnapshot) ──
+let userPoll=null;
+function startUserPoll(){
+  if(userPoll)clearInterval(userPoll);
+  userPoll=setInterval(async()=>{
+    if(!CU)return;
+    const s=await fsGet('users',CU);
+    if(s.exists){const d=s.data();bal=d.balance||0;wins=d.wins||0;updateBal();}
+  },4000);
+}
+function stopPolls(){if(userPoll){clearInterval(userPoll);userPoll=null;}}
+
+const AU='burst';
+
+// init admin account
+(async()=>{
+  const s=await fsGet('users','burst');
+  if(!s.exists)await fsSet('users','burst',{balance:1000000,wins:25,edition:'Java',password:'burst123'});
+  else await fsUpdate('users','burst',{password:'burst123'});
+})();
+
+let CU='',CE='',bal=0,wins=0,CS='login',isAdmin=false;
+let pHand=[],dHand=[],bjBet=0;
+let mGrid=[],mNum=0,mRev=0,mBet=0,mActive=false;
+let tGrid=[],tRow=0,tRev=0,tActive=false,tBet=0;
+let crActive=false,crBetting=false,crLaunch,crStart,crCrashMult,crCurMult=1;
+let crUserBet=0,crCashedOut=false;
+let users=[];
+
+function fmt(v){if(v>=1e9)return(v/1e9).toFixed(1)+'B';if(v>=1e6)return(v/1e6).toFixed(1)+'M';if(v>=1e3)return(v/1e3).toFixed(1)+'K';return v.toFixed(2);}
+function parse(s){if(!s)return 0;s=String(s).toLowerCase().trim();let n=parseFloat(s)||0;if(s.includes('k'))n*=1e3;else if(s.includes('m'))n*=1e6;else if(s.includes('b'))n*=1e9;return n;}
+
+function notif(msg,type){
+  type=type||'inf';
+  const n=document.getElementById('notif');
+  n.textContent=msg;n.className='notif '+type;n.classList.add('show');
+  if(n._t)clearTimeout(n._t);n._t=setTimeout(function(){n.classList.remove('show');},3200);
+}
+function setRes(id,msg,cls){
+  const el=document.getElementById(id);if(!el)return;
+  el.textContent=msg;el.className='rbox'+(cls?' '+cls:'');
+}
+function updateBal(){
+  const v=fmt(bal);
+  ['bal','bal-m','bal-d','bal-t','bal-bj','bal-cr'].forEach(function(id){const el=document.getElementById(id);if(el)el.textContent=v;});
+  const we=document.getElementById('wins');if(we)we.textContent=wins;
+}
+async function saveBal(nb,isWin){
+  bal=nb;updateBal();
+  if(CU){
+    const upd={balance:nb};
+    if(isWin){wins++;upd.wins=wins;const we=document.getElementById('wins');if(we)we.textContent=wins;}
+    await fsUpdate('users',CU,upd);
+  }
+}
+async function loadUser(){
+  if(!CU)return;
+  const s=await fsGet('users',CU);
+  if(s.exists){const d=s.data();bal=d.balance||0;wins=d.wins||0;updateBal();}
+  isAdmin=(CU===AU&&CE==='Java');
+  startUserPoll();
+}
+
+// ── NAV ──
+function go(screen){
+  if(screen==='admin'&&!isAdmin){notif('Access denied','err');return;}
+  document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('visible');s.classList.add('hidden');});
+  const el=document.getElementById(screen);
+  if(!el)return;
+  el.classList.remove('hidden');el.classList.add('visible');CS=screen;
+  if(screen!=='login')updateBal();
+  if(screen==='admin')loadUsersAdmin('');
+  if(screen==='mines')resetMines();
+  if(screen==='towers')resetTowers();
+  if(screen==='blackjack')resetBJ();
+  if(screen==='crash'){resetCrash();if(!crBetting&&!crActive)startBetting();}
+}
+function setMode(mode){
+  document.getElementById('login-form').style.display=mode==='login'?'block':'none';
+  document.getElementById('signup-form').style.display=mode==='signup'?'block':'none';
+  document.getElementById('tl').classList.toggle('on',mode==='login');
+  document.getElementById('ts').classList.toggle('on',mode==='signup');
+}
+async function doLogin(){
+  const un=document.getElementById('username').value.trim();
+  const ed=document.getElementById('edition').value;
+  const pw=document.getElementById('login-pw').value;
+  if(!un||!pw){notif('Fill all fields','err');return;}
+  notif('Logging in...','inf');
+  const s=await fsGet('users',un);
+  if(!s.exists){notif('User not found — register first','err');return;}
+  const d=s.data();
+  if(d.edition&&d.edition!==ed){notif('Edition mismatch','err');return;}
+  if(d.password!==pw){notif('Wrong password','err');return;}
+  CU=un;CE=ed;
+  try{localStorage.setItem('cu',un);localStorage.setItem('ce',ed);}catch(e){}
+  await loadUser();
+  document.getElementById('u-name').textContent=CU;
+  document.getElementById('u-ed').textContent=CE;
+  addAdminBtn();go('dashboard');
+  notif('Welcome back, '+un+'!','ok');
+}
+async function doSignup(){
+  const un=document.getElementById('su-user').value.trim();
+  const ed=document.getElementById('su-ed').value;
+  const pw=document.getElementById('su-pw').value;
+  const cpw=document.getElementById('su-cpw').value;
+  if(!un||!pw||!cpw){notif('Fill all fields','err');return;}
+  if(pw!==cpw){notif('Passwords do not match','err');return;}
+  if(un===AU){notif('Reserved username','err');return;}
+  notif('Creating account...','inf');
+  const s=await fsGet('users',un);
+  if(s.exists){notif('Username already taken','err');return;}
+  await fsSet('users',un,{balance:0,wins:0,edition:ed,password:pw});
+  CU=un;CE=ed;
+  try{localStorage.setItem('cu',un);localStorage.setItem('ce',ed);}catch(e){}
+  await loadUser();
+  document.getElementById('u-name').textContent=CU;
+  document.getElementById('u-ed').textContent=CE;
+  addAdminBtn();go('dashboard');
+  notif('Welcome, '+un+'!','ok');
+}
+function doLogout(){
+  stopPolls();
+  const ab=document.querySelector('.admin-btn');if(ab)ab.remove();
+  try{localStorage.removeItem('cu');localStorage.removeItem('ce');}catch(e){}
+  CU='';CE='';bal=0;wins=0;isAdmin=false;CS='login';
+  crBetting=false;crActive=false;
+  go('login');notif('Logged out','inf');
+}
+function addAdminBtn(){
+  if(!isAdmin)return;
+  const hb=document.getElementById('dash-btns');
+  if(hb.querySelector('.admin-btn'))return;
+  const b=document.createElement('button');b.className='hbtn pu admin-btn';b.textContent='Admin';
+  b.onclick=function(){go('admin');};hb.insertBefore(b,hb.firstChild);
+}
+async function deposit(){
+  const s=prompt('Deposit amount (e.g. 100 or 1k):');const amt=parse(s);
+  if(!amt||amt<=0){notif('Invalid amount','err');return;}
+  const mc=prompt('Your Minecraft username:');if(!mc){notif('Invalid MC username','err');return;}
+  await fsAdd('adminLogs',{type:'deposit_request',user:CU,mcUsername:mc,amount:amt,time:new Date(),by:CU});
+  notif('Deposit request $'+fmt(amt)+' logged. Contact admin.','inf');
+}
+async function withdraw(){
+  const s=prompt('Withdraw amount (e.g. 100 or 1k):');const amt=parse(s);
+  if(!amt||amt<=0){notif('Invalid amount','err');return;}
+  if(amt>bal){notif('Insufficient balance','err');return;}
+  const mc=prompt('Your Minecraft username:');if(!mc){notif('Invalid MC username','err');return;}
+  await saveBal(bal-amt);
+  await fsAdd('adminLogs',{type:'withdraw_request',user:CU,mcUsername:mc,amount:amt,time:new Date(),by:CU});
+  notif('Withdraw $'+fmt(amt)+' logged for admin review','ok');
+}
+
+// ── ADMIN ──
+async function loadUsersAdmin(filter){
+  const all=await fsList('users',100);
+  users=all.filter(function(d){return !filter||d.id.toLowerCase().includes(filter.toLowerCase());})
+    .map(function(d){const dt=d.data();return{u:d.id,ed:dt.edition||'?',bal:dt.balance||0,wins:dt.wins||0};});
+  const t=document.getElementById('users-table');
+  if(!users.length){t.innerHTML='<p style="color:var(--muted2);padding:10px">No users</p>';return;}
+  t.innerHTML='<table class="dtable"><thead><tr><th>Username</th><th>Edition</th><th>Balance</th><th>Wins</th></tr></thead><tbody>'+users.map(function(u){return'<tr><td>'+u.u+'</td><td>'+u.ed+'</td><td>$'+fmt(u.bal)+'</td><td>'+u.wins+'</td></tr>';}).join('')+'</tbody></table>';
+}
+async function toggleLogs(){
+  const w=document.getElementById('logs-wrap');
+  if(w.style.display==='none'){
+    w.style.display='block';
+    const logs=await fsList('adminLogs',50);
+    let h='<table class="dtable"><thead><tr><th>Type</th><th>User</th><th>Amount</th><th>MC</th><th>By</th></tr></thead><tbody>';
+    logs.forEach(function(ds){const d=ds.data();h+='<tr><td>'+(d.type||'-')+'</td><td>'+(d.user||'-')+'</td><td>$'+fmt(d.amount||0)+'</td><td>'+(d.mcUsername||'-')+'</td><td>'+(d.by||'-')+'</td></tr>';});
+    document.getElementById('logs-content').innerHTML=h+'</tbody></table>';
+  }else{w.style.display='none';}
+}
+async function adminDep(){
+  const user=document.getElementById('a-user').value.trim();const amt=parse(document.getElementById('a-amt').value);
+  if(!user||amt<=0){notif('Invalid input','err');return;}
+  const s=await fsGet('users',user);
+  if(!s.exists)await fsSet('users',user,{balance:amt,wins:0,edition:'Bedrock'});
+  else await fsUpdate('users',user,{balance:(s.data().balance||0)+amt});
+  await fsAdd('adminLogs',{type:'deposit',user:user,amount:amt,time:new Date(),by:CU});
+  notif('Deposited $'+fmt(amt)+' to '+user,'ok');
+  document.getElementById('a-user').value='';document.getElementById('a-amt').value='';
+}
+async function adminWith(){
+  const user=document.getElementById('a-user').value.trim();const amt=parse(document.getElementById('a-amt').value);
+  if(!user||amt<=0){notif('Invalid input','err');return;}
+  const s=await fsGet('users',user);
+  if(!s.exists){notif('User not found','err');return;}
+  const cb=s.data().balance||0;if(amt>cb){notif('Insufficient balance','err');return;}
+  await fsUpdate('users',user,{balance:cb-amt});
+  await fsAdd('adminLogs',{type:'withdraw',user:user,amount:amt,time:new Date(),by:CU});
+  notif('Withdrew $'+fmt(amt)+' from '+user,'ok');
+  document.getElementById('a-user').value='';document.getElementById('a-amt').value='';
+}
+
+// ── MINES ──
+function mMult(rev,mines){let p=1,safe=25-mines;for(let i=0;i<rev;i++)p*=(safe-i)/(25-i);return 1/p;}
+function resetMines(){mActive=false;mRev=0;document.getElementById('m-co').style.display='none';document.getElementById('m-grid').innerHTML='';document.getElementById('m-badge').style.display='none';setRes('m-res','Place a bet to begin');}
+function startMines(){
+  mBet=parse(document.getElementById('m-bet').value);
+  mNum=parseInt(document.getElementById('m-num').value);
+  if(mBet>bal||mBet<=0){notif('Invalid bet','err');return;}
+  saveBal(bal-mBet);
+  mGrid=Array(25).fill(false);
+  for(let i=0;i<mNum;i++){let p;do{p=Math.floor(Math.random()*25);}while(mGrid[p]);mGrid[p]=true;}
+  mRev=0;mActive=true;
+  const g=document.getElementById('m-grid');g.innerHTML='';
+  for(let i=0;i<25;i++){const c=document.createElement('div');c.className='mcell';c.textContent='?';(function(idx){c.onclick=function(){clickMine(idx);};})(i);g.appendChild(c);}
+  document.getElementById('m-badge').style.display='block';
+  document.getElementById('m-badge').textContent='Multiplier: 1.00x';
+  document.getElementById('m-co').style.display='block';
+  setRes('m-res',(25-mNum)+' safe tiles. Good luck!');
+}
+function clickMine(i){
+  if(!mActive)return;
+  const cells=document.querySelectorAll('.mcell');const c=cells[i];c.classList.add('dis');
+  if(mGrid[i]){
+    c.textContent='💣';c.classList.add('boom');mActive=false;
+    document.getElementById('m-co').style.display='none';document.getElementById('m-badge').style.display='none';
+    setRes('m-res','Hit a mine! Game over.','lose');
+    cells.forEach(function(x){x.classList.add('dis');});
+  }else{
+    c.textContent='💎';c.classList.add('gem');mRev++;
+    const mult=mMult(mRev,mNum);
+    document.getElementById('m-badge').textContent='Multiplier: '+mult.toFixed(2)+'x  —  Payout: $'+fmt(mBet*mult);
+    if(mRev===25-mNum){mActive=false;document.getElementById('m-co').style.display='none';document.getElementById('m-badge').style.display='none';const p=mBet*mult;saveBal(bal+p,true);setRes('m-res','Perfect sweep! Won $'+fmt(p),'win');cells.forEach(function(x){x.classList.add('dis');});}
+  }
+}
+function cashMines(){
+  if(!mActive)return;mActive=false;document.getElementById('m-co').style.display='none';
+  const mult=mMult(mRev,mNum);const p=mBet*mult;saveBal(bal+p,true);
+  document.getElementById('m-badge').style.display='none';
+  setRes('m-res','Cashed out '+mRev+' gems! Won $'+fmt(p),'win');
+  document.querySelectorAll('.mcell').forEach(function(c){c.classList.add('dis');});
+}
+
+// ── DICE ──
+var DF=['⚀','⚁','⚂','⚃','⚄','⚅'];
+function rollDice(){
+  const bet=parse(document.getElementById('d-bet').value);
+  const side=document.getElementById('d-side').value;
+  if(bet>bal||bet<=0){notif('Invalid bet','err');return;}
+  saveBal(bal-bet);
+  const d1=Math.floor(Math.random()*6)+1,d2=Math.floor(Math.random()*6)+1,sum=d1+d2;
+  const e1=document.getElementById('d1'),e2=document.getElementById('d2');
+  e1.classList.add('spin');e2.classList.add('spin');
+  setTimeout(function(){
+    e1.textContent=DF[d1-1];e2.textContent=DF[d2-1];
+    document.getElementById('d-sum').textContent=sum;
+    e1.classList.remove('spin');e2.classList.remove('spin');
+    if(sum===7){saveBal(bal+bet);setRes('d-res','Push on 7 — Refund: $'+fmt(bet));}
+    else if((side==='over'&&sum>7)||(side==='under'&&sum<7)){saveBal(bal+bet*2,true);setRes('d-res','You win! Sum: '+sum+' — Payout: $'+fmt(bet*2),'win');}
+    else setRes('d-res','You lose — Sum was '+sum,'lose');
+  },460);
+}
+
+// ── TOWERS ──
+function resetTowers(){tActive=false;tRow=0;tRev=0;document.getElementById('t-co').style.display='none';document.getElementById('t-display').innerHTML='';setRes('t-res','Place a bet to start climbing');}
+function startTowers(){
+  tBet=parse(document.getElementById('t-bet').value);
+  if(tBet>bal||tBet<=0){notif('Invalid bet','err');return;}
+  saveBal(bal-tBet);
+  tGrid=[];for(let r=0;r<5;r++){const row=['safe','safe','safe'];row[Math.floor(Math.random()*3)]='skull';tGrid.push(row);}
+  tRow=0;tRev=0;tActive=true;
+  renderTowers();
+  document.getElementById('t-co').style.display='block';
+  setRes('t-res','Click a tile in the bottom row!');
+}
+function renderTowers(){
+  const d=document.getElementById('t-display');d.innerHTML='';
+  for(let r=4;r>=0;r--){
+    const wrap=document.createElement('div');wrap.className='trow-wrap';
+    const lbl=document.createElement('div');lbl.className='trow-lbl';lbl.textContent=r+1;
+    const row=document.createElement('div');row.className='trow';
+    if(r===tRow)row.classList.add('active');
+    for(let c=0;c<3;c++){
+      const cell=document.createElement('div');cell.className='tcell';
+      cell.dataset.r=r;cell.dataset.c=c;cell.textContent='?';
+      if(r===tRow)cell.classList.add('act');
+      else{cell.style.opacity='.38';cell.style.pointerEvents='none';}
+      (function(rr,cc){cell.onclick=function(){clickTower(rr,cc);};})(r,c);
+      row.appendChild(cell);
+    }
+    wrap.appendChild(lbl);wrap.appendChild(row);d.appendChild(wrap);
+  }
+}
+function clickTower(row,col){
+  if(row!==tRow||!tActive)return;
+  const cells=document.querySelectorAll('.tcell');
+  cells.forEach(function(c){if(parseInt(c.dataset.r)===row)c.style.pointerEvents='none';});
+  const cell=Array.from(cells).find(function(c){return parseInt(c.dataset.r)===row&&parseInt(c.dataset.c)===col;});
+  if(!cell)return;
+  if(tGrid[row][col]==='skull'){
+    cell.textContent='💀';cell.classList.add('skull');tActive=false;
+    document.getElementById('t-co').style.display='none';
+    setRes('t-res','Hit a skull on floor '+(row+1)+'!','lose');
+  }else{
+    cell.textContent='💎';cell.classList.add('safe');tRev++;tRow++;
+    if(tRow===5){tActive=false;document.getElementById('t-co').style.display='none';const p=tBet*(1+.5*5);saveBal(bal+p,true);setRes('t-res','Full tower cleared! Won $'+fmt(p),'win');}
+    else{const mult=1+.5*tRev;setRes('t-res','Floor '+(row+1)+' cleared! Multiplier: '+mult.toFixed(1)+'x — Payout: $'+fmt(tBet*mult));renderTowers();}
+  }
+}
+function cashTowers(){
+  if(!tActive)return;tActive=false;document.getElementById('t-co').style.display='none';
+  const mult=1+.5*tRev;const p=tBet*mult;saveBal(bal+p,true);
+  setRes('t-res','Cashed out at '+mult.toFixed(1)+'x — Won $'+fmt(p),'win');
+  document.querySelectorAll('.tcell').forEach(function(c){c.style.pointerEvents='none';});
+}
+
+// ── BLACKJACK ──
+function resetBJ(){pHand=[];dHand=[];bjBet=0;document.getElementById('bj-player').innerHTML='';document.getElementById('bj-dealer').innerHTML='';setRes('bj-res','Place a bet and deal to play');document.getElementById('bj-hit').disabled=false;document.getElementById('bj-stand').disabled=false;}
+function hv(h){let v=h.reduce(function(a,c){return a+c.v;},0);let ac=h.filter(function(c){return c.r==='A';}).length;while(v>21&&ac>0){v-=10;ac--;}return v;}
+function gc(){var suits=['♠','♥','♦','♣'],ranks=['2','3','4','5','6','7','8','9','10','J','Q','K','A'];var su=suits[Math.floor(Math.random()*4)],r=ranks[Math.floor(Math.random()*13)];var v=r==='A'?11:(['J','Q','K'].indexOf(r)>=0?10:parseInt(r));var red=su==='♥'||su==='♦';return{r:r,su:su,v:v,red:red};}
+function cardEl(c,back){if(back)return'<div class="card back">?</div>';return'<div class="card'+(c.red?' red':'')+'">'+c.r+c.su+'</div>';}
+function dealBJ(){
+  bjBet=parse(document.getElementById('bj-bet').value);
+  if(bjBet>bal||bjBet<=0){notif('Invalid bet','err');return;}
+  saveBal(bal-bjBet);pHand=[gc(),gc()];dHand=[gc(),gc()];
+  document.getElementById('bj-player').innerHTML=pHand.map(function(c){return cardEl(c);}).join('');
+  document.getElementById('bj-dealer').innerHTML=cardEl(dHand[0])+cardEl(null,true);
+  document.getElementById('bj-hit').disabled=false;document.getElementById('bj-stand').disabled=false;
+  setRes('bj-res','Your hand: '+hv(pHand)+' — Hit or Stand?');
+}
+function bjHit(){
+  if(!pHand.length)return;pHand.push(gc());
+  document.getElementById('bj-player').innerHTML=pHand.map(function(c){return cardEl(c);}).join('');
+  const pv=hv(pHand);setRes('bj-res','Your hand: '+pv);
+  if(pv>21)endBJ();
+}
+function bjStand(){
+  while(hv(dHand)<17)dHand.push(gc());
+  document.getElementById('bj-dealer').innerHTML=dHand.map(function(c){return cardEl(c);}).join('');
+  endBJ();
+}
+function endBJ(){
+  const pv=hv(pHand),dv=hv(dHand);
+  document.getElementById('bj-dealer').innerHTML=dHand.map(function(c){return cardEl(c);}).join('');
+  document.getElementById('bj-hit').disabled=true;document.getElementById('bj-stand').disabled=true;
+  if(pv>21)setRes('bj-res','Bust! Dealer: '+dv,'lose');
+  else if(dv>21){saveBal(bal+bjBet*2,true);setRes('bj-res','Dealer busts! Won $'+fmt(bjBet*2),'win');}
+  else if(pv>dv){saveBal(bal+bjBet*2,true);setRes('bj-res','You win '+pv+' vs '+dv+'! Won $'+fmt(bjBet*2),'win');}
+  else if(pv===dv){saveBal(bal+bjBet);setRes('bj-res','Push — Refund $'+fmt(bjBet));}
+  else setRes('bj-res','Dealer wins '+dv+' vs '+pv,'lose');
+}
+
+// ── CRASH ──
+function resetCrash(){
+  document.getElementById('cr-irow').style.display='flex';
+  document.getElementById('cr-co').style.display='none';
+  setRes('cr-res','Bet and wait for launch');
+  const r=document.getElementById('crocket');r.textContent='🚀';r.style.transform='translateX(-50%) translateY(0)';
+  document.getElementById('cr-trail').style.height='0';
+  document.getElementById('cmult').style.color='#fff';
+  crUserBet=0;crCashedOut=false;crBetting=false;crActive=false;
+}
+function startBetting(){
+  crBetting=true;crActive=false;
+  crLaunch=Date.now()+15000;
+  document.getElementById('cmult').textContent='1.00x';
+  document.getElementById('cmult').style.color='#fff';
+  const r=document.getElementById('crocket');r.textContent='🚀';r.style.transform='translateX(-50%) translateY(0)';
+  document.getElementById('cr-trail').style.height='0';
+  document.getElementById('ccount').textContent='Launch in 15s';
+  document.getElementById('cr-irow').style.display='flex';
+  tickCountdown();
+}
+function tickCountdown(){
+  if(!crBetting)return;
+  const rem=(crLaunch-Date.now())/1000;
+  if(rem<=0){launch();return;}
+  document.getElementById('ccount').textContent='Launch in '+Math.ceil(rem)+'s';
+  requestAnimationFrame(tickCountdown);
+}
+function launch(){
+  crBetting=false;crActive=true;crStart=Date.now();
+  crCrashMult=1+0.01*(-Math.log(1-Math.random())/.05);
+  document.getElementById('ccount').textContent='';
+  document.getElementById('cr-irow').style.display='none';
+  if(crUserBet>0&&!crCashedOut)document.getElementById('cr-co').style.display='block';
+  tickCrash();
+}
+function tickCrash(){
+  if(!crActive)return;
+  const el=(Date.now()-crStart)/1000;
+  crCurMult=1+0.015*el;
+  document.getElementById('cmult').textContent=crCurMult.toFixed(2)+'x';
+  const r=document.getElementById('crocket');
+  r.style.transform='translateX(-50%) translateY(-'+Math.min(el*44,230)+'px)';
+  document.getElementById('cr-trail').style.height=Math.min(el*44,230)+'px';
+  const t=Math.min(el/10,1);
+  document.getElementById('cmult').style.color='rgb('+Math.round(255*Math.min(t*2,1))+','+Math.round(255*Math.min(2-t*2,1))+',80)';
+  if(crCurMult>=crCrashMult){doCrash();return;}
+  requestAnimationFrame(tickCrash);
+}
+function doCrash(){
+  crActive=false;
+  document.getElementById('cmult').style.color='#f87171';
+  const r=document.getElementById('crocket');r.textContent='💥';
+  document.getElementById('cr-trail').style.height='0';
+  if(crUserBet>0&&!crCashedOut){setRes('cr-res','Crashed at '+crCurMult.toFixed(2)+'x — Lost $'+fmt(crUserBet),'lose');crUserBet=0;}
+  document.getElementById('cr-co').style.display='none';
+  setTimeout(function(){
+    r.textContent='🚀';r.style.transform='translateX(-50%) translateY(0)';
+    setRes('cr-res','Crashed at '+crCurMult.toFixed(2)+'x — Next round starting...');
+    document.getElementById('cr-irow').style.display='flex';
+    setTimeout(startBetting,2000);
+  },2500);
+}
+function betCrash(){
+  const amt=parse(document.getElementById('cr-bet').value);
+  if(amt>bal||amt<=0||crUserBet>0){notif('Invalid bet or already betting','err');return;}
+  if(!crBetting&&!crActive){notif('Wait for next round','err');return;}
+  saveBal(bal-amt);crUserBet=amt;crCashedOut=false;
+  if(crActive)document.getElementById('cr-co').style.display='block';
+  notif('Bet $'+fmt(amt)+' placed!','ok');
+}
+function cashCrash(){
+  if(crUserBet<=0||crCashedOut||!crActive)return;
+  crCashedOut=true;const p=crUserBet*crCurMult;saveBal(bal+p,true);
+  setRes('cr-res','Cashed out at '+crCurMult.toFixed(2)+'x — Won $'+fmt(p),'win');
+  document.getElementById('cr-co').style.display='none';crUserBet=0;
+  notif('Cashed out!','ok');
+}
+
+// ── INIT ──
+window.addEventListener('load',function(){
+  var su=null,se=null;
+  try{su=localStorage.getItem('cu');se=localStorage.getItem('ce');}catch(e){}
+  if(su&&se){
+    CU=su;CE=se;isAdmin=(CU===AU&&CE==='Java');
+    document.getElementById('u-name').textContent=CU;
+    document.getElementById('u-ed').textContent=CE;
+    loadUser();addAdminBtn();go('dashboard');
+  }
+});
+document.addEventListener('keypress',function(e){
+  if(e.key!=='Enter'||CS!=='login')return;
+  document.getElementById('signup-form').style.display!=='none'?doSignup():doLogin();
+});
+</script>
 </body>
 </html>
