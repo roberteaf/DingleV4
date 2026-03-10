@@ -397,6 +397,19 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);}
 .debug-close{float:right;background:none;border:none;color:var(--muted2);font-size:1.1rem;cursor:pointer;padding:2px 6px;border-radius:5px;}
 .debug-close:hover{color:var(--text);}
 
+/* ── DEBUG TABS ── */
+.debug-tabs{display:flex;gap:4px;background:rgba(0,0,0,.4);border-radius:9px;padding:4px;margin-bottom:18px;flex-wrap:wrap;}
+.dtab-btn{flex:1;padding:7px 6px;text-align:center;font-size:.76rem;font-weight:500;border-radius:6px;cursor:pointer;color:var(--muted2);background:transparent;border:none;transition:all .2s;white-space:nowrap;}
+.dtab-btn.on{background:rgba(245,158,11,.18);color:#f59e0b;box-shadow:0 0 0 1px rgba(245,158,11,.3);}
+
+/* ── TERMINAL ── */
+#term-out{background:rgba(0,0,0,.55);border:1px solid var(--border);border-radius:10px;padding:12px;font-family:monospace;font-size:.76rem;line-height:1.7;min-height:200px;max-height:280px;overflow-y:auto;margin-bottom:10px;color:#94a3b8;}
+.term-line{padding:1px 0;}.term-line.cmd{color:#f59e0b;}.term-line.ok{color:#34d399;}.term-line.err{color:#f87171;}.term-line.inf{color:#c084fc;}.term-line.data{color:#e2e8f0;}
+.term-input-row{display:flex;align-items:center;gap:8px;}
+.term-prompt{color:#f59e0b;font-family:monospace;font-size:.9rem;font-weight:700;}
+.term-inp{flex:1;padding:8px 12px;background:rgba(0,0,0,.5);border:1px solid var(--border2);border-radius:8px;color:#f59e0b;font-family:monospace;font-size:.82rem;outline:none;}
+.term-inp:focus{border-color:rgba(245,158,11,.5);}
+
 /* ── LOG ACTION BUTTONS ── */
 .log-accept{padding:5px 11px;font-size:.74rem;font-weight:600;background:rgba(16,185,129,.14);border:1px solid rgba(16,185,129,.3);color:#34d399;border-radius:6px;cursor:pointer;transition:all .15s;}
 .log-accept:hover{background:rgba(16,185,129,.26);}
@@ -499,34 +512,128 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);}
 <!-- Debug Modal -->
 <div id="debug-modal" onclick="if(event.target===this)closeDebug()">
   <div class="debug-panel">
-    <h2>👑 Admin Debug Panel <button class="debug-close" onclick="closeDebug()">✕</button></h2>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;">
+      <h2 style="margin:0">👑 Admin Debug Panel</h2>
+      <button class="debug-close" onclick="closeDebug()">✕</button>
+    </div>
 
-    <div class="debug-section">
-      <h4>📢 Announcement</h4>
-      <div class="debug-row">
-        <input class="dinp" id="ann-inp" placeholder="Write a message for all players...">
-        <button class="dbtn gold" onclick="sendAnnouncement()">Send</button>
-        <button class="dbtn red" onclick="clearAnnouncement()">Clear</button>
+    <!-- Tabs -->
+    <div class="debug-tabs">
+      <button class="dtab-btn on" id="dt0" onclick="switchDebugTab(0)">Terminal</button>
+      <button class="dtab-btn" id="dt1" onclick="switchDebugTab(1)">Broadcast</button>
+      <button class="dtab-btn" id="dt2" onclick="switchDebugTab(2)">Balance</button>
+      <button class="dtab-btn" id="dt3" onclick="switchDebugTab(3)">Users</button>
+      <button class="dtab-btn" id="dt4" onclick="switchDebugTab(4)">System</button>
+    </div>
+
+    <!-- Tab 0: Terminal -->
+    <div class="dtab-content" id="dtp0">
+      <div id="term-out"></div>
+      <div class="term-input-row">
+        <span class="term-prompt">$</span>
+        <input class="term-inp" id="term-inp" placeholder="Type a command... (help for list)" autocomplete="off" onkeydown="if(event.key==='Enter')runCmd()">
+        <button class="dbtn pu" onclick="runCmd()" style="padding:7px 14px;font-size:.78rem">Run</button>
       </div>
     </div>
 
-    <div class="debug-section">
-      <h4>💰 Global Balance</h4>
-      <div class="debug-row">
-        <input class="dinp" id="glob-amt" placeholder="Amount (e.g. 1000 or 5k)">
-        <button class="dbtn gr" onclick="globalBalOp('set')">Set All</button>
-        <button class="dbtn gold" onclick="globalBalOp('add')">Add All</button>
-        <button class="dbtn red" onclick="globalBalOp('sub')">Take All</button>
+    <!-- Tab 1: Broadcast -->
+    <div class="dtab-content" id="dtp1" style="display:none">
+      <div class="debug-section">
+        <h4>📢 Announcement Banner</h4>
+        <div class="debug-row">
+          <input class="dinp" id="ann-inp" placeholder="Message shown at top of dashboard for all users...">
+          <button class="dbtn gold" onclick="sendAnnouncement()">Send</button>
+          <button class="dbtn red" onclick="clearAnnouncement()">Clear</button>
+        </div>
+      </div>
+      <div class="debug-section">
+        <h4>📨 Global Pop-up Message</h4>
+        <div class="debug-row">
+          <input class="dinp" id="gmsg-inp" placeholder="Pop-up message shown once to all users...">
+          <button class="dbtn pu" onclick="sendGlobalMsg()">Broadcast</button>
+        </div>
       </div>
     </div>
 
-    <div class="debug-section">
-      <h4>📨 Global Message (pop-up)</h4>
-      <div class="debug-row">
-        <input class="dinp" id="gmsg-inp" placeholder="Message to show all players...">
-        <button class="dbtn pu" onclick="sendGlobalMsg()">Broadcast</button>
+    <!-- Tab 2: Balance -->
+    <div class="dtab-content" id="dtp2" style="display:none">
+      <div class="debug-section">
+        <h4>👤 Single User Balance</h4>
+        <div class="debug-row">
+          <input class="dinp" id="su-bal-user" placeholder="Username">
+          <input class="dinp" id="su-bal-amt" placeholder="Amount (e.g. 5k)">
+          <button class="dbtn gr" onclick="singleBalOp('set')">Set</button>
+          <button class="dbtn gold" onclick="singleBalOp('add')">Add</button>
+          <button class="dbtn red" onclick="singleBalOp('sub')">Take</button>
+        </div>
+      </div>
+      <div class="debug-section">
+        <h4>🌍 Global Balance (all users)</h4>
+        <div class="debug-row">
+          <input class="dinp" id="glob-amt" placeholder="Amount (e.g. 1000 or 5k)">
+          <button class="dbtn gr" onclick="globalBalOp('set')">Set All</button>
+          <button class="dbtn gold" onclick="globalBalOp('add')">Add All</button>
+          <button class="dbtn red" onclick="globalBalOp('sub')">Take All</button>
+        </div>
+      </div>
+      <div class="debug-section">
+        <h4>🔄 Reset Wins</h4>
+        <div class="debug-row">
+          <input class="dinp" id="reset-wins-user" placeholder="Username (blank = all users)">
+          <button class="dbtn red" onclick="resetWins()">Reset Wins</button>
+        </div>
       </div>
     </div>
+
+    <!-- Tab 3: Users -->
+    <div class="dtab-content" id="dtp3" style="display:none">
+      <div class="debug-section">
+        <h4>🔍 Lookup User</h4>
+        <div class="debug-row">
+          <input class="dinp" id="lookup-user" placeholder="Username">
+          <button class="dbtn gold" onclick="lookupUser()">Lookup</button>
+        </div>
+        <div id="lookup-result" style="margin-top:10px;font-size:.82rem;color:var(--muted2);font-family:monospace;background:rgba(0,0,0,.3);border-radius:8px;padding:10px;display:none;"></div>
+      </div>
+      <div class="debug-section">
+        <h4>🔑 Reset Password</h4>
+        <div class="debug-row">
+          <input class="dinp" id="rpw-user" placeholder="Username">
+          <input class="dinp" id="rpw-new" placeholder="New password">
+          <button class="dbtn gold" onclick="adminResetPw()">Reset</button>
+        </div>
+      </div>
+      <div class="debug-section">
+        <h4>🗑️ Delete Account</h4>
+        <div class="debug-row">
+          <input class="dinp" id="del-user" placeholder="Username to delete">
+          <button class="dbtn red" onclick="deleteAccount()">Delete</button>
+        </div>
+        <p style="font-size:.72rem;color:var(--muted2);margin-top:6px;">⚠ Permanent. Cannot delete burst (admin).</p>
+      </div>
+    </div>
+
+    <!-- Tab 4: System -->
+    <div class="dtab-content" id="dtp4" style="display:none">
+      <div class="debug-section">
+        <h4>📊 Platform Stats</h4>
+        <button class="dbtn gold" onclick="loadStats()">Refresh Stats</button>
+        <div id="stats-out" style="margin-top:12px;font-size:.82rem;color:var(--muted2);font-family:monospace;line-height:1.8;"></div>
+      </div>
+      <div class="debug-section">
+        <h4>🗑️ Clear All Logs</h4>
+        <button class="dbtn red" onclick="clearAllLogs()">Clear All Admin Logs</button>
+      </div>
+      <div class="debug-section">
+        <h4>⚙️ Maintenance Mode</h4>
+        <div class="debug-row">
+          <input class="dinp" id="maint-msg" placeholder="Maintenance message..." style="flex:1">
+          <button class="dbtn red" onclick="setMaintenance(true)">Enable</button>
+          <button class="dbtn gr" onclick="setMaintenance(false)">Disable</button>
+        </div>
+      </div>
+    </div>
+
   </div>
 </div>
 
@@ -576,7 +683,8 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);}
       <input class="ginput" id="m-bet" value="10" placeholder="10 or 1k">
       <label>Mines</label>
       <select class="gsel" id="m-num"><option>1</option><option>3</option><option>5</option></select>
-      <button class="abtn" onclick="startMines()">Start Game</button>
+      <button class="abtn" id="m-start" onclick="startMines()">Start Game</button>
+      <button class="abtn" id="m-again" onclick="startMines()" style="display:none;background:linear-gradient(135deg,rgba(16,185,129,.5),rgba(6,182,212,.3));border-color:rgba(16,185,129,.5)">▶ Play Again</button>
     </div>
     <div id="m-grid" class="mgrid"></div>
     <div id="m-badge" class="mbadge" style="display:none">Multiplier: 1.00x</div>
@@ -600,7 +708,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);}
         <option value="over">Over 7</option>
         <option value="under">Under 7</option>
       </select>
-      <button class="abtn" onclick="rollDice()">Roll</button>
+      <button class="abtn" id="d-roll" onclick="rollDice()">Roll</button>
     </div>
     <div class="dicewrap">
       <div class="die" id="d1">🎲</div>
@@ -624,7 +732,8 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);}
     <div class="irow">
       <label>Bet $</label>
       <input class="ginput" id="t-bet" value="10" placeholder="10 or 1k">
-      <button class="abtn" onclick="startTowers()">Build Tower</button>
+      <button class="abtn" id="t-start" onclick="startTowers()">Build Tower</button>
+      <button class="abtn" id="t-again" onclick="startTowers()" style="display:none;background:linear-gradient(135deg,rgba(16,185,129,.5),rgba(6,182,212,.3));border-color:rgba(16,185,129,.5)">▶ Play Again</button>
     </div>
     <div id="t-display" class="twrap"></div>
     <button id="t-co" class="cobtn" onclick="cashTowers()" style="display:none">Cash Out</button>
@@ -643,7 +752,8 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);}
     <div class="irow">
       <label>Bet $</label>
       <input class="ginput" id="bj-bet" value="10" placeholder="10 or 1k">
-      <button class="abtn" onclick="dealBJ()">Deal Cards</button>
+      <button class="abtn" id="bj-deal" onclick="dealBJ()">Deal Cards</button>
+      <button class="abtn" id="bj-again" onclick="dealBJ()" style="display:none;background:linear-gradient(135deg,rgba(16,185,129,.5),rgba(6,182,212,.3));border-color:rgba(16,185,129,.5)">▶ Play Again</button>
     </div>
     <div class="bjtable">
       <div class="bjlbl">Dealer</div>
@@ -652,8 +762,8 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);}
       <div class="bjlbl">You</div>
       <div id="bj-player" class="cards-row"></div>
       <div class="bjbtns">
-        <button class="bjbtn hit" id="bj-hit" onclick="bjHit()">Hit</button>
-        <button class="bjbtn stand" id="bj-stand" onclick="bjStand()">Stand</button>
+        <button class="bjbtn hit" id="bj-hit" onclick="bjHit()" disabled>Hit</button>
+        <button class="bjbtn stand" id="bj-stand" onclick="bjStand()" disabled>Stand</button>
       </div>
     </div>
     <div id="bj-res" class="rbox">Place a bet and deal to play</div>
@@ -755,71 +865,6 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);}
 </script>
 
 <script>
-// ── ANTI-STEAL / DEVTOOLS PROTECTION ──
-(function(){
-  document.addEventListener('contextmenu',function(e){e.preventDefault();});
-  document.addEventListener('keydown',function(e){
-    if(
-      e.key==='F12'||
-      (e.ctrlKey&&e.shiftKey&&['I','J','C','K'].includes(e.key))||
-      (e.ctrlKey&&['U','S','P'].includes(e.key))
-    ){e.preventDefault();e.stopPropagation();triggerAntiSteal();return false;}
-  },true);
-
-  var _devOpen=false;
-  var _fakeCode=[
-    'const _0x4f2a=["balance","users","password","edition","wins"];',
-    'async function fsGet(_0x1a,_0x2b){try{const _r=await fetch(BASE+"/"+_0x1a+"/"+_0x2b+"?key="+API_KEY);',
-    'function toField(_v){if(_v===null)return{nullValue:null};if(typeof _v==="number")',
-    '  return Number.isInteger(_v)?{integerValue:String(_v)}:{doubleValue:_v};',
-    'const _auth={"burst":btoa("burst123"),"admin":btoa("s3cur3p@ss")};',
-    'async function saveBal(_nb,_win){bal=_nb;updateBal();if(CU){const _u={balance:_nb};',
-    'firebase.initializeApp({apiKey:"AIzaSyDRuE...",projectId:"fornite-d9d6b"});',
-    'function _checkSession(_tok){return _tok===sessionStorage.getItem("_sid");}',
-    '// WARNING: Unauthorized access detected. IP logged: '+Math.floor(Math.random()*255)+'.'+Math.floor(Math.random()*255)+'.x.x',
-    'const _encKey=0x7f3a^0x4b12;// session integrity token',
-  ];
-
-  window.triggerAntiSteal=function(){
-    if(_devOpen)return;
-    _devOpen=true;
-    try{if(typeof crActive!=='undefined')crActive=false;if(typeof mActive!=='undefined')mActive=false;if(typeof tActive!=='undefined')tActive=false;}catch(e){}
-    document.body.style.overflow='hidden';
-    var overlay=document.createElement('div');
-    overlay.id='anti-steal-overlay';
-    overlay.style.cssText='position:fixed;inset:0;z-index:999999;background:#04060c;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:monospace;';
-    var lines=_fakeCode.map(function(l){
-      return'<div style="opacity:'+((Math.random()*.4)+.2).toFixed(2)+';color:#'+(['7c3aed','a855f7','6366f1','818cf8'][Math.floor(Math.random()*4)])+';font-size:.7rem;white-space:pre;padding:2px 0;letter-spacing:.02em;">'+l+'</div>';
-    }).join('');
-    overlay.innerHTML=
-      '<div style="position:absolute;inset:0;overflow:hidden;pointer-events:none;padding:32px;filter:blur(1.5px);">'+lines+lines+lines+'</div>'+
-      '<div style="position:relative;z-index:2;text-align:center;background:rgba(4,6,12,.94);border:1px solid rgba(239,68,68,.4);border-radius:20px;padding:44px 52px;box-shadow:0 0 80px rgba(239,68,68,.18);max-width:460px;">'+
-        '<div style="font-size:3.2rem;margin-bottom:14px;">🚫</div>'+
-        '<div style="font-family:Space Grotesk,sans-serif;font-size:1.5rem;font-weight:800;color:#f87171;margin-bottom:10px;letter-spacing:-.02em;">Access Denied</div>'+
-        '<div style="color:#94a3b8;font-size:.86rem;line-height:1.65;margin-bottom:24px;font-family:Inter,sans-serif;">Developer tools detected.<br>This platform is protected against inspection,<br>reverse engineering and code theft.</div>'+
-        '<div style="background:rgba(239,68,68,.07);border:1px solid rgba(239,68,68,.2);border-radius:8px;padding:9px 14px;color:#f87171;font-size:.7rem;letter-spacing:.05em;margin-bottom:24px;font-family:monospace;">⚠ SESSION TERMINATED — ACTIVITY LOGGED</div>'+
-        '<button onclick="location.reload()" style="padding:11px 28px;background:linear-gradient(135deg,rgba(239,68,68,.85),rgba(239,68,68,.55));border:1px solid rgba(239,68,68,.5);color:#fff;border-radius:9px;font-size:.86rem;font-weight:600;cursor:pointer;font-family:Inter,sans-serif;">Close DevTools & Reload</button>'+
-      '</div>';
-    document.body.appendChild(overlay);
-    document.querySelectorAll('button').forEach(function(b){if(!overlay.contains(b))b.disabled=true;});
-  };
-
-  // Only trigger on real browser window — check we're not in an iframe
-  var _isTopFrame=(window.self===window.top);
-
-  // Keyboard devtools shortcut already blocked above
-  // Size-based detection — only when top frame and difference is very large
-  if(_isTopFrame){
-    setInterval(function(){
-      if(_devOpen)return;
-      var wDiff=window.outerWidth-window.innerWidth;
-      var hDiff=window.outerHeight-window.innerHeight;
-      // Only trigger if difference is extreme (docked devtools)
-      if(wDiff>300||hDiff>300){triggerAntiSteal();}
-    },1000);
-  }
-})();
-
 // ── FIRESTORE REST API ──
 var PROJECT='fornite-d9d6b';
 var API_KEY='AIzaSyDRuEmGmNtB7MQle8ENzSignWH1V40qfpA';
@@ -933,6 +978,7 @@ var tGrid=[],tRow=0,tRev=0,tActive=false,tBet=0;
 var crActive=false,crBetting=false,crLaunch,crStart,crCrashMult,crCurMult=1;
 var crUserBet=0,crCashedOut=false;
 var users=[];
+var gameInProgress=false;
 
 function fmt(v){if(v>=1e9)return(v/1e9).toFixed(1)+'B';if(v>=1e6)return(v/1e6).toFixed(1)+'M';if(v>=1e3)return(v/1e3).toFixed(1)+'K';return v.toFixed(2);}
 function parse(s){if(!s)return 0;s=String(s).toLowerCase().trim();var n=parseFloat(s)||0;if(s.includes('k'))n*=1e3;else if(s.includes('m'))n*=1e6;else if(s.includes('b'))n*=1e9;return n;}
@@ -1161,12 +1207,424 @@ async function adminWith(){
 }
 
 // ── DEBUG PANEL ──
-function openDebug(){
-  if(!isAdmin){return;}
-  document.getElementById('debug-modal').classList.add('open');
+function openDebug(){if(!isAdmin)return;document.getElementById('debug-modal').classList.add('open');}
+function closeDebug(){document.getElementById('debug-modal').classList.remove('open');}
+
+function switchDebugTab(n){
+  for(var i=0;i<5;i++){
+    document.getElementById('dt'+i).classList.toggle('on',i===n);
+    document.getElementById('dtp'+i).style.display=i===n?'block':'none';
+  }
+  if(n===4)loadStats();
 }
-function closeDebug(){
-  document.getElementById('debug-modal').classList.remove('open');
+
+// ── TERMINAL ENGINE ──
+var termHistory=[];var termHistIdx=-1;
+function termPrint(text,cls){
+  var out=document.getElementById('term-out');
+  var line=document.createElement('div');line.className='term-line '+(cls||'');line.textContent=text;
+  out.appendChild(line);out.scrollTop=out.scrollHeight;
+}
+function termClear(){document.getElementById('term-out').innerHTML='';}
+
+async function runCmd(){
+  var inp=document.getElementById('term-inp');
+  var raw=inp.value.trim();if(!raw)return;
+  termPrint('$ '+raw,'cmd');
+  termHistory.unshift(raw);termHistIdx=-1;
+  inp.value='';
+  var parts=raw.split(/\s+/);
+  var cmd=parts[0].toLowerCase();
+  var args=parts.slice(1);
+
+  switch(cmd){
+    case 'help':
+      termPrint('── User Commands ──','inf');
+      termPrint('info <user>          — show user details','data');
+      termPrint('bal <user>           — show balance','data');
+      termPrint('setbal <user> <amt>  — set balance','data');
+      termPrint('addbal <user> <amt>  — add to balance','data');
+      termPrint('subbal <user> <amt>  — subtract from balance','data');
+      termPrint('resetwins <user>     — reset win count to 0','data');
+      termPrint('resetpw <user> <pw>  — reset password','data');
+      termPrint('delete <user>        — delete account','data');
+      termPrint('── History Commands ──','inf');
+      termPrint('wdhistory <user>     — full withdraw history with MC names','data');
+      termPrint('dephistory <user>    — full deposit history with MC names','data');
+      termPrint('totalwith <user>     — total withdrawn + pending count','data');
+      termPrint('totaldep <user>      — total deposited + pending count','data');
+      termPrint('pendingreqs          — all pending requests across all users','data');
+      termPrint('withdrawall <user>   — total withdrawn by user (quick)','data');
+      termPrint('depositall <user>    — total deposited to user (quick)','data');
+      termPrint('history <user>       — all log entries for user','data');
+      termPrint('logs                 — show all recent logs','data');
+      termPrint('── Global Commands ──','inf');
+      termPrint('globalset <amt>      — set everyone\'s balance','data');
+      termPrint('globaladd <amt>      — add to everyone\'s balance','data');
+      termPrint('globalsub <amt>      — subtract from everyone','data');
+      termPrint('announce <msg>       — set announcement banner','data');
+      termPrint('clearann             — clear announcement','data');
+      termPrint('broadcast <msg>      — send global pop-up to all','data');
+      termPrint('stats                — platform statistics','data');
+      termPrint('listusers            — list all users','data');
+      termPrint('clear                — clear terminal','data');
+      break;
+
+    case 'clear': termClear(); break;
+
+    case 'info':{
+      if(!args[0]){termPrint('Usage: info <user>','err');break;}
+      var s=await fsGet('users',args[0]);
+      if(!s.exists){termPrint('User not found: '+args[0],'err');break;}
+      var d=s.data();
+      termPrint('── '+args[0]+' ──','inf');
+      termPrint('Edition  : '+d.edition,'data');
+      termPrint('Balance  : $'+fmt(d.balance||0),'data');
+      termPrint('Wins     : '+(d.wins||0),'data');
+      break;}
+
+    case 'bal':{
+      if(!args[0]){termPrint('Usage: bal <user>','err');break;}
+      var s=await fsGet('users',args[0]);
+      if(!s.exists){termPrint('User not found','err');break;}
+      termPrint(args[0]+' balance: $'+fmt(s.data().balance||0),'ok');
+      break;}
+
+    case 'setbal':{
+      if(!args[0]||!args[1]){termPrint('Usage: setbal <user> <amount>','err');break;}
+      var amt=parse(args[1]);
+      var s=await fsGet('users',args[0]);
+      if(!s.exists){termPrint('User not found','err');break;}
+      await fsUpdate('users',args[0],{balance:amt});
+      termPrint('Set '+args[0]+' balance to $'+fmt(amt),'ok');
+      break;}
+
+    case 'addbal':{
+      if(!args[0]||!args[1]){termPrint('Usage: addbal <user> <amount>','err');break;}
+      var amt=parse(args[1]);
+      var s=await fsGet('users',args[0]);
+      if(!s.exists){termPrint('User not found','err');break;}
+      var nb=(s.data().balance||0)+amt;
+      await fsUpdate('users',args[0],{balance:nb});
+      termPrint('Added $'+fmt(amt)+' to '+args[0]+'. New balance: $'+fmt(nb),'ok');
+      break;}
+
+    case 'subbal':{
+      if(!args[0]||!args[1]){termPrint('Usage: subbal <user> <amount>','err');break;}
+      var amt=parse(args[1]);
+      var s=await fsGet('users',args[0]);
+      if(!s.exists){termPrint('User not found','err');break;}
+      var nb=Math.max(0,(s.data().balance||0)-amt);
+      await fsUpdate('users',args[0],{balance:nb});
+      termPrint('Subtracted $'+fmt(amt)+' from '+args[0]+'. New balance: $'+fmt(nb),'ok');
+      break;}
+
+    case 'resetwins':{
+      if(!args[0]){termPrint('Usage: resetwins <user>','err');break;}
+      var s=await fsGet('users',args[0]);
+      if(!s.exists){termPrint('User not found','err');break;}
+      await fsUpdate('users',args[0],{wins:0});
+      termPrint('Reset wins for '+args[0],'ok');
+      break;}
+
+    case 'resetpw':{
+      if(!args[0]||!args[1]){termPrint('Usage: resetpw <user> <newpassword>','err');break;}
+      var s=await fsGet('users',args[0]);
+      if(!s.exists){termPrint('User not found','err');break;}
+      await fsUpdate('users',args[0],{password:args[1]});
+      termPrint('Password reset for '+args[0],'ok');
+      break;}
+
+    case 'delete':{
+      if(!args[0]){termPrint('Usage: delete <user>','err');break;}
+      if(args[0]===AU){termPrint('Cannot delete admin account','err');break;}
+      var s=await fsGet('users',args[0]);
+      if(!s.exists){termPrint('User not found','err');break;}
+      await fsDelete('users',args[0]);
+      termPrint('Deleted account: '+args[0],'ok');
+      break;}
+
+    case 'withdrawall':{
+      if(!args[0]){termPrint('Usage: withdrawall <user>','err');break;}
+      var logs=await fsList('adminLogs',200);
+      var total=0;var count=0;
+      logs.forEach(function(l){
+        var d=l.data();
+        if((d.type==='withdraw'||d.type==='withdraw_request')&&d.user===args[0]){total+=d.amount||0;count++;}
+      });
+      termPrint('── '+args[0]+' Withdrawals ──','inf');
+      termPrint('Total withdrawn : $'+fmt(total),'data');
+      termPrint('Total requests  : '+count,'data');
+      break;}
+
+    case 'depositall':{
+      if(!args[0]){termPrint('Usage: depositall <user>','err');break;}
+      var logs=await fsList('adminLogs',200);
+      var total=0;var count=0;
+      logs.forEach(function(l){
+        var d=l.data();
+        if((d.type==='deposit'||d.type==='deposit_request')&&d.user===args[0]){total+=d.amount||0;count++;}
+      });
+      termPrint('── '+args[0]+' Deposits ──','inf');
+      termPrint('Total deposited : $'+fmt(total),'data');
+      termPrint('Total requests  : '+count,'data');
+      break;}
+
+    case 'history':{
+      if(!args[0]){termPrint('Usage: history <user>','err');break;}
+      var logs=await fsList('adminLogs',200);
+      var entries=logs.filter(function(l){return l.data().user===args[0];});
+      if(!entries.length){termPrint('No history for '+args[0],'inf');break;}
+      termPrint('── History: '+args[0]+' ('+entries.length+' entries) ──','inf');
+      entries.forEach(function(l){
+        var d=l.data();
+        termPrint('['+d.type+'] $'+fmt(d.amount||0)+' by '+d.by,'data');
+      });
+      break;}
+
+    case 'wdhistory':{
+      if(!args[0]){termPrint('Usage: wdhistory <user>','err');break;}
+      var logs=await fsList('adminLogs',200);
+      var entries=logs.filter(function(l){var d=l.data();return (d.type==='withdraw'||d.type==='withdraw_request')&&d.user===args[0];});
+      if(!entries.length){termPrint('No withdrawals found for '+args[0],'inf');break;}
+      var total=0;
+      termPrint('── Withdraw History: '+args[0]+' ──','inf');
+      entries.forEach(function(l){
+        var d=l.data();total+=d.amount||0;
+        var status=d.type==='withdraw_request'?'[PENDING]':'[DONE]';
+        termPrint(status+' $'+fmt(d.amount||0)+(d.mcUsername?' → MC: '+d.mcUsername:''),'data');
+      });
+      termPrint('Total: $'+fmt(total)+' across '+entries.length+' requests','ok');
+      break;}
+
+    case 'dephistory':{
+      if(!args[0]){termPrint('Usage: dephistory <user>','err');break;}
+      var logs=await fsList('adminLogs',200);
+      var entries=logs.filter(function(l){var d=l.data();return (d.type==='deposit'||d.type==='deposit_request')&&d.user===args[0];});
+      if(!entries.length){termPrint('No deposits found for '+args[0],'inf');break;}
+      var total=0;
+      termPrint('── Deposit History: '+args[0]+' ──','inf');
+      entries.forEach(function(l){
+        var d=l.data();total+=d.amount||0;
+        var status=d.type==='deposit_request'?'[PENDING]':'[DONE]';
+        termPrint(status+' $'+fmt(d.amount||0)+(d.mcUsername?' → MC: '+d.mcUsername:''),'data');
+      });
+      termPrint('Total: $'+fmt(total)+' across '+entries.length+' requests','ok');
+      break;}
+
+    case 'pendingreqs':{
+      var logs=await fsList('adminLogs',200);
+      var pending=logs.filter(function(l){var d=l.data();return d.type==='deposit_request'||d.type==='withdraw_request';});
+      if(!pending.length){termPrint('No pending requests','inf');break;}
+      termPrint('── Pending Requests ('+pending.length+') ──','inf');
+      pending.forEach(function(l){
+        var d=l.data();
+        termPrint('['+d.type.replace('_request','')+'] '+d.user+' $'+fmt(d.amount||0)+(d.mcUsername?' MC:'+d.mcUsername:''),'data');
+      });
+      break;}
+
+    case 'totalwith':{
+      if(!args[0]){termPrint('Usage: totalwith <user>','err');break;}
+      var logs=await fsList('adminLogs',200);
+      var total=0;var done=0;var pending=0;
+      logs.forEach(function(l){
+        var d=l.data();
+        if(d.user!==args[0])return;
+        if(d.type==='withdraw'){total+=d.amount||0;done++;}
+        if(d.type==='withdraw_request'){pending++;}
+      });
+      termPrint('── '+args[0]+' Withdrawal Summary ──','inf');
+      termPrint('Total withdrawn  : $'+fmt(total),'data');
+      termPrint('Completed        : '+done,'data');
+      termPrint('Still pending    : '+pending,'data');
+      break;}
+
+    case 'totaldep':{
+      if(!args[0]){termPrint('Usage: totaldep <user>','err');break;}
+      var logs=await fsList('adminLogs',200);
+      var total=0;var done=0;var pending=0;
+      logs.forEach(function(l){
+        var d=l.data();
+        if(d.user!==args[0])return;
+        if(d.type==='deposit'){total+=d.amount||0;done++;}
+        if(d.type==='deposit_request'){pending++;}
+      });
+      termPrint('── '+args[0]+' Deposit Summary ──','inf');
+      termPrint('Total deposited  : $'+fmt(total),'data');
+      termPrint('Completed        : '+done,'data');
+      termPrint('Still pending    : '+pending,'data');
+      break;}
+
+    case 'logs':{
+      var logs=await fsList('adminLogs',50);
+      if(!logs.length){termPrint('No logs found','inf');break;}
+      termPrint('── Recent Logs ('+logs.length+') ──','inf');
+      logs.forEach(function(l){
+        var d=l.data();
+        termPrint('['+d.type+'] '+d.user+' $'+fmt(d.amount||0)+' by '+(d.by||'-'),'data');
+      });
+      break;}
+
+    case 'globalset':case 'globaladd':case 'globalsub':{
+      if(!args[0]){termPrint('Usage: '+cmd+' <amount>','err');break;}
+      var amt=parse(args[0]);
+      var op=cmd==='globalset'?'set':cmd==='globaladd'?'add':'sub';
+      var all=await fsList('users',200);
+      termPrint('Processing '+all.length+' users...','inf');
+      for(var i=0;i<all.length;i++){
+        var d=all[i].data();var uid=all[i].id;
+        var cur=d.balance||0;var nb=cur;
+        if(op==='set')nb=amt;else if(op==='add')nb=cur+amt;else nb=Math.max(0,cur-amt);
+        await fsUpdate('users',uid,{balance:nb});
+      }
+      termPrint('Done — updated '+all.length+' users','ok');
+      break;}
+
+    case 'announce':{
+      var msg=args.join(' ');if(!msg){termPrint('Usage: announce <message>','err');break;}
+      await fsSet('config','announcement',{text:msg,active:true,by:CU,time:new Date()});
+      termPrint('Announcement set: '+msg,'ok');
+      checkAnnouncement();
+      break;}
+
+    case 'clearann':{
+      await fsUpdate('config','announcement',{active:false,text:''});
+      document.getElementById('announce-bar').style.display='none';
+      termPrint('Announcement cleared','ok');
+      break;}
+
+    case 'broadcast':{
+      var msg=args.join(' ');if(!msg){termPrint('Usage: broadcast <message>','err');break;}
+      await fsSet('config','globalmsg',{text:msg,time:new Date(),id:Date.now()});
+      termPrint('Broadcast sent to all users','ok');
+      break;}
+
+    case 'stats':{
+      var all=await fsList('users',200);
+      var totalBal=0;var totalWins=0;
+      all.forEach(function(u){var d=u.data();totalBal+=d.balance||0;totalWins+=d.wins||0;});
+      termPrint('── Platform Stats ──','inf');
+      termPrint('Total users   : '+all.length,'data');
+      termPrint('Total balance : $'+fmt(totalBal),'data');
+      termPrint('Total wins    : '+totalWins,'data');
+      termPrint('Avg balance   : $'+fmt(all.length?totalBal/all.length:0),'data');
+      break;}
+
+    case 'listusers':{
+      var all=await fsList('users',200);
+      termPrint('── Users ('+all.length+') ──','inf');
+      all.forEach(function(u){
+        var d=u.data();
+        termPrint(u.id+' | '+d.edition+' | $'+fmt(d.balance||0)+' | '+d.wins+' wins','data');
+      });
+      break;}
+
+    default:
+      termPrint('Unknown command: '+cmd+'. Type "help" for commands.','err');
+  }
+}
+
+// Terminal keyboard history
+document.addEventListener('keydown',function(e){
+  var inp=document.getElementById('term-inp');
+  if(document.activeElement!==inp)return;
+  if(e.key==='ArrowUp'){e.preventDefault();if(termHistIdx<termHistory.length-1){termHistIdx++;inp.value=termHistory[termHistIdx];}}
+  if(e.key==='ArrowDown'){e.preventDefault();if(termHistIdx>0){termHistIdx--;inp.value=termHistory[termHistIdx];}else{termHistIdx=-1;inp.value='';}}
+});
+
+async function singleBalOp(op){
+  var user=document.getElementById('su-bal-user').value.trim();
+  var amt=parse(document.getElementById('su-bal-amt').value);
+  if(!user){notif('Enter a username','err');return;}
+  var s=await fsGet('users',user);
+  if(!s.exists){notif('User not found','err');return;}
+  var cur=s.data().balance||0;var nb=cur;
+  if(op==='set')nb=amt;else if(op==='add')nb=cur+amt;else nb=Math.max(0,cur-amt);
+  await fsUpdate('users',user,{balance:nb});
+  notif('Updated '+user+' balance to $'+fmt(nb),'ok');
+}
+async function resetWins(){
+  var user=document.getElementById('reset-wins-user').value.trim();
+  if(user){
+    await fsUpdate('users',user,{wins:0});
+    notif('Reset wins for '+user,'ok');
+  } else {
+    var all=await fsList('users',200);
+    for(var i=0;i<all.length;i++)await fsUpdate('users',all[i].id,{wins:0});
+    notif('Reset wins for all '+all.length+' users','ok');
+  }
+}
+async function lookupUser(){
+  var user=document.getElementById('lookup-user').value.trim();
+  if(!user){notif('Enter a username','err');return;}
+  var s=await fsGet('users',user);
+  var el=document.getElementById('lookup-result');el.style.display='block';
+  if(!s.exists){el.innerHTML='<span style="color:#f87171">User not found.</span>';return;}
+  var d=s.data();
+  var logs=await fsList('adminLogs',200);
+  var totalDep=0,totalWith=0;
+  logs.forEach(function(l){var ld=l.data();if(ld.user===user){if(ld.type==='deposit'||ld.type==='deposit_request')totalDep+=ld.amount||0;if(ld.type==='withdraw'||ld.type==='withdraw_request')totalWith+=ld.amount||0;}});
+  el.innerHTML='<b style="color:#f59e0b">'+user+'</b><br>'+
+    'Edition: '+d.edition+'<br>'+
+    'Balance: $'+fmt(d.balance||0)+'<br>'+
+    'Wins: '+(d.wins||0)+'<br>'+
+    'Total Deposited: $'+fmt(totalDep)+'<br>'+
+    'Total Withdrawn: $'+fmt(totalWith);
+}
+async function adminResetPw(){
+  var user=document.getElementById('rpw-user').value.trim();
+  var pw=document.getElementById('rpw-new').value;
+  if(!user||!pw){notif('Fill both fields','err');return;}
+  var s=await fsGet('users',user);
+  if(!s.exists){notif('User not found','err');return;}
+  await fsUpdate('users',user,{password:pw});
+  notif('Password reset for '+user,'ok');
+  document.getElementById('rpw-user').value='';document.getElementById('rpw-new').value='';
+}
+async function deleteAccount(){
+  var user=document.getElementById('del-user').value.trim();
+  if(!user){notif('Enter a username','err');return;}
+  if(user===AU){notif('Cannot delete admin account','err');return;}
+  if(!confirm('Delete "'+user+'"? This cannot be undone.')){return;}
+  var s=await fsGet('users',user);
+  if(!s.exists){notif('User not found','err');return;}
+  await fsDelete('users',user);
+  notif('Account deleted: '+user,'ok');
+  document.getElementById('del-user').value='';
+  loadUsersAdmin('');
+}
+async function loadStats(){
+  var el=document.getElementById('stats-out');
+  el.textContent='Loading...';
+  var all=await fsList('users',200);
+  var logs=await fsList('adminLogs',200);
+  var totalBal=0,totalWins=0,totalDep=0,totalWith=0;
+  all.forEach(function(u){var d=u.data();totalBal+=d.balance||0;totalWins+=d.wins||0;});
+  logs.forEach(function(l){var d=l.data();if(d.type==='deposit')totalDep+=d.amount||0;if(d.type==='withdraw')totalWith+=d.amount||0;});
+  el.innerHTML=
+    '👥 Total users       : '+all.length+'<br>'+
+    '💰 Total balance     : $'+fmt(totalBal)+'<br>'+
+    '📈 Avg balance       : $'+fmt(all.length?totalBal/all.length:0)+'<br>'+
+    '🏆 Total wins        : '+totalWins+'<br>'+
+    '📥 Total deposited   : $'+fmt(totalDep)+'<br>'+
+    '📤 Total withdrawn   : $'+fmt(totalWith)+'<br>'+
+    '📋 Total log entries : '+logs.length;
+}
+async function clearAllLogs(){
+  if(!confirm('Clear ALL admin logs? This cannot be undone.'))return;
+  var logs=await fsList('adminLogs',200);
+  for(var i=0;i<logs.length;i++)await fsDelete('adminLogs',logs[i].id);
+  notif('Cleared '+logs.length+' log entries','ok');
+  loadLogs();
+}
+async function setMaintenance(on){
+  var msg=document.getElementById('maint-msg').value.trim()||(on?'Maintenance in progress. Back soon!':'');
+  await fsSet('config','maintenance',{active:on,message:msg,by:CU,time:new Date()});
+  if(on){
+    await fsSet('config','announcement',{text:'⚠ '+msg,active:true,by:CU,time:new Date()});
+    checkAnnouncement();
+  }
+  notif('Maintenance mode '+(on?'enabled':'disabled'),'ok');
 }
 async function sendAnnouncement(){
   var msg=document.getElementById('ann-inp').value.trim();
@@ -1241,11 +1699,23 @@ async function globalBalOp(op){
 
 // ── MINES ──
 function mMult(rev,mines){var p=1,safe=25-mines;for(var i=0;i<rev;i++)p*=(safe-i)/(25-i);return 1/p;}
-function resetMines(){mActive=false;mRev=0;document.getElementById('m-co').style.display='none';document.getElementById('m-grid').innerHTML='';document.getElementById('m-badge').style.display='none';setRes('m-res','Place a bet to begin');}
+function resetMines(){
+  mActive=false;mRev=0;gameInProgress=false;
+  document.getElementById('m-co').style.display='none';
+  document.getElementById('m-grid').innerHTML='';
+  document.getElementById('m-badge').style.display='none';
+  document.getElementById('m-start').disabled=false;
+  document.getElementById('m-again').style.display='none';
+  setRes('m-res','Place a bet to begin');
+}
 function startMines(){
+  if(gameInProgress){notif('Finish current game first!','err');return;}
   mBet=parse(document.getElementById('m-bet').value);
   mNum=parseInt(document.getElementById('m-num').value);
   if(mBet<=0||mBet>bal){notif('Invalid bet','err');return;}
+  gameInProgress=true;
+  document.getElementById('m-start').disabled=true;
+  document.getElementById('m-again').style.display='none';
   saveBal(bal-mBet);
   mGrid=Array(25).fill(false);
   var placed=0;
@@ -1266,36 +1736,48 @@ function clickMine(i){
   if(!mActive)return;
   var cells=document.querySelectorAll('.mcell');var c=cells[i];c.classList.add('dis');
   if(mGrid[i]){
-    c.textContent='💣';c.classList.add('boom');mActive=false;
+    c.textContent='💣';c.classList.add('boom');mActive=false;gameInProgress=false;
     document.getElementById('m-co').style.display='none';document.getElementById('m-badge').style.display='none';
     setRes('m-res','Hit a mine! Game over.','lose');
     cells.forEach(function(x){x.classList.add('dis');});
+    document.getElementById('m-start').disabled=false;
+    document.getElementById('m-again').style.display='inline-flex';
   }else{
     c.textContent='💎';c.classList.add('gem');mRev++;
     var mult=mMult(mRev,mNum);
     document.getElementById('m-badge').textContent='Multiplier: '+mult.toFixed(2)+'x  —  Payout: $'+fmt(mBet*mult);
     if(mRev===25-mNum){
-      mActive=false;document.getElementById('m-co').style.display='none';document.getElementById('m-badge').style.display='none';
+      mActive=false;gameInProgress=false;
+      document.getElementById('m-co').style.display='none';document.getElementById('m-badge').style.display='none';
       var p=mBet*mult;saveBal(bal+p,true);
       setRes('m-res','Perfect sweep! Won $'+fmt(p),'win');
       cells.forEach(function(x){x.classList.add('dis');});
+      document.getElementById('m-start').disabled=false;
+      document.getElementById('m-again').style.display='inline-flex';
     }
   }
 }
 function cashMines(){
-  if(!mActive)return;mActive=false;document.getElementById('m-co').style.display='none';
+  if(!mActive)return;mActive=false;gameInProgress=false;
+  document.getElementById('m-co').style.display='none';
   var mult=mMult(mRev,mNum);var p=mBet*mult;saveBal(bal+p,true);
   document.getElementById('m-badge').style.display='none';
   setRes('m-res','Cashed out '+mRev+' gems! Won $'+fmt(p),'win');
   document.querySelectorAll('.mcell').forEach(function(c){c.classList.add('dis');});
+  document.getElementById('m-start').disabled=false;
+  document.getElementById('m-again').style.display='inline-flex';
 }
 
 // ── DICE ──
 var DF=['⚀','⚁','⚂','⚃','⚄','⚅'];
+var diceRolling=false;
 function rollDice(){
+  if(diceRolling){notif('Wait for roll to finish!','err');return;}
   var bet=parse(document.getElementById('d-bet').value);
   var side=document.getElementById('d-side').value;
   if(bet<=0||bet>bal){notif('Invalid bet','err');return;}
+  diceRolling=true;
+  document.getElementById('d-roll').disabled=true;
   saveBal(bal-bet);
   var d1=Math.floor(Math.random()*6)+1,d2=Math.floor(Math.random()*6)+1,sum=d1+d2;
   var e1=document.getElementById('d1'),e2=document.getElementById('d2');
@@ -1307,14 +1789,27 @@ function rollDice(){
     if(sum===7){saveBal(bal+bet);setRes('d-res','Push on 7 — Refund: $'+fmt(bet));}
     else if((side==='over'&&sum>7)||(side==='under'&&sum<7)){saveBal(bal+bet*2,true);setRes('d-res','You win! Sum: '+sum+' — Payout: $'+fmt(bet*2),'win');}
     else setRes('d-res','You lose — Sum was '+sum,'lose');
+    diceRolling=false;
+    document.getElementById('d-roll').disabled=false;
   },460);
 }
 
 // ── TOWERS ──
-function resetTowers(){tActive=false;tRow=0;tRev=0;document.getElementById('t-co').style.display='none';document.getElementById('t-display').innerHTML='';setRes('t-res','Place a bet to start climbing');}
+function resetTowers(){
+  tActive=false;tRow=0;tRev=0;gameInProgress=false;
+  document.getElementById('t-co').style.display='none';
+  document.getElementById('t-display').innerHTML='';
+  document.getElementById('t-start').disabled=false;
+  document.getElementById('t-again').style.display='none';
+  setRes('t-res','Place a bet to start climbing');
+}
 function startTowers(){
+  if(gameInProgress){notif('Finish current game first!','err');return;}
   tBet=parse(document.getElementById('t-bet').value);
   if(tBet<=0||tBet>bal){notif('Invalid bet','err');return;}
+  gameInProgress=true;
+  document.getElementById('t-start').disabled=true;
+  document.getElementById('t-again').style.display='none';
   saveBal(bal-tBet);
   tGrid=[];
   for(var r=0;r<5;r++){var row=['safe','safe','safe'];row[Math.floor(Math.random()*3)]='skull';tGrid.push(row);}
@@ -1348,15 +1843,20 @@ function clickTower(row,col){
   var cell=Array.from(cells).find(function(c){return parseInt(c.dataset.r)===row&&parseInt(c.dataset.c)===col;});
   if(!cell)return;
   if(tGrid[row][col]==='skull'){
-    cell.textContent='💀';cell.classList.add('skull');tActive=false;
+    cell.textContent='💀';cell.classList.add('skull');tActive=false;gameInProgress=false;
     document.getElementById('t-co').style.display='none';
     setRes('t-res','Hit a skull on floor '+(row+1)+'!','lose');
+    document.getElementById('t-start').disabled=false;
+    document.getElementById('t-again').style.display='inline-flex';
   }else{
     cell.textContent='💎';cell.classList.add('safe');tRev++;tRow++;
     if(tRow===5){
-      tActive=false;document.getElementById('t-co').style.display='none';
+      tActive=false;gameInProgress=false;
+      document.getElementById('t-co').style.display='none';
       var p=tBet*(1+.5*5);saveBal(bal+p,true);
       setRes('t-res','Full tower cleared! Won $'+fmt(p),'win');
+      document.getElementById('t-start').disabled=false;
+      document.getElementById('t-again').style.display='inline-flex';
     }else{
       var mult=1+.5*tRev;
       setRes('t-res','Floor '+(row+1)+' cleared! Mult: '+mult.toFixed(1)+'x — Payout: $'+fmt(tBet*mult));
@@ -1365,20 +1865,36 @@ function clickTower(row,col){
   }
 }
 function cashTowers(){
-  if(!tActive)return;tActive=false;document.getElementById('t-co').style.display='none';
+  if(!tActive)return;tActive=false;gameInProgress=false;
+  document.getElementById('t-co').style.display='none';
   var mult=1+.5*tRev;var p=tBet*mult;saveBal(bal+p,true);
   setRes('t-res','Cashed out at '+mult.toFixed(1)+'x — Won $'+fmt(p),'win');
   document.querySelectorAll('.tcell').forEach(function(c){c.style.pointerEvents='none';});
+  document.getElementById('t-start').disabled=false;
+  document.getElementById('t-again').style.display='inline-flex';
 }
 
 // ── BLACKJACK ──
-function resetBJ(){pHand=[];dHand=[];bjBet=0;document.getElementById('bj-player').innerHTML='';document.getElementById('bj-dealer').innerHTML='';setRes('bj-res','Place a bet and deal to play');document.getElementById('bj-hit').disabled=false;document.getElementById('bj-stand').disabled=false;}
+function resetBJ(){
+  pHand=[];dHand=[];bjBet=0;gameInProgress=false;
+  document.getElementById('bj-player').innerHTML='';
+  document.getElementById('bj-dealer').innerHTML='';
+  document.getElementById('bj-deal').disabled=false;
+  document.getElementById('bj-again').style.display='none';
+  document.getElementById('bj-hit').disabled=true;
+  document.getElementById('bj-stand').disabled=true;
+  setRes('bj-res','Place a bet and deal to play');
+}
 function hv(h){var v=h.reduce(function(a,c){return a+c.v;},0);var ac=h.filter(function(c){return c.r==='A';}).length;while(v>21&&ac>0){v-=10;ac--;}return v;}
 function gc(){var suits=['♠','♥','♦','♣'],ranks=['2','3','4','5','6','7','8','9','10','J','Q','K','A'];var su=suits[Math.floor(Math.random()*4)],r=ranks[Math.floor(Math.random()*13)];var v=r==='A'?11:(['J','Q','K'].indexOf(r)>=0?10:parseInt(r));return{r:r,su:su,v:v,red:su==='♥'||su==='♦'};}
 function cardEl(c,back){if(back)return'<div class="card back">?</div>';return'<div class="card'+(c.red?' red':'')+'">'+c.r+c.su+'</div>';}
 function dealBJ(){
+  if(gameInProgress){notif('Finish current game first!','err');return;}
   bjBet=parse(document.getElementById('bj-bet').value);
   if(bjBet<=0||bjBet>bal){notif('Invalid bet','err');return;}
+  gameInProgress=true;
+  document.getElementById('bj-deal').disabled=true;
+  document.getElementById('bj-again').style.display='none';
   saveBal(bal-bjBet);pHand=[gc(),gc()];dHand=[gc(),gc()];
   document.getElementById('bj-player').innerHTML=pHand.map(function(c){return cardEl(c);}).join('');
   document.getElementById('bj-dealer').innerHTML=cardEl(dHand[0])+cardEl(null,true);
@@ -1396,9 +1912,11 @@ function bjStand(){
   endBJ();
 }
 function endBJ(){
-  var pv=hv(pHand),dv=hv(dHand);
+  var pv=hv(pHand),dv=hv(dHand);gameInProgress=false;
   document.getElementById('bj-dealer').innerHTML=dHand.map(function(c){return cardEl(c);}).join('');
   document.getElementById('bj-hit').disabled=true;document.getElementById('bj-stand').disabled=true;
+  document.getElementById('bj-deal').disabled=false;
+  document.getElementById('bj-again').style.display='inline-flex';
   if(pv>21)setRes('bj-res','Bust! Dealer had '+dv,'lose');
   else if(dv>21){saveBal(bal+bjBet*2,true);setRes('bj-res','Dealer busts! Won $'+fmt(bjBet*2),'win');}
   else if(pv>dv){saveBal(bal+bjBet*2,true);setRes('bj-res','You win '+pv+' vs '+dv+'! Won $'+fmt(bjBet*2),'win');}
