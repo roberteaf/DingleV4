@@ -290,6 +290,107 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);}
 ::-webkit-scrollbar{width:4px;}
 ::-webkit-scrollbar-track{background:transparent;}
 ::-webkit-scrollbar-thumb{background:rgba(124,58,237,.3);border-radius:2px;}
+
+/* ══ ADMIN PANEL ══ */
+#admin{align-items:stretch;}
+.admin-wrap{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+.admin-tabs{display:flex;gap:3px;padding:12px 20px 0;background:rgba(4,6,12,.9);border-bottom:1px solid var(--border);flex-shrink:0;}
+.adtab{padding:9px 18px;font-size:.78rem;font-weight:600;border-radius:8px 8px 0 0;cursor:pointer;color:var(--muted2);background:transparent;border:1px solid transparent;border-bottom:none;transition:all .18s;white-space:nowrap;}
+.adtab.on{background:rgba(168,85,247,.12);color:#c084fc;border-color:rgba(168,85,247,.3);}
+.adtab:hover:not(.on){color:var(--text);background:rgba(255,255,255,.04);}
+.admin-content{flex:1;overflow-y:auto;padding:22px;}
+.admin-section{display:none;flex-direction:column;gap:16px;}
+.admin-section.visible{display:flex;}
+.acard{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px;}
+.acard-title{font-family:'Space Grotesk',sans-serif;font-size:.85rem;font-weight:700;color:#c084fc;margin-bottom:14px;display:flex;align-items:center;gap:7px;}
+.admin-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;}
+.astat{padding:14px 16px;background:rgba(0,0,0,.3);border:1px solid var(--border);border-radius:10px;}
+.astat-lbl{font-size:.65rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted2);margin-bottom:5px;}
+.astat-val{font-family:'Space Grotesk',sans-serif;font-size:1.3rem;font-weight:700;color:var(--text);}
+.admin-user-list{display:flex;flex-direction:column;gap:7px;max-height:380px;overflow-y:auto;}
+.auser-row{display:flex;align-items:center;gap:10px;padding:10px 14px;background:rgba(0,0,0,.3);border:1px solid var(--border);border-radius:9px;font-size:.8rem;transition:border-color .15s;}
+.auser-row:hover{border-color:rgba(124,58,237,.3);}
+.auser-name{font-weight:600;color:var(--text);min-width:90px;}
+.auser-ed{font-size:.68rem;color:var(--muted2);padding:2px 7px;background:rgba(255,255,255,.05);border-radius:4px;}
+.auser-bal{color:var(--gold);font-weight:600;margin-left:auto;}
+.auser-wins{color:#a855f7;font-size:.72rem;margin-left:8px;}
+.auser-banned{color:#f87171;font-size:.68rem;padding:2px 7px;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.25);border-radius:4px;}
+.auser-admin{color:#c084fc;font-size:.68rem;padding:2px 7px;background:rgba(168,85,247,.1);border:1px solid rgba(168,85,247,.25);border-radius:4px;}
+.auser-actions{display:flex;gap:5px;margin-left:8px;}
+.aubtn{padding:4px 10px;font-size:.68rem;font-weight:600;border-radius:5px;cursor:pointer;transition:all .15s;border:1px solid;}
+.aubtn.ban{color:#f87171;border-color:rgba(239,68,68,.3);background:rgba(239,68,68,.08);}
+.aubtn.ban:hover{background:rgba(239,68,68,.2);}
+.aubtn.unban{color:#34d399;border-color:rgba(16,185,129,.3);background:rgba(16,185,129,.08);}
+.aubtn.unban:hover{background:rgba(16,185,129,.2);}
+.aubtn.bal{color:var(--gold);border-color:rgba(245,158,11,.3);background:rgba(245,158,11,.08);}
+.aubtn.bal:hover{background:rgba(245,158,11,.2);}
+.aubtn.msg{color:#a5f3fc;border-color:rgba(6,182,212,.3);background:rgba(6,182,212,.08);}
+.aubtn.msg:hover{background:rgba(6,182,212,.2);}
+.aubtn.kick{color:#fb923c;border-color:rgba(251,146,60,.3);background:rgba(251,146,60,.08);}
+.aubtn.kick:hover{background:rgba(251,146,60,.2);}
+.alog-list{display:flex;flex-direction:column;gap:5px;max-height:500px;overflow-y:auto;}
+.alog-entry{display:flex;align-items:flex-start;gap:10px;padding:9px 12px;background:rgba(0,0,0,.3);border:1px solid var(--border);border-radius:8px;font-size:.73rem;line-height:1.5;}
+.alog-time{color:var(--muted2);white-space:nowrap;font-family:'JetBrains Mono',monospace;font-size:.65rem;min-width:68px;}
+.alog-actor{color:#c084fc;font-weight:600;min-width:55px;}
+.alog-msg{color:rgba(200,210,255,.8);flex:1;}
+.alog-entry.warn .alog-msg{color:#fbbf24;}
+.alog-entry.danger .alog-msg{color:#f87171;}
+.alog-entry.ok .alog-msg{color:#34d399;}
+.alog-entry.info .alog-msg{color:#a5f3fc;}
+.admin-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
+.ainput{flex:1;min-width:140px;padding:9px 13px;background:rgba(0,0,0,.45);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-family:'Inter',sans-serif;font-size:.85rem;outline:none;transition:border-color .2s;}
+.ainput:focus{border-color:rgba(124,58,237,.55);}
+.adbtn{padding:9px 18px;font-size:.8rem;font-weight:600;border-radius:8px;cursor:pointer;transition:all .18s;border:1px solid;white-space:nowrap;}
+.adbtn.pu{background:rgba(124,58,237,.2);border-color:rgba(124,58,237,.4);color:#c084fc;}
+.adbtn.pu:hover{background:rgba(124,58,237,.35);}
+.adbtn.green{background:rgba(16,185,129,.15);border-color:rgba(16,185,129,.35);color:#34d399;}
+.adbtn.green:hover{background:rgba(16,185,129,.28);}
+.adbtn.red{background:rgba(239,68,68,.12);border-color:rgba(239,68,68,.3);color:#f87171;}
+.adbtn.red:hover{background:rgba(239,68,68,.24);}
+.adbtn.cyan{background:rgba(6,182,212,.12);border-color:rgba(6,182,212,.3);color:#a5f3fc;}
+.adbtn.cyan:hover{background:rgba(6,182,212,.24);}
+.admin-list-item{display:flex;align-items:center;gap:10px;padding:10px 14px;background:rgba(0,0,0,.3);border:1px solid var(--border);border-radius:9px;font-size:.8rem;}
+.ali-crown{font-size:1.1rem;}
+.ali-name{font-weight:700;color:#c084fc;flex:1;}
+.ali-since{font-size:.68rem;color:var(--muted2);}
+
+/* Admin message bar */
+.amsg-bar{display:flex;flex-direction:column;height:100%;min-height:0;}
+.amsg-feed{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:8px;padding:4px 0 12px;}
+.amsg-bubble{display:flex;gap:10px;align-items:flex-start;}
+.amsg-bubble.mine{flex-direction:row-reverse;}
+.amsg-avatar{width:30px;height:30px;border-radius:50%;background:rgba(168,85,247,.2);border:1px solid rgba(168,85,247,.35);display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;color:#c084fc;flex-shrink:0;}
+.amsg-body{max-width:72%;display:flex;flex-direction:column;gap:3px;}
+.amsg-bubble.mine .amsg-body{align-items:flex-end;}
+.amsg-sender{font-size:.62rem;font-weight:600;color:var(--muted2);}
+.amsg-text{padding:9px 13px;border-radius:12px;font-size:.82rem;line-height:1.5;word-break:break-word;}
+.amsg-bubble:not(.mine) .amsg-text{background:rgba(255,255,255,.06);border:1px solid var(--border);color:var(--text);border-radius:4px 12px 12px 12px;}
+.amsg-bubble.mine .amsg-text{background:rgba(124,58,237,.22);border:1px solid rgba(124,58,237,.35);color:#e9d5ff;border-radius:12px 4px 12px 12px;}
+.amsg-ts{font-size:.6rem;color:var(--muted2);}
+.amsg-input-row{display:flex;gap:8px;padding-top:12px;border-top:1px solid var(--border);}
+.amsg-inp{flex:1;padding:10px 14px;background:rgba(0,0,0,.45);border:1px solid var(--border2);border-radius:10px;color:var(--text);font-family:'Inter',sans-serif;font-size:.85rem;outline:none;transition:border-color .2s;}
+.amsg-inp:focus{border-color:rgba(168,85,247,.55);}
+.amsg-send{padding:10px 18px;font-size:.82rem;font-weight:600;background:rgba(124,58,237,.25);border:1px solid rgba(168,85,247,.4);color:#c084fc;border-radius:10px;cursor:pointer;transition:all .18s;}
+.amsg-send:hover{background:rgba(124,58,237,.45);}
+
+/* ══ CROWN TERMINAL ══ */
+#crown-btn{position:fixed;bottom:16px;left:16px;z-index:9600;width:42px;height:42px;display:none;align-items:center;justify-content:center;background:rgba(8,13,26,.92);border:1px solid rgba(168,85,247,.4);border-radius:10px;cursor:pointer;font-size:1.2rem;backdrop-filter:blur(14px);box-shadow:0 4px 20px rgba(124,58,237,.2);transition:all .2s;user-select:none;}
+#crown-btn:hover{background:rgba(124,58,237,.22);border-color:rgba(168,85,247,.7);transform:scale(1.08);}
+#crown-terminal{position:fixed;bottom:68px;left:16px;z-index:9590;width:380px;max-height:60vh;background:rgba(4,6,12,.97);border:1px solid rgba(168,85,247,.3);border-radius:14px;box-shadow:0 20px 60px rgba(0,0,0,.8);backdrop-filter:blur(24px);display:none;flex-direction:column;overflow:hidden;}
+#crown-terminal.open{display:flex;}
+.ct-hdr{display:flex;align-items:center;gap:8px;padding:10px 14px;border-bottom:1px solid rgba(168,85,247,.15);background:rgba(168,85,247,.06);flex-shrink:0;}
+.ct-title{font-family:'Space Grotesk',sans-serif;font-size:.82rem;font-weight:700;color:#c084fc;flex:1;}
+.ct-close{font-size:.8rem;color:var(--muted2);cursor:pointer;padding:2px 6px;border-radius:4px;transition:background .15s;}
+.ct-close:hover{background:rgba(255,255,255,.08);color:var(--text);}
+.ct-out{flex:1;overflow-y:auto;padding:10px 14px;font-family:'JetBrains Mono',monospace;font-size:.72rem;line-height:1.65;color:#a5f3fc;min-height:120px;max-height:300px;}
+.ct-out .ct-line{margin-bottom:2px;}
+.ct-out .ct-line.err{color:#f87171;}
+.ct-out .ct-line.ok{color:#34d399;}
+.ct-out .ct-line.warn{color:#fbbf24;}
+.ct-out .ct-line.muted{color:var(--muted2);}
+.ct-inp-row{display:flex;align-items:center;padding:8px 14px;border-top:1px solid rgba(168,85,247,.12);gap:6px;flex-shrink:0;}
+.ct-prompt{color:#c084fc;font-family:'JetBrains Mono',monospace;font-size:.75rem;font-weight:600;}
+.ct-inp{flex:1;background:transparent;border:none;outline:none;color:#e9d5ff;font-family:'JetBrains Mono',monospace;font-size:.75rem;caret-color:#c084fc;}
 </style>
 </head>
 <body>
@@ -651,15 +752,195 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);}
   </div>
 </div>
 
+<!-- ══ ADMIN PANEL ══ -->
+<div id="admin" class="screen">
+  <div class="game-hdr">
+    <button class="back-btn" onclick="go('dashboard')">← Back</button>
+    <div class="gtitle">👑 Admin Panel</div>
+    <div style="font-size:.72rem;color:var(--muted2)" id="admin-whoami"></div>
+  </div>
+  <div class="admin-wrap">
+    <div class="admin-tabs">
+      <button class="adtab on" id="adt-users" onclick="adTab('users')">👤 Users</button>
+      <button class="adtab" id="adt-admins" onclick="adTab('admins')">👑 Admins</button>
+      <button class="adtab" id="adt-logs" onclick="adTab('logs')">📋 Logs</button>
+      <button class="adtab" id="adt-msgs" onclick="adTab('msgs')">💬 Admin Chat</button>
+      <button class="adtab" id="adt-config" onclick="adTab('config')">⚙️ Config</button>
+    </div>
+    <div class="admin-content">
+
+      <!-- USERS -->
+      <div class="admin-section visible" id="ads-users">
+        <div class="acard">
+          <div class="admin-grid" id="admin-stats-grid">
+            <div class="astat"><div class="astat-lbl">Total Users</div><div class="astat-val" id="as-users">—</div></div>
+            <div class="astat"><div class="astat-lbl">Total Balance</div><div class="astat-val" id="as-bal">—</div></div>
+            <div class="astat"><div class="astat-lbl">Banned</div><div class="astat-val" id="as-banned" style="color:#f87171">—</div></div>
+            <div class="astat"><div class="astat-lbl">Total Wins</div><div class="astat-val" id="as-wins" style="color:#a855f7">—</div></div>
+          </div>
+        </div>
+        <div class="acard">
+          <div class="acard-title">🔍 Search / Edit User</div>
+          <div class="admin-row" style="margin-bottom:12px">
+            <input class="ainput" id="ad-search" placeholder="Username...">
+            <button class="adbtn pu" onclick="adSearchUser()">Search</button>
+            <button class="adbtn cyan" onclick="adLoadAllUsers()">All Users</button>
+          </div>
+          <div class="admin-user-list" id="ad-user-list">
+            <div style="color:var(--muted2);font-size:.78rem;text-align:center;padding:18px">Search a user or load all</div>
+          </div>
+        </div>
+        <div class="acard">
+          <div class="acard-title">💰 Adjust Balance</div>
+          <div class="admin-row">
+            <input class="ainput" id="ad-bal-user" placeholder="Username">
+            <input class="ainput" id="ad-bal-amt" placeholder="Amount (e.g. 500 or -200)" style="max-width:180px">
+            <button class="adbtn green" onclick="adAdjustBal()">Apply</button>
+          </div>
+        </div>
+        <div class="acard">
+          <div class="acard-title">📢 Announcement Banner</div>
+          <div class="admin-row">
+            <input class="ainput" id="ad-ann-text" placeholder="Announcement message...">
+            <button class="adbtn pu" onclick="adSetAnn()">Post</button>
+            <button class="adbtn red" onclick="adClearAnn()">Clear</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ADMINS -->
+      <div class="admin-section" id="ads-admins">
+        <div class="acard">
+          <div class="acard-title">👑 Current Admins</div>
+          <div style="display:flex;flex-direction:column;gap:8px" id="ad-admin-list">
+            <div style="color:var(--muted2);font-size:.78rem;text-align:center;padding:18px">Loading...</div>
+          </div>
+        </div>
+        <div class="acard">
+          <div class="acard-title">➕ Add Admin</div>
+          <div class="admin-row">
+            <input class="ainput" id="ad-newadmin" placeholder="Username to promote...">
+            <button class="adbtn green" onclick="adAddAdmin()">Add Admin</button>
+          </div>
+          <div style="font-size:.72rem;color:var(--muted2);margin-top:8px">⚠️ Adding an admin gives them full access to this panel. Make sure you trust them.</div>
+        </div>
+        <div class="acard">
+          <div class="acard-title">❌ Remove Admin</div>
+          <div class="admin-row">
+            <input class="ainput" id="ad-rmadmin" placeholder="Username to demote...">
+            <button class="adbtn red" onclick="adRemoveAdmin()">Remove Admin</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- LOGS -->
+      <div class="admin-section" id="ads-logs">
+        <div class="acard" style="padding-bottom:14px">
+          <div class="acard-title" style="justify-content:space-between">
+            <span>📋 Admin Action Logs</span>
+            <span style="font-size:.65rem;color:var(--muted2);font-weight:400">Read-only · Cannot be deleted</span>
+          </div>
+          <div class="admin-row" style="margin-bottom:12px">
+            <select class="ainput" id="ad-log-filter" style="max-width:150px">
+              <option value="">All Types</option>
+              <option value="ban">Bans</option>
+              <option value="balance">Balance Changes</option>
+              <option value="admin">Admin Changes</option>
+              <option value="kick">Kicks</option>
+              <option value="message">Messages</option>
+              <option value="config">Config</option>
+            </select>
+            <input class="ainput" id="ad-log-search" placeholder="Search logs...">
+            <button class="adbtn pu" onclick="adLoadLogs()">Refresh</button>
+          </div>
+          <div class="alog-list" id="ad-log-list">
+            <div style="color:var(--muted2);font-size:.78rem;text-align:center;padding:18px">Loading logs...</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ADMIN CHAT -->
+      <div class="admin-section" id="ads-msgs">
+        <div class="acard" style="flex:1;display:flex;flex-direction:column;min-height:420px">
+          <div class="acard-title">💬 Admin-Only Chat</div>
+          <div class="amsg-bar">
+            <div class="amsg-feed" id="amsg-feed">
+              <div style="color:var(--muted2);font-size:.78rem;text-align:center;padding:24px">Loading messages...</div>
+            </div>
+            <div class="amsg-input-row">
+              <input class="amsg-inp" id="amsg-inp" placeholder="Message admins..." maxlength="300">
+              <button class="amsg-send" onclick="adSendMsg()">Send</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CONFIG -->
+      <div class="admin-section" id="ads-config">
+        <div class="acard">
+          <div class="acard-title">🎮 Game Settings</div>
+          <div style="display:flex;flex-direction:column;gap:12px">
+            <div class="admin-row">
+              <span style="font-size:.8rem;color:var(--text);min-width:130px">House Edge (%)</span>
+              <input class="ainput" id="cf-edge" placeholder="e.g. 3" style="max-width:100px">
+              <button class="adbtn pu" onclick="adSetConfig('houseEdge',document.getElementById('cf-edge').value)">Save</button>
+            </div>
+            <div class="admin-row">
+              <span style="font-size:.8rem;color:var(--text);min-width:130px">Min Bet</span>
+              <input class="ainput" id="cf-minbet" placeholder="e.g. 1" style="max-width:100px">
+              <button class="adbtn pu" onclick="adSetConfig('minBet',document.getElementById('cf-minbet').value)">Save</button>
+            </div>
+            <div class="admin-row">
+              <span style="font-size:.8rem;color:var(--text);min-width:130px">Max Bet</span>
+              <input class="ainput" id="cf-maxbet" placeholder="e.g. 10000" style="max-width:100px">
+              <button class="adbtn pu" onclick="adSetConfig('maxBet',document.getElementById('cf-maxbet').value)">Save</button>
+            </div>
+          </div>
+        </div>
+        <div class="acard">
+          <div class="acard-title">🚨 Danger Zone</div>
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <div class="admin-row">
+              <span style="font-size:.8rem;color:#f87171;flex:1">Kick ALL users (force logout everyone)</span>
+              <button class="adbtn red" onclick="adKickAll()">Kick All</button>
+            </div>
+            <div class="admin-row">
+              <span style="font-size:.8rem;color:#fbbf24;flex:1">Send server-wide message popup</span>
+              <input class="ainput" id="cf-broadcast" placeholder="Broadcast message...">
+              <button class="adbtn cyan" onclick="adBroadcast()">Send</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ══ CROWN TERMINAL ══ -->
+<div id="crown-btn" onclick="toggleTerminal()" title="Admin Terminal">👑</div>
+<div id="crown-terminal">
+  <div class="ct-hdr">
+    <span style="font-size:.9rem">👑</span>
+    <span class="ct-title">Admin Terminal</span>
+    <span class="ct-close" onclick="toggleTerminal()">✕</span>
+  </div>
+  <div class="ct-out" id="ct-out"></div>
+  <div class="ct-inp-row">
+    <span class="ct-prompt">$</span>
+    <input class="ct-inp" id="ct-inp" placeholder="type help for commands..." autocomplete="off" spellcheck="false">
+  </div>
+</div>
+
 <div class="notif" id="notif"></div>
+
 
 <script>
 // ════════════════════════════════════════════════════════
 //  ⚙️  CONFIGURATION — swap this for your Railway URL
 // ════════════════════════════════════════════════════════
-const API_BASE = 'https://donutdrop-backend1-production.up.railway.app';
-// Keep server awake
-setInterval(() => fetch(API_BASE + '/health'), 240000);
+const API_BASE = 'https://donutdrop-backend1.onrender.com';
+
 // ════════════════════════════════════════════════════════
 //  API HELPER — all server communication goes here
 // ════════════════════════════════════════════════════════
@@ -879,6 +1160,7 @@ function go(screen){
     if(GAME_SCREENS.indexOf(screen)>=0){ gfb.style.display='flex'; gfTab(screen); }
     else{ gfb.style.display='none'; closeFairness(); }
   }
+  if(screen==='admin'){ /* handled by openAdmin */ return; }
   if(screen!=='login')updateBal();
   if(screen==='mines')resetMines();
   if(screen==='towers')resetTowers();
@@ -889,9 +1171,8 @@ function go(screen){
 function addAdminBtn(){
   var hb=document.getElementById('dash-btns');
   if(hb.querySelector('.admin-btn'))return;
-  // Admin button just links to your backend admin panel URL
-  var b=document.createElement('button'); b.className='hbtn pu admin-btn'; b.textContent='Admin';
-  b.onclick=function(){ window.open(API_BASE+'/admin','_blank'); };
+  var b=document.createElement('button'); b.className='hbtn pu admin-btn'; b.textContent='👑 Admin';
+  b.onclick=function(){ openAdmin(); };
   hb.insertBefore(b,hb.firstChild);
 }
 
@@ -1546,6 +1827,468 @@ document.addEventListener('keypress',function(e){
   if(e.key!=='Enter'||CS!=='login')return;
   document.getElementById('signup-form').style.display!=='none'?doSignup():doLogin();
 });
+
+// ══════════════════════════════════════════════════════════
+//  ADMIN PANEL
+// ══════════════════════════════════════════════════════════
+var adCurrentTab='users', adMsgPoll=null, adLogPoll=null;
+
+function openAdmin(){
+  if(!isAdmin){notif('Access denied','err');return;}
+  document.getElementById('admin-whoami').textContent='👑 '+CU;
+  go('admin');
+  adTab('users');
+  adLoadAllUsers();
+  adLoadLogs();
+  adLoadAdminList();
+  adLoadMsgs();
+  adStartPolls();
+  document.getElementById('crown-btn').style.display='flex';
+}
+
+function adTab(name){
+  adCurrentTab=name;
+  document.querySelectorAll('.adtab').forEach(function(t){t.classList.remove('on');});
+  document.querySelectorAll('.admin-section').forEach(function(s){s.classList.remove('visible');});
+  var tb=document.getElementById('adt-'+name), sec=document.getElementById('ads-'+name);
+  if(tb)tb.classList.add('on'); if(sec)sec.classList.add('visible');
+  if(name==='msgs')adLoadMsgs();
+  if(name==='logs')adLoadLogs();
+  if(name==='admins')adLoadAdminList();
+}
+
+function adStartPolls(){
+  if(adMsgPoll)clearInterval(adMsgPoll);
+  adMsgPoll=setInterval(function(){if(adCurrentTab==='msgs')adLoadMsgs();},4000);
+  if(adLogPoll)clearInterval(adLogPoll);
+  adLogPoll=setInterval(function(){if(adCurrentTab==='logs')adLoadLogs();},8000);
+}
+
+// Users
+async function adLoadAllUsers(){
+  var el=document.getElementById('ad-user-list');
+  el.innerHTML='<div style="color:var(--muted2);font-size:.78rem;text-align:center;padding:12px">Loading...</div>';
+  try {
+    var data=await api('/admin/users');
+    document.getElementById('as-users').textContent=data.users.length;
+    var tb=data.users.reduce(function(s,u){return s+(u.balance||0);},0);
+    var tw=data.users.reduce(function(s,u){return s+(u.wins||0);},0);
+    var bn=data.users.filter(function(u){return u.banned;}).length;
+    document.getElementById('as-bal').textContent='$'+fmt(tb);
+    document.getElementById('as-wins').textContent=tw;
+    document.getElementById('as-banned').textContent=bn;
+    renderUserList(data.users);
+  } catch(e){el.innerHTML='<div style="color:#f87171;font-size:.78rem;padding:12px">'+e.message+'</div>';}
+}
+
+async function adSearchUser(){
+  var q=document.getElementById('ad-search').value.trim();
+  if(!q){adLoadAllUsers();return;}
+  try{var data=await api('/admin/users?search='+encodeURIComponent(q));renderUserList(data.users);}
+  catch(e){notif(e.message,'err');}
+}
+
+function renderUserList(users){
+  var el=document.getElementById('ad-user-list');
+  if(!users||!users.length){el.innerHTML='<div style="color:var(--muted2);font-size:.78rem;text-align:center;padding:12px">No users found</div>';return;}
+  el.innerHTML=users.map(function(u){
+    var banBtn=u.banned
+      ?'<button class="aubtn unban" onclick="adUnban(\''+u.username+'\')">Unban</button>'
+      :'<button class="aubtn ban" onclick="adBan(\''+u.username+'\')">Ban</button>';
+    var adminBadge=u.isAdmin?'<span class="auser-admin">admin</span>':'';
+    var bannedBadge=u.banned?'<span class="auser-banned">banned</span>':'';
+    return '<div class="auser-row">'+
+      '<span class="auser-name">'+u.username+'</span>'+
+      '<span class="auser-ed">'+u.edition+'</span>'+adminBadge+bannedBadge+
+      '<span class="auser-bal">$'+fmt(u.balance||0)+'</span>'+
+      '<span class="auser-wins">'+(u.wins||0)+' wins</span>'+
+      '<div class="auser-actions">'+
+        '<button class="aubtn bal" onclick="adQuickBal(\''+u.username+'\')">Bal</button>'+
+        '<button class="aubtn msg" onclick="adQuickMsg(\''+u.username+'\')">Msg</button>'+
+        '<button class="aubtn kick" onclick="adKickUser(\''+u.username+'\')">Kick</button>'+
+        banBtn+'</div></div>';
+  }).join('');
+}
+
+async function adBan(un){
+  var reason=prompt('Ban reason for '+un+':'); if(!reason)return;
+  try{await api('/admin/ban',{username:un,reason,action:'ban'});adLogLocal('ban','Banned '+un+': '+reason,'danger');notif('Banned '+un,'ok');adLoadAllUsers();}
+  catch(e){notif(e.message,'err');}
+}
+async function adUnban(un){
+  try{await api('/admin/ban',{username:un,action:'unban'});adLogLocal('ban','Unbanned '+un,'ok');notif('Unbanned '+un,'ok');adLoadAllUsers();}
+  catch(e){notif(e.message,'err');}
+}
+async function adKickUser(un){
+  try{await api('/admin/kick',{username:un});adLogLocal('kick','Kicked '+un,'warn');notif('Kicked '+un,'ok');}
+  catch(e){notif(e.message,'err');}
+}
+async function adKickAll(){
+  if(!confirm('Force logout ALL users?'))return;
+  try{await api('/admin/kick-all',{});adLogLocal('kick','Kicked ALL users','warn');notif('All users kicked','ok');}
+  catch(e){notif(e.message,'err');}
+}
+function adQuickBal(un){document.getElementById('ad-bal-user').value=un;adTab('users');document.getElementById('ad-bal-user').focus();}
+function adQuickMsg(un){adTab('msgs');document.getElementById('amsg-inp').value='@'+un+' ';document.getElementById('amsg-inp').focus();}
+async function adAdjustBal(){
+  var un=document.getElementById('ad-bal-user').value.trim();
+  var raw=document.getElementById('ad-bal-amt').value.trim();
+  var negative=raw.startsWith('-'); var amt=parse(raw.replace('-',''))*(negative?-1:1);
+  if(!un||!amt){notif('Fill both fields','err');return;}
+  try{
+    var data=await api('/admin/balance',{username:un,amount:amt});
+    adLogLocal('balance','Adjusted '+un+' by '+(amt>=0?'+':'')+fmt(amt),'info');
+    notif('Balance updated for '+un,'ok');
+    document.getElementById('ad-bal-user').value='';document.getElementById('ad-bal-amt').value='';
+    adLoadAllUsers();
+  }catch(e){notif(e.message,'err');}
+}
+async function adSetAnn(){
+  var text=document.getElementById('ad-ann-text').value.trim(); if(!text){notif('Enter text','err');return;}
+  try{await api('/admin/announcement',{text,active:true});showAnnouncement(text);adLogLocal('config','Announcement: '+text,'info');notif('Posted','ok');document.getElementById('ad-ann-text').value='';}
+  catch(e){notif(e.message,'err');}
+}
+async function adClearAnn(){
+  try{await api('/admin/announcement',{text:'',active:false});document.getElementById('announce-bar').style.display='none';adLogLocal('config','Cleared announcement','info');notif('Cleared','ok');}
+  catch(e){notif(e.message,'err');}
+}
+async function adBroadcast(){
+  var msg=document.getElementById('cf-broadcast').value.trim(); if(!msg){notif('Enter message','err');return;}
+  try{await api('/admin/broadcast',{message:msg});adLogLocal('message','Broadcast: '+msg,'info');notif('Sent','ok');document.getElementById('cf-broadcast').value='';}
+  catch(e){notif(e.message,'err');}
+}
+async function adSetConfig(key,val){
+  if(!val){notif('Enter a value','err');return;}
+  try{await api('/admin/config',{key,value:val});adLogLocal('config','Set '+key+'='+val,'info');notif('Saved','ok');}
+  catch(e){notif(e.message,'err');}
+}
+
+// Admins list
+async function adLoadAdminList(){
+  var el=document.getElementById('ad-admin-list');
+  try{
+    var data=await api('/admin/admins');
+    if(!data.admins||!data.admins.length){el.innerHTML='<div style="color:var(--muted2);padding:12px;font-size:.78rem">No admins found</div>';return;}
+    el.innerHTML=data.admins.map(function(a){
+      return '<div class="admin-list-item">'+
+        '<span class="ali-crown">👑</span>'+
+        '<span class="ali-name">'+a.username+'</span>'+
+        (a.since?'<span class="ali-since">Since '+new Date(a.since).toLocaleDateString()+'</span>':'')+
+        (a.username!==CU?'<button class="aubtn ban" style="font-size:.65rem;padding:3px 8px" onclick="adRemoveAdmin2(\''+a.username+'\')">Remove</button>':'<span style="font-size:.65rem;color:var(--muted2)">you</span>')+
+      '</div>';
+    }).join('');
+  }catch(e){el.innerHTML='<div style="color:#f87171;padding:12px;font-size:.78rem">'+e.message+'</div>';}
+}
+async function adAddAdmin(){
+  var un=document.getElementById('ad-newadmin').value.trim(); if(!un){notif('Enter username','err');return;}
+  try{await api('/admin/set-admin',{username:un,isAdmin:true});adLogLocal('admin','Promoted '+un+' to admin','ok');notif(un+' is now admin','ok');document.getElementById('ad-newadmin').value='';adLoadAdminList();}
+  catch(e){notif(e.message,'err');}
+}
+async function adRemoveAdmin(){
+  var un=document.getElementById('ad-rmadmin').value.trim(); if(!un){notif('Enter username','err');return;}
+  if(un===CU){notif("Can't remove yourself",'err');return;}
+  await adRemoveAdmin2(un); document.getElementById('ad-rmadmin').value='';
+}
+async function adRemoveAdmin2(un){
+  try{await api('/admin/set-admin',{username:un,isAdmin:false});adLogLocal('admin','Removed admin from '+un,'warn');notif(un+' removed from admin','ok');adLoadAdminList();}
+  catch(e){notif(e.message,'err');}
+}
+
+// Logs
+function adLogLocal(type,msg,cls){
+  api('/admin/log',{type,message:msg,actor:CU}).catch(function(){});
+  if(adCurrentTab==='logs')adLoadLogs();
+}
+async function adLoadLogs(){
+  var el=document.getElementById('ad-log-list'); if(!el)return;
+  try{
+    var filter=(document.getElementById('ad-log-filter')||{}).value||'';
+    var search=(document.getElementById('ad-log-search')||{}).value||'';
+    var url='/admin/logs';
+    var p=[]; if(filter)p.push('type='+filter); if(search)p.push('search='+encodeURIComponent(search));
+    if(p.length)url+='?'+p.join('&');
+    var data=await api(url);
+    renderLogs(data.logs||[]);
+  }catch(e){el.innerHTML='<div style="color:#f87171;font-size:.78rem;padding:12px">'+e.message+'</div>';}
+}
+function renderLogs(logs){
+  var el=document.getElementById('ad-log-list'); if(!el)return;
+  if(!logs||!logs.length){el.innerHTML='<div style="color:var(--muted2);font-size:.78rem;text-align:center;padding:18px">No logs yet</div>';return;}
+  el.innerHTML=logs.slice(0,200).map(function(l){
+    var cls=l.cls||l.type||'info';
+    var t=l.time||(l.createdAt?new Date(l.createdAt).toLocaleTimeString('en',{hour:'2-digit',minute:'2-digit',second:'2-digit'}):'??:??');
+    return '<div class="alog-entry '+cls+'">'+
+      '<span class="alog-time">'+t+'</span>'+
+      '<span class="alog-actor">'+(l.actor||l.by||'system')+'</span>'+
+      '<span class="alog-msg">'+(l.msg||l.message||'')+'</span>'+
+    '</div>';
+  }).join('');
+}
+
+// Admin chat
+async function adLoadMsgs(){
+  try{var data=await api('/admin/messages');renderMsgs(data.messages||[]);}catch(e){}
+}
+function renderMsgs(msgs){
+  var feed=document.getElementById('amsg-feed'); if(!feed)return;
+  if(!msgs.length){feed.innerHTML='<div style="color:var(--muted2);font-size:.78rem;text-align:center;padding:24px">No messages yet. Start chatting!</div>';return;}
+  var wasBottom=feed.scrollHeight-feed.scrollTop<=feed.clientHeight+60;
+  feed.innerHTML=msgs.map(function(m){
+    var mine=m.sender===CU;
+    var initials=m.sender.substring(0,2).toUpperCase();
+    var ts=m.createdAt?new Date(m.createdAt).toLocaleTimeString('en',{hour:'2-digit',minute:'2-digit'}):'';
+    return '<div class="amsg-bubble'+(mine?' mine':'')+'">'+
+      '<div class="amsg-avatar">'+initials+'</div>'+
+      '<div class="amsg-body">'+
+        '<span class="amsg-sender">'+(mine?'You':m.sender)+'</span>'+
+        '<div class="amsg-text">'+escHtml(m.text)+'</div>'+
+        '<span class="amsg-ts">'+ts+'</span>'+
+      '</div></div>';
+  }).join('');
+  if(wasBottom)feed.scrollTop=feed.scrollHeight;
+}
+async function adSendMsg(){
+  var inp=document.getElementById('amsg-inp');
+  var text=inp.value.trim(); if(!text)return;
+  inp.value='';
+  try{await api('/admin/messages',{text});adLoadMsgs();}
+  catch(e){notif(e.message,'err');inp.value=text;}
+}
+document.addEventListener('keypress',function(e){
+  if(e.key==='Enter'&&document.activeElement&&document.activeElement.id==='amsg-inp')adSendMsg();
+});
+function escHtml(s){var d=document.createElement('div');d.textContent=s;return d.innerHTML;}
+
+// ══════════════════════════════════════════════════════════
+//  CROWN TERMINAL
+// ══════════════════════════════════════════════════════════
+var ctHistory=[],ctHistIdx=-1,ctOpen=false;
+
+function toggleTerminal(){
+  ctOpen=!ctOpen;
+  var t=document.getElementById('crown-terminal');
+  if(ctOpen){
+    t.classList.add('open');
+    if(!t._inited){
+      ctPrint('DonutDrop Admin Terminal v2.0','');
+      ctPrint('Logged in as: '+CU,'ok');
+      ctPrint('Type "help" for commands','muted');
+      t._inited=true;
+    }
+    setTimeout(function(){document.getElementById('ct-inp').focus();},50);
+  } else {
+    t.classList.remove('open');
+  }
+}
+
+function ctPrint(msg,cls){
+  var out=document.getElementById('ct-out');
+  var line=document.createElement('div');
+  line.className='ct-line'+(cls?' '+cls:'');
+  line.textContent=msg;
+  out.appendChild(line);
+  out.scrollTop=out.scrollHeight;
+}
+
+(function(){
+  window.addEventListener('DOMContentLoaded',function(){
+    var inp=document.getElementById('ct-inp'); if(!inp)return;
+    inp.addEventListener('keydown',function(e){
+      if(e.key==='Enter'){
+        var cmd=inp.value.trim(); if(!cmd)return;
+        ctHistory.unshift(cmd);ctHistIdx=-1;
+        ctPrint('$ '+cmd,'muted');
+        inp.value='';
+        runCmd(cmd);
+      }else if(e.key==='ArrowUp'){e.preventDefault();if(ctHistIdx<ctHistory.length-1){ctHistIdx++;inp.value=ctHistory[ctHistIdx];}}
+      else if(e.key==='ArrowDown'){e.preventDefault();if(ctHistIdx>0){ctHistIdx--;inp.value=ctHistory[ctHistIdx];}else{ctHistIdx=-1;inp.value='';}}
+    });
+  });
+})();
+
+async function runCmd(raw){
+  var parts=raw.trim().split(/\s+/);
+  var cmd=parts[0].toLowerCase();
+  var args=parts.slice(1);
+  switch(cmd){
+    case 'help':
+      ctPrint('══════════════════════════════','muted');
+      ctPrint('  help                    show commands','muted');
+      ctPrint('  users                   list all users','muted');
+      ctPrint('  user <name>             lookup single user','muted');
+      ctPrint('  bal <name> <amount>     adjust balance (+/-)','muted');
+      ctPrint('  ban <name>              ban user','muted');
+      ctPrint('  unban <name>            unban user','muted');
+      ctPrint('  kick <name>             force logout user','muted');
+      ctPrint('  kickall                 logout everyone','muted');
+      ctPrint('  admins                  list current admins','muted');
+      ctPrint('  addadmin <name>         promote to admin','muted');
+      ctPrint('  rmadmin <name>          remove admin','muted');
+      ctPrint('  ann <text>              set announcement','muted');
+      ctPrint('  clearann                clear announcement','muted');
+      ctPrint('  broadcast <text>        send popup to all','muted');
+      ctPrint('  logs                    show recent logs','muted');
+      ctPrint('  ping                    ping the backend','muted');
+      ctPrint('  whoami                  show your info','muted');
+      ctPrint('  clear                   clear terminal','muted');
+      ctPrint('══════════════════════════════','muted');
+      break;
+    case 'users':
+      ctPrint('Fetching users...','muted');
+      try{
+        var data=await api('/admin/users');
+        ctPrint('Total: '+data.users.length+' users','ok');
+        data.users.slice(0,20).forEach(function(u){
+          ctPrint('  '+(u.isAdmin?'👑 ':'   ')+u.username.padEnd(18)+'$'+fmt(u.balance||0).padEnd(10)+(u.banned?'[BANNED]':''),'');
+        });
+        if(data.users.length>20)ctPrint('  ... and '+(data.users.length-20)+' more','muted');
+      }catch(e){ctPrint('Error: '+e.message,'err');}
+      break;
+    case 'user':
+      if(!args[0]){ctPrint('Usage: user <username>','warn');break;}
+      try{
+        var data=await api('/admin/users?search='+encodeURIComponent(args[0]));
+        var u=data.users&&data.users[0];
+        if(!u){ctPrint('User not found: '+args[0],'err');break;}
+        ctPrint('── '+u.username+' ──────────────','ok');
+        ctPrint('  Edition : '+u.edition,'');
+        ctPrint('  Balance : $'+fmt(u.balance||0),'');
+        ctPrint('  Wins    : '+(u.wins||0),'');
+        ctPrint('  Admin   : '+(u.isAdmin?'Yes':'No'),'');
+        ctPrint('  Banned  : '+(u.banned?'YES — '+(u.banReason||'no reason'):'No'),'');
+      }catch(e){ctPrint('Error: '+e.message,'err');}
+      break;
+    case 'bal':
+      if(!args[0]||!args[1]){ctPrint('Usage: bal <username> <amount>   (negative to deduct)','warn');break;}
+      try{
+        var neg=args[1].startsWith('-');
+        var amt=parse(args[1].replace('-',''))*(neg?-1:1);
+        var data=await api('/admin/balance',{username:args[0],amount:amt});
+        adLogLocal('balance','[terminal] Adjusted '+args[0]+' by '+(amt>=0?'+':'')+fmt(amt),'info');
+        ctPrint('Done! '+args[0]+' new balance: $'+fmt(data.newBalance||0),'ok');
+      }catch(e){ctPrint('Error: '+e.message,'err');}
+      break;
+    case 'ban':
+      if(!args[0]){ctPrint('Usage: ban <username>','warn');break;}
+      try{
+        await api('/admin/ban',{username:args[0],reason:'Admin terminal ban',action:'ban'});
+        adLogLocal('ban','[terminal] Banned '+args[0],'danger');
+        ctPrint('Banned: '+args[0],'ok');
+      }catch(e){ctPrint('Error: '+e.message,'err');}
+      break;
+    case 'unban':
+      if(!args[0]){ctPrint('Usage: unban <username>','warn');break;}
+      try{
+        await api('/admin/ban',{username:args[0],action:'unban'});
+        adLogLocal('ban','[terminal] Unbanned '+args[0],'ok');
+        ctPrint('Unbanned: '+args[0],'ok');
+      }catch(e){ctPrint('Error: '+e.message,'err');}
+      break;
+    case 'kick':
+      if(!args[0]){ctPrint('Usage: kick <username>','warn');break;}
+      try{
+        await api('/admin/kick',{username:args[0]});
+        adLogLocal('kick','[terminal] Kicked '+args[0],'warn');
+        ctPrint('Kicked: '+args[0],'ok');
+      }catch(e){ctPrint('Error: '+e.message,'err');}
+      break;
+    case 'kickall':
+      try{
+        await api('/admin/kick-all',{});
+        adLogLocal('kick','[terminal] Kicked ALL users','warn');
+        ctPrint('All users kicked','ok');
+      }catch(e){ctPrint('Error: '+e.message,'err');}
+      break;
+    case 'admins':
+      try{
+        var data=await api('/admin/admins');
+        ctPrint('Current admins:','ok');
+        (data.admins||[]).forEach(function(a){ctPrint('  👑 '+a.username,'');});
+      }catch(e){ctPrint('Error: '+e.message,'err');}
+      break;
+    case 'addadmin':
+      if(!args[0]){ctPrint('Usage: addadmin <username>','warn');break;}
+      try{
+        await api('/admin/set-admin',{username:args[0],isAdmin:true});
+        adLogLocal('admin','[terminal] Promoted '+args[0]+' to admin','ok');
+        ctPrint(args[0]+' is now admin','ok');
+      }catch(e){ctPrint('Error: '+e.message,'err');}
+      break;
+    case 'rmadmin':
+      if(!args[0]){ctPrint('Usage: rmadmin <username>','warn');break;}
+      if(args[0]===CU){ctPrint("Can't remove yourself",'err');break;}
+      try{
+        await api('/admin/set-admin',{username:args[0],isAdmin:false});
+        adLogLocal('admin','[terminal] Removed admin from '+args[0],'warn');
+        ctPrint(args[0]+' removed from admin','ok');
+      }catch(e){ctPrint('Error: '+e.message,'err');}
+      break;
+    case 'ann':
+      if(!args[0]){ctPrint('Usage: ann <message text>','warn');break;}
+      try{
+        var text=args.join(' ');
+        await api('/admin/announcement',{text,active:true});
+        showAnnouncement(text);
+        adLogLocal('config','[terminal] Announcement: '+text,'info');
+        ctPrint('Announcement set','ok');
+      }catch(e){ctPrint('Error: '+e.message,'err');}
+      break;
+    case 'clearann':
+      try{
+        await api('/admin/announcement',{text:'',active:false});
+        document.getElementById('announce-bar').style.display='none';
+        adLogLocal('config','[terminal] Cleared announcement','info');
+        ctPrint('Announcement cleared','ok');
+      }catch(e){ctPrint('Error: '+e.message,'err');}
+      break;
+    case 'broadcast':
+      if(!args[0]){ctPrint('Usage: broadcast <message>','warn');break;}
+      try{
+        var msg=args.join(' ');
+        await api('/admin/broadcast',{message:msg});
+        adLogLocal('message','[terminal] Broadcast: '+msg,'info');
+        ctPrint('Broadcast sent to all online users','ok');
+      }catch(e){ctPrint('Error: '+e.message,'err');}
+      break;
+    case 'logs':
+      ctPrint('Fetching logs...','muted');
+      try{
+        var data=await api('/admin/logs');
+        var logs=(data.logs||[]).slice(0,15);
+        if(!logs.length){ctPrint('No logs yet','muted');break;}
+        logs.forEach(function(l){
+          var t=l.time||(l.createdAt?new Date(l.createdAt).toLocaleTimeString('en',{hour:'2-digit',minute:'2-digit'}):'??:??');
+          ctPrint('['+t+'] '+(l.actor||l.by||'sys')+': '+(l.msg||l.message||''),'');
+        });
+      }catch(e){ctPrint('Error: '+e.message,'err');}
+      break;
+    case 'ping':
+      ctPrint('Pinging backend...','muted');
+      try{
+        var t0=Date.now();
+        await fetch(API_BASE+'/health');
+        ctPrint('Pong! '+( Date.now()-t0)+'ms','ok');
+      }catch(e){ctPrint('No response: '+e.message,'err');}
+      break;
+    case 'whoami':
+      ctPrint('Username : '+CU,'ok');
+      ctPrint('Balance  : $'+fmt(bal),'');
+      ctPrint('Wins     : '+wins,'');
+      ctPrint('Admin    : Yes','');
+      ctPrint('Backend  : '+API_BASE,'muted');
+      break;
+    case 'clear':
+      document.getElementById('ct-out').innerHTML='';
+      break;
+    default:
+      ctPrint('Unknown command: '+cmd+'. Type "help" for list.','err');
+  }
+}
+
+
+setInterval(function(){
+  fetch(API_BASE + '/health').catch(function(){});
+}, 240000); // every 4 minutes
 </script>
 </body>
 </html>
