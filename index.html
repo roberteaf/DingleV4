@@ -658,7 +658,8 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);}
 //  ⚙️  CONFIGURATION — swap this for your Railway URL
 // ════════════════════════════════════════════════════════
 const API_BASE = 'https://donutdrop-backend1-production.up.railway.app';
-
+// Keep server awake
+setInterval(() => fetch(API_BASE + '/health'), 240000);
 // ════════════════════════════════════════════════════════
 //  API HELPER — all server communication goes here
 // ════════════════════════════════════════════════════════
