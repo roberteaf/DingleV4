@@ -234,25 +234,68 @@ function getURL(q){
 document.getElementById('sgo').onclick=()=>{var u=getURL(document.getElementById('si').value);if(u)openViewer(u,'🔍 '+document.getElementById('si').value)};
 document.getElementById('si').addEventListener('keydown',e=>{if(e.key==='Enter'){var u=getURL(e.target.value);if(u)openViewer(u,'🔍 '+e.target.value)}});
 
+// ── MOVIE EMBED SOURCES ──
+function getSources(imdbId){
+  return [
+    'https://vidsrc.xyz/embed/movie?imdb='+imdbId,
+    'https://vidsrc.to/embed/movie/'+imdbId,
+    'https://embed.su/embed/movie/'+imdbId,
+    'https://www.2embed.cc/embed/'+imdbId,
+    'https://multiembed.mov/?video_id='+imdbId,
+    'https://player.smashy.stream/movie/'+imdbId,
+    'https://vidsrc.me/embed/movie?imdb='+imdbId,
+    'https://autoembed.co/movie/imdb/'+imdbId,
+  ];
+}
+
+// ── MOVIE PLAYER with numbered source buttons ──
+function openMoviePlayer(title, year, imdbId){
+  var sources = imdbId ? getSources(imdbId) : [];
+  if(!sources.length) return;
+  var idx = 0;
+  var viewer = document.getElementById('viewer');
+  var vframe = document.getElementById('vframe');
+  document.getElementById('vtitle').textContent = title+' ('+year+')';
+  vframe.src = sources[0];
+  viewer.classList.add('show');
+
+  var vbar = document.getElementById('vbar');
+  var old = document.getElementById('src-sw');
+  if(old) old.remove();
+  var sw = document.createElement('div');
+  sw.id = 'src-sw';
+  sw.style.cssText = 'display:flex;align-items:center;gap:4px;flex-shrink:0';
+  var lbl = document.createElement('span');
+  lbl.style.cssText = 'font-size:.58rem;color:rgba(165,243,252,.38);letter-spacing:.06em;margin-right:2px';
+  lbl.textContent = 'SRC:';
+  sw.appendChild(lbl);
+  sources.forEach(function(src,n){
+    var btn=document.createElement('button');
+    btn.className='vbtn';
+    btn.textContent=n+1+'';
+    btn.style.cssText='padding:4px 8px;'+(n===0?'background:rgba(34,211,238,.35)':'');
+    btn.title='Try source '+(n+1);
+    btn.onclick=function(){
+      vframe.src=src;
+      sw.querySelectorAll('.vbtn').forEach(function(b,bi){b.style.background=bi===n?'rgba(34,211,238,.35)':'rgba(34,211,238,.09)'});
+    };
+    sw.appendChild(btn);
+  });
+  var fsBtn=vbar.querySelector('#vfs');
+  vbar.insertBefore(sw, fsBtn);
+}
+
 // ── MOVIE CARD BUILDER ──
 function movieCard(title, year, poster, imdbId, i){
   var c=document.createElement('div');
   c.className='mc fu'; c.style.animationDelay=(i*.04)+'s';
-  // Use vidsrc.to which embeds movies via imdb id
-  var embedUrl = imdbId ? 'https://vidsrc.to/embed/movie/'+imdbId : null;
   var imgHtml = poster && poster!=='N/A'
     ? `<img class="mc-img" src="${poster}" loading="lazy" onerror="this.outerHTML='<div class=mc-ph>🎬</div>'">`
     : `<div class="mc-ph">🎬</div>`;
-  c.innerHTML=`${imgHtml}
-    <div class="mc-play"><svg width="16" height="16" viewBox="0 0 24 24" fill="#011725"><polygon points="5,3 19,12 5,21"/></svg></div>
-    <div class="mc-info"><div class="mc-title">${title}</div><div class="mc-year">${year||''}</div></div>`;
-  c.onclick=()=>{
-    if(embedUrl){
-      openViewer(embedUrl, '🎬 '+title);
-    } else {
-      openViewer('https://www.google.com/search?q='+encodeURIComponent(title+' '+year+' watch free'), '🔍 '+title);
-    }
-  };
+  c.innerHTML=imgHtml+
+    '<div class="mc-play"><svg width="16" height="16" viewBox="0 0 24 24" fill="#011725"><polygon points="5,3 19,12 5,21"/></svg></div>'+
+    '<div class="mc-info"><div class="mc-title">'+title+'</div><div class="mc-year">'+(year||'')+'</div></div>';
+  c.onclick=function(){ openMoviePlayer(title, year, imdbId); };
   return c;
 }
 
