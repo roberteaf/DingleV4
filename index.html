@@ -14,36 +14,22 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--ink);font-fami
 .p{position:absolute;border-radius:50%;background:radial-gradient(circle at 35% 30%,rgba(165,243,252,.5),rgba(34,211,238,.04));animation:bu linear infinite;opacity:0}
 @keyframes bu{0%{opacity:0;transform:translateY(0) translateX(0)}8%{opacity:1}85%{opacity:.28}100%{opacity:0;transform:translateY(-105vh) translateX(var(--dx))}}
 .scan{position:fixed;inset:0;z-index:2;pointer-events:none;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,.022) 2px,rgba(0,0,0,.022) 4px)}
-
-/* shell */
 #app{position:relative;z-index:10;width:100%;height:100%;display:flex;flex-direction:column}
-
-/* home pages */
-#home{flex:1;overflow-y:auto;overflow-x:hidden;padding-bottom:calc(var(--nav) + 4px)}
+#home{flex:1;overflow-y:auto;overflow-x:hidden;padding-bottom:calc(var(--nav)+4px)}
 #home::-webkit-scrollbar{width:3px}
 #home::-webkit-scrollbar-thumb{background:rgba(34,211,238,.18);border-radius:4px}
 .tab{display:none}.tab.active{display:block}
 
-/* browser */
-#browser{display:none;flex-direction:column;flex:1}
-#browser.show{display:flex}
-#topbar{display:flex;align-items:center;gap:6px;padding:6px 10px;background:rgba(1,13,26,.98);border-bottom:1px solid rgba(34,211,238,.14);flex-shrink:0}
-.tbtn{background:rgba(34,211,238,.09);border:1px solid rgba(34,211,238,.18);color:var(--foam);border-radius:7px;padding:5px 10px;font-size:.7rem;font-weight:600;cursor:pointer;font-family:'Outfit',sans-serif;white-space:nowrap;transition:background .15s;flex-shrink:0}
-.tbtn:hover{background:rgba(34,211,238,.2)}
-#urlbar{flex:1;display:flex;align-items:center;gap:6px;background:rgba(0,0,0,.45);border:1.5px solid rgba(34,211,238,.16);border-radius:8px;padding:4px 4px 4px 10px;min-width:0;transition:border-color .2s}
-#urlbar:focus-within{border-color:var(--foam)}
-#urlinput{flex:1;background:transparent;border:none;outline:none;color:var(--glint);font-size:.8rem;caret-color:var(--foam);font-family:'Outfit',sans-serif;min-width:0}
-#urlinput::placeholder{color:rgba(165,243,252,.18)}
-#urlgo{background:linear-gradient(135deg,#22d3ee,#0891b2);border:none;border-radius:6px;padding:5px 12px;color:#011725;font-size:.7rem;font-weight:700;cursor:pointer;font-family:'Outfit',sans-serif;flex-shrink:0}
-#fw{flex:1;position:relative;background:#010d1a}
-#frame{width:100%;height:100%;border:none;display:block;background:#fff}
-#loader{position:absolute;inset:0;background:#010d1a;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;z-index:5;transition:opacity .3s;pointer-events:none}
-#loader.gone{opacity:0}
-.sp{width:30px;height:30px;border-radius:50%;border:2.5px solid rgba(34,211,238,.13);border-top-color:var(--foam);animation:spin 1s linear infinite}
-@keyframes spin{to{transform:rotate(360deg)}}
-.ldtx{font-size:.62rem;letter-spacing:.16em;text-transform:uppercase;color:rgba(34,211,238,.38)}
+/* ── VIEWER (fullscreen iframe overlay) ── */
+#viewer{display:none;position:fixed;inset:0;z-index:999;flex-direction:column;background:#000}
+#viewer.show{display:flex}
+#vbar{display:flex;align-items:center;gap:8px;padding:7px 12px;background:rgba(1,13,26,.98);border-bottom:1px solid rgba(34,211,238,.14);flex-shrink:0}
+.vbtn{background:rgba(34,211,238,.09);border:1px solid rgba(34,211,238,.18);color:var(--foam);border-radius:7px;padding:5px 11px;font-size:.7rem;font-weight:600;cursor:pointer;font-family:'Outfit',sans-serif;white-space:nowrap;transition:background .15s}
+.vbtn:hover{background:rgba(34,211,238,.22)}
+#vtitle{flex:1;font-size:.82rem;font-weight:500;color:rgba(165,243,252,.7);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#vframe{flex:1;border:none;width:100%;height:100%;background:#000}
 
-/* bottom nav */
+/* ── NAV ── */
 #nav{position:fixed;bottom:0;left:0;right:0;z-index:100;height:var(--nav);background:rgba(1,13,26,.97);border-top:1px solid rgba(34,211,238,.14);backdrop-filter:blur(24px);display:flex;align-items:center;justify-content:space-around;padding:0 6px}
 .nb{display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 12px;border-radius:10px;border:1.5px solid transparent;background:transparent;color:rgba(165,243,252,.3);cursor:pointer;transition:all .2s;font-family:'Outfit',sans-serif;flex:1}
 .nb span{font-size:.56rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase}
@@ -51,7 +37,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--ink);font-fami
 .nb.on svg{filter:drop-shadow(0 0 4px rgba(34,211,238,.5))}
 .nb:hover{color:var(--glint);background:rgba(34,211,238,.04)}
 
-/* search tab */
+/* ── SEARCH TAB ── */
 #shome{min-height:calc(100vh - var(--nav));display:flex;align-items:center;justify-content:center;padding:28px 16px}
 .hub{width:min(520px,96vw);display:flex;flex-direction:column;align-items:center;animation:em .9s cubic-bezier(.16,1,.3,1) both}
 @keyframes em{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:translateY(0)}}
@@ -63,10 +49,6 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--ink);font-fami
 .ltx{font-family:'Cinzel Decorative',serif;font-weight:900;font-size:clamp(1.5rem,5vw,2rem);background:linear-gradient(135deg,#a5f3fc,#22d3ee,#0891b2);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;filter:drop-shadow(0 0 18px rgba(34,211,238,.38));margin-bottom:5px}
 .lsb{font-size:.62rem;letter-spacing:.28em;text-transform:uppercase;color:rgba(34,211,238,.32);font-weight:200}
 .card{width:100%;background:linear-gradient(145deg,rgba(5,48,79,.6),rgba(2,20,37,.88));border:1px solid var(--border);border-radius:20px;padding:24px 22px 20px;backdrop-filter:blur(28px);box-shadow:0 28px 68px rgba(1,13,26,.75)}
-.er{display:flex;gap:5px;margin-bottom:12px;flex-wrap:wrap}
-.et{padding:5px 11px;border-radius:8px;border:1.5px solid rgba(34,211,238,.17);background:rgba(1,13,26,.5);color:rgba(165,243,252,.42);font-size:.7rem;font-weight:500;cursor:pointer;user-select:none;transition:all .2s;white-space:nowrap;font-family:'Outfit',sans-serif}
-.et:hover{border-color:rgba(34,211,238,.42);color:var(--glint);background:rgba(34,211,238,.07)}
-.et.on{border-color:var(--foam);background:rgba(34,211,238,.13);color:var(--foam)}
 .sr{display:flex;align-items:center;gap:8px;background:rgba(1,13,26,.7);border:1.5px solid var(--border);border-radius:12px;padding:4px 4px 4px 14px;transition:border-color .3s,box-shadow .3s}
 .sr:focus-within{border-color:var(--foam);box-shadow:0 0 0 3px rgba(34,211,238,.1)}
 .sr input{flex:1;background:transparent;border:none;outline:none;color:var(--glint);font-size:.92rem;caret-color:var(--foam);font-family:'Outfit',sans-serif}
@@ -77,7 +59,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--ink);font-fami
 .dot{width:5px;height:5px;border-radius:50%;background:var(--foam);box-shadow:0 0 6px var(--foam);animation:bl 2.2s ease-in-out infinite}
 @keyframes bl{0%,100%{opacity:1}50%{opacity:.14}}
 
-/* shared tab styles */
+/* ── SHARED ── */
 .sh{padding:20px 16px 10px;display:flex;align-items:baseline;justify-content:space-between}
 .st{font-family:'Cinzel Decorative',serif;font-size:.9rem;background:linear-gradient(135deg,#a5f3fc,#22d3ee);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
 .ss{font-size:.56rem;letter-spacing:.14em;text-transform:uppercase;color:rgba(34,211,238,.24)}
@@ -86,23 +68,39 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--ink);font-fami
 .ts input{flex:1;background:transparent;border:none;outline:none;color:var(--glint);font-size:.85rem;caret-color:var(--foam);font-family:'Outfit',sans-serif}
 .ts input::placeholder{color:rgba(165,243,252,.17)}
 .ts button{background:linear-gradient(135deg,#22d3ee,#0891b2);border:none;border-radius:7px;padding:7px 14px;color:#011725;font-size:.7rem;font-weight:700;cursor:pointer;font-family:'Outfit',sans-serif;white-space:nowrap}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(144px,1fr));gap:8px;padding:0 16px 14px}
-.gc{background:linear-gradient(145deg,rgba(5,48,79,.5),rgba(2,20,37,.8));border:1px solid rgba(34,211,238,.1);border-radius:12px;padding:13px 11px;cursor:pointer;transition:all .2s;display:flex;flex-direction:column;gap:6px}
-.gc:hover{border-color:rgba(34,211,238,.36);background:rgba(34,211,238,.06);transform:translateY(-2px);box-shadow:0 8px 24px rgba(1,13,26,.6)}
-.gi{font-size:1.3rem;line-height:1}.gn{font-size:.76rem;font-weight:600;color:var(--glint)}.gd{font-size:.64rem;color:rgba(165,243,252,.32);line-height:1.4}
-.gtag{display:inline-block;padding:2px 6px;border-radius:4px;font-size:.54rem;font-weight:600;letter-spacing:.05em;text-transform:uppercase;background:rgba(34,211,238,.09);color:var(--foam);border:1px solid rgba(34,211,238,.15);width:fit-content}
 .divider{margin:2px 16px 14px;height:1px;background:linear-gradient(90deg,transparent,rgba(34,211,238,.12),transparent)}
-.mr{display:grid;grid-template-columns:repeat(auto-fill,minmax(148px,1fr));gap:10px;padding:0 16px 14px}
-.mc{background:linear-gradient(145deg,rgba(5,48,79,.5),rgba(2,20,37,.8));border:1px solid rgba(34,211,238,.1);border-radius:12px;overflow:hidden;cursor:pointer;transition:all .2s}
-.mc:hover{border-color:rgba(34,211,238,.34);transform:translateY(-2px);box-shadow:0 10px 30px rgba(1,13,26,.7)}
-.mp{width:100%;aspect-ratio:2/3;object-fit:cover}.mph{width:100%;aspect-ratio:2/3;background:linear-gradient(135deg,rgba(5,48,79,.8),rgba(2,20,37,.9));display:flex;align-items:center;justify-content:center;font-size:1.9rem}
-.mi2{padding:8px}.mt2{font-size:.74rem;font-weight:600;color:var(--glint);margin-bottom:2px;line-height:1.3}.mm2{font-size:.6rem;color:rgba(165,243,252,.32)}
-.mbs{display:flex;gap:4px;padding:0 8px 8px;flex-wrap:wrap}
-.mb{flex:1;padding:5px 4px;border-radius:6px;border:1px solid rgba(34,211,238,.16);background:rgba(34,211,238,.07);color:var(--foam);font-size:.58rem;font-weight:600;cursor:pointer;font-family:'Outfit',sans-serif;text-align:center;transition:all .18s;white-space:nowrap}
-.mb:hover{background:rgba(34,211,238,.17);border-color:var(--foam)}
-.mb.pri{background:linear-gradient(135deg,#22d3ee,#0891b2);color:#011725;border-color:transparent}
-.ld2{display:flex;align-items:center;justify-content:center;gap:9px;padding:28px;color:rgba(34,211,238,.35);font-size:.7rem;letter-spacing:.1em;text-transform:uppercase}
+
+/* ── MOVIE GRID ── */
+.mgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px;padding:0 16px 16px}
+.mc{background:linear-gradient(145deg,rgba(5,48,79,.5),rgba(2,20,37,.8));border:1px solid rgba(34,211,238,.1);border-radius:12px;overflow:hidden;cursor:pointer;transition:all .2s;position:relative}
+.mc:hover{border-color:rgba(34,211,238,.5);transform:translateY(-3px);box-shadow:0 10px 30px rgba(1,13,26,.8)}
+.mc:hover .mc-play{opacity:1}
+.mc-img{width:100%;aspect-ratio:2/3;object-fit:cover;display:block;background:#021425}
+.mc-ph{width:100%;aspect-ratio:2/3;background:linear-gradient(135deg,rgba(5,48,79,.8),rgba(2,20,37,.9));display:flex;align-items:center;justify-content:center;font-size:2rem}
+.mc-play{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:44px;height:44px;background:rgba(34,211,238,.85);border-radius:50%;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .2s;margin-top:-20px}
+.mc-play svg{margin-left:3px}
+.mc-info{padding:8px 9px}
+.mc-title{font-size:.72rem;font-weight:600;color:var(--glint);line-height:1.3;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mc-year{font-size:.6rem;color:rgba(165,243,252,.32)}
+
+/* ── GAMES GRID ── */
+.ggrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;padding:0 16px 16px}
+.gc{background:linear-gradient(145deg,rgba(5,48,79,.5),rgba(2,20,37,.8));border:1px solid rgba(34,211,238,.1);border-radius:12px;overflow:hidden;cursor:pointer;transition:all .2s;position:relative}
+.gc:hover{border-color:rgba(34,211,238,.5);transform:translateY(-3px);box-shadow:0 10px 30px rgba(1,13,26,.8)}
+.gc:hover .gc-play{opacity:1}
+.gc-thumb{width:100%;aspect-ratio:16/10;object-fit:cover;display:block;background:#021425}
+.gc-ph{width:100%;aspect-ratio:16/10;background:linear-gradient(135deg,rgba(5,48,79,.8),rgba(2,20,37,.9));display:flex;align-items:center;justify-content:center;font-size:2rem}
+.gc-play{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:40px;height:40px;background:rgba(34,211,238,.85);border-radius:50%;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .2s;margin-top:-14px}
+.gc-play svg{margin-left:2px}
+.gc-info{padding:8px 9px}
+.gc-name{font-size:.76rem;font-weight:600;color:var(--glint);margin-bottom:2px}
+.gc-tag{display:inline-block;padding:1px 6px;border-radius:4px;font-size:.54rem;font-weight:600;text-transform:uppercase;background:rgba(34,211,238,.09);color:var(--foam);border:1px solid rgba(34,211,238,.15)}
+
+.ld{display:flex;align-items:center;justify-content:center;gap:9px;padding:28px;color:rgba(34,211,238,.35);font-size:.7rem;letter-spacing:.1em;text-transform:uppercase}
+.sp{width:26px;height:26px;border-radius:50%;border:2.5px solid rgba(34,211,238,.13);border-top-color:var(--foam);animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
 @keyframes fu{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}.fu{animation:fu .35s ease both}
+.empty{padding:24px 16px;text-align:center;color:rgba(165,243,252,.28);font-size:.8rem}
 </style>
 </head>
 <body>
@@ -113,7 +111,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--ink);font-fami
 <div id="app">
   <div id="home">
 
-    <!-- SEARCH -->
+    <!-- SEARCH TAB -->
     <div class="tab active" id="tab-search">
       <div id="shome">
         <div class="hub">
@@ -136,21 +134,20 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--ink);font-fami
             <div class="lsb">Ocean Edition &nbsp;·&nbsp; v4</div>
           </div>
           <div class="card">
-            <div class="er" id="er"></div>
             <div class="sr">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(34,211,238,.38)" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-              <input id="si" type="text" placeholder="Search with DuckDuckGo or enter a URL…" autocomplete="off" spellcheck="false"/>
+              <input id="si" type="text" placeholder="Search DuckDuckGo or enter URL…" autocomplete="off" spellcheck="false"/>
               <button class="db" id="sgo">Dive</button>
             </div>
           </div>
-          <div class="str"><div class="dot"></div>DDG search · loads inside · no history</div>
+          <div class="str"><div class="dot"></div>Opens inside · DuckDuckGo search</div>
         </div>
       </div>
     </div>
 
-    <!-- MOVIES -->
+    <!-- MOVIES TAB -->
     <div class="tab" id="tab-movies">
-      <div class="sh"><div class="st">🎬 Movies</div><div class="ss">Free streaming</div></div>
+      <div class="sh"><div class="st">🎬 Movies</div><div class="ss">Click to watch inside</div></div>
       <div class="ts">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(34,211,238,.38)" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
         <input id="mq" type="text" placeholder="Search a movie or show…" autocomplete="off" spellcheck="false"/>
@@ -158,44 +155,31 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--ink);font-fami
       </div>
       <div id="mres"></div>
       <div class="divider"></div>
-      <div class="sh" style="padding-top:6px"><div class="st" style="font-size:.8rem">🌐 Streaming Sites</div></div>
-      <div class="grid" id="msites"></div>
+      <div class="sh" style="padding-top:4px"><div class="st" style="font-size:.82rem">🔥 Popular Right Now</div></div>
+      <div class="mgrid" id="mpop"></div>
     </div>
 
-    <!-- GAMES -->
+    <!-- GAMES TAB -->
     <div class="tab" id="tab-games">
-      <div class="sh"><div class="st">🎮 Games</div><div class="ss">Browser games</div></div>
+      <div class="sh"><div class="st">🎮 Games</div><div class="ss">Click to play inside</div></div>
       <div class="ts">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(34,211,238,.38)" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
         <input id="gq" type="text" placeholder="Search games…" autocomplete="off" spellcheck="false"/>
         <button onclick="filterGames()">Search</button>
       </div>
-      <div class="sh" style="padding-top:2px"><div class="st" style="font-size:.8rem">🕹️ Game Sites</div></div>
-      <div class="grid" id="gsites"></div>
-      <div class="divider"></div>
-      <div class="sh" style="padding-top:2px"><div class="st" style="font-size:.8rem">⭐ Popular Games</div></div>
-      <div class="grid" id="ggrid"></div>
+      <div class="ggrid" id="ggrid"></div>
     </div>
+
   </div>
 
-  <!-- BROWSER -->
-  <div id="browser">
-    <div id="topbar">
-      <button class="tbtn" onclick="bk()">←</button>
-      <button class="tbtn" onclick="fw()">→</button>
-      <button class="tbtn" onclick="rl()">↺</button>
-      <div id="urlbar">
-        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="rgba(34,211,238,.35)" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-        <input id="urlinput" type="text" placeholder="Search or URL…" autocomplete="off" spellcheck="false"/>
-        <button id="urlgo" onclick="navBar()">Go</button>
-      </div>
-      <button class="tbtn" onclick="tfs()" title="Fullscreen">⛶</button>
-      <button class="tbtn" onclick="goHome()" style="background:rgba(255,70,70,.12);border-color:rgba(255,100,100,.18);color:#ff7070">✕</button>
+  <!-- VIEWER OVERLAY -->
+  <div id="viewer">
+    <div id="vbar">
+      <button class="vbtn" onclick="closeViewer()">← Back</button>
+      <div id="vtitle"></div>
+      <button class="vbtn" onclick="fsViewer()">⛶ Fullscreen</button>
     </div>
-    <div id="fw">
-      <div id="loader"><div class="sp"></div><div class="ldtx">Diving in…</div></div>
-      <iframe id="frame" allowfullscreen allow="fullscreen; autoplay; encrypted-media; picture-in-picture" sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-top-navigation-by-user-activation allow-presentation"></iframe>
-    </div>
+    <iframe id="vframe" allowfullscreen allow="fullscreen; autoplay; encrypted-media; picture-in-picture" sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-top-navigation-by-user-activation allow-presentation"></iframe>
   </div>
 
   <nav id="nav">
@@ -215,7 +199,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--ink);font-fami
 </div>
 
 <script>
-// tab switch
+// ── TAB SWITCH ──
 function sw(n){
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
   document.querySelectorAll('.nb').forEach(b=>b.classList.remove('on'));
@@ -224,185 +208,159 @@ function sw(n){
   document.getElementById('home').scrollTop=0;
 }
 
-// load url in iframe
-function load(url){
-  document.getElementById('home').style.display='none';
-  document.getElementById('browser').classList.add('show');
-  var fr=document.getElementById('frame');
-  var ld=document.getElementById('loader');
-  ld.classList.remove('gone');
-  fr.src='about:blank';
-  document.getElementById('urlinput').value=url;
-  setTimeout(()=>{fr.src=url},40);
-  fr.onload=()=>{
-    ld.classList.add('gone');
-    try{var h=fr.contentWindow.location.href;if(h&&h!=='about:blank')document.getElementById('urlinput').value=h}catch(e){}
-  };
+// ── VIEWER ──
+function openViewer(url, title){
+  document.getElementById('vtitle').textContent = title||url;
+  document.getElementById('vframe').src = url;
+  document.getElementById('viewer').classList.add('show');
+}
+function closeViewer(){
+  document.getElementById('viewer').classList.remove('show');
+  document.getElementById('vframe').src = 'about:blank';
+}
+function fsViewer(){
+  var v=document.getElementById('viewer');
+  if(!document.fullscreenElement) v.requestFullscreen&&v.requestFullscreen();
+  else document.exitFullscreen&&document.exitFullscreen();
 }
 
-function goHome(){
-  document.getElementById('frame').src='about:blank';
-  document.getElementById('browser').classList.remove('show');
-  document.getElementById('home').style.display='';
-}
-function bk(){try{document.getElementById('frame').contentWindow.history.back()}catch(e){}}
-function fw(){try{document.getElementById('frame').contentWindow.history.forward()}catch(e){}}
-function rl(){var f=document.getElementById('frame');try{f.contentWindow.location.reload()}catch(e){f.src=f.src}}
-function tfs(){var fw=document.getElementById('fw');if(!document.fullscreenElement){fw.requestFullscreen&&fw.requestFullscreen()}else{document.exitFullscreen&&document.exitFullscreen()}}
-function navBar(){var u=getURL(document.getElementById('urlinput').value);if(u)load(u)}
-document.getElementById('urlinput').addEventListener('keydown',e=>{if(e.key==='Enter')navBar()});
-
-// engines — only iframe-friendly ones
-var ae='ddg';
-var EN={
-  ddg:   q=>'https://duckduckgo.com/?q='+encodeURIComponent(q)+'&ia=web',
-  wiki:  q=>'https://en.wikipedia.org/w/index.php?search='+encodeURIComponent(q),
-  yt:    q=>'https://www.youtube.com/results?search_query='+encodeURIComponent(q),
-  gh:    q=>'https://github.com/search?q='+encodeURIComponent(q),
-  reddit:q=>'https://old.reddit.com/search/?q='+encodeURIComponent(q),
-  maps:  q=>'https://www.openstreetmap.org/search?query='+encodeURIComponent(q),
-};
-var EL={ddg:'🦆 DDG',wiki:'📖 Wiki',yt:'▶ YouTube',gh:'🐙 GitHub',reddit:'👽 Reddit',maps:'🗺️ Maps'};
-var er=document.getElementById('er');
-Object.keys(EN).forEach(k=>{
-  var b=document.createElement('div');b.className='et'+(k==='ddg'?' on':'');b.textContent=EL[k];
-  b.onclick=()=>{ae=k;er.querySelectorAll('.et').forEach(x=>x.classList.remove('on'));b.classList.add('on')};
-  er.appendChild(b);
-});
+// ── SEARCH (DDG works in iframe) ──
 function getURL(q){
-  q=(q||'').trim();if(!q)return null;
-  if(/^https?:\/\//i.test(q))return q;
-  if(/^[a-zA-Z0-9-]+\.[a-zA-Z]{2,}/.test(q)&&!q.includes(' '))return'https://'+q;
-  return EN[ae](q);
+  q=(q||'').trim(); if(!q) return null;
+  if(/^https?:\/\//i.test(q)) return q;
+  if(/^[a-zA-Z0-9-]+\.[a-zA-Z]{2,}/.test(q)&&!q.includes(' ')) return 'https://'+q;
+  return 'https://duckduckgo.com/?q='+encodeURIComponent(q)+'&ia=web';
 }
-document.getElementById('sgo').onclick=()=>{var u=getURL(document.getElementById('si').value);if(u)load(u)};
-document.getElementById('si').addEventListener('keydown',e=>{if(e.key==='Enter'){var u=getURL(e.target.value);if(u)load(u)}});
+document.getElementById('sgo').onclick=()=>{var u=getURL(document.getElementById('si').value);if(u)openViewer(u,'🔍 '+document.getElementById('si').value)};
+document.getElementById('si').addEventListener('keydown',e=>{if(e.key==='Enter'){var u=getURL(e.target.value);if(u)openViewer(u,'🔍 '+e.target.value)}});
 
-// movie sites
-[
-  {n:'Tubi',u:'https://tubitv.com',i:'📺',d:'Free movies & TV',t:'Free'},
-  {n:'Pluto TV',u:'https://pluto.tv',i:'🛸',d:'Free live TV & VOD',t:'Free'},
-  {n:'Plex',u:'https://watch.plex.tv',i:'🎞️',d:'Free with ads',t:'Free'},
-  {n:'Crackle',u:'https://crackle.com',i:'🎥',d:'Sony free streaming',t:'Free'},
-  {n:'Peacock',u:'https://peacocktv.com',i:'🦚',d:'NBC, free tier',t:'Free'},
-  {n:'Yidio',u:'https://yidio.com',i:'📡',d:'Finds free streams',t:'Aggregator'},
-  {n:'MoviesJoy',u:'https://moviesjoy.plus',i:'😊',d:'Free no ads',t:'Free'},
-  {n:'FMovies',u:'https://fmoviesz.to',i:'🎦',d:'Free HD movies',t:'Free'},
-  {n:'123Movies',u:'https://ww5.123movies.net',i:'🌐',d:'Large free library',t:'Free'},
-  {n:'SolarMovie',u:'https://solarmovie.pe',i:'☀️',d:'Free streaming',t:'Free'},
-  {n:'Kanopy',u:'https://kanopy.com',i:'📽️',d:'Free with library card',t:'Library'},
-  {n:'Hoopla',u:'https://hoopladigital.com',i:'🎬',d:'Free with library card',t:'Library'},
-].forEach(s=>{
-  var c=document.createElement('div');c.className='gc';
-  c.innerHTML=`<div class="gi">${s.i}</div><div class="gn">${s.n}</div><div class="gd">${s.d}</div><div class="gtag">${s.t}</div>`;
-  c.onclick=()=>load(s.u);
-  document.getElementById('msites').appendChild(c);
-});
+// ── MOVIE CARD BUILDER ──
+function movieCard(title, year, poster, imdbId, i){
+  var c=document.createElement('div');
+  c.className='mc fu'; c.style.animationDelay=(i*.04)+'s';
+  // Use vidsrc.to which embeds movies via imdb id
+  var embedUrl = imdbId ? 'https://vidsrc.to/embed/movie/'+imdbId : null;
+  var imgHtml = poster && poster!=='N/A'
+    ? `<img class="mc-img" src="${poster}" loading="lazy" onerror="this.outerHTML='<div class=mc-ph>🎬</div>'">`
+    : `<div class="mc-ph">🎬</div>`;
+  c.innerHTML=`${imgHtml}
+    <div class="mc-play"><svg width="16" height="16" viewBox="0 0 24 24" fill="#011725"><polygon points="5,3 19,12 5,21"/></svg></div>
+    <div class="mc-info"><div class="mc-title">${title}</div><div class="mc-year">${year||''}</div></div>`;
+  c.onclick=()=>{
+    if(embedUrl){
+      openViewer(embedUrl, '🎬 '+title);
+    } else {
+      openViewer('https://www.google.com/search?q='+encodeURIComponent(title+' '+year+' watch free'), '🔍 '+title);
+    }
+  };
+  return c;
+}
 
-// movie search
+// ── MOVIE SEARCH ──
 function searchMovies(){
-  var q=document.getElementById('mq').value.trim();if(!q)return;
+  var q=document.getElementById('mq').value.trim(); if(!q) return;
   var res=document.getElementById('mres');
-  res.innerHTML='<div class="ld2"><div class="sp"></div>Searching…</div>';
+  res.innerHTML='<div class="ld"><div class="sp"></div>Searching…</div>';
   fetch('https://www.omdbapi.com/?s='+encodeURIComponent(q)+'&apikey=trilogy')
     .then(r=>r.json())
     .then(data=>{
       res.innerHTML='';
       if(data.Search&&data.Search.length){
-        var h=document.createElement('div');
-        h.style.cssText='padding:0 16px 8px;font-size:.58rem;letter-spacing:.12em;text-transform:uppercase;color:rgba(34,211,238,.28)';
-        h.textContent='Results for "'+q+'"';
-        res.appendChild(h);
-        var g=document.createElement('div');g.className='mr';
-        data.Search.slice(0,9).forEach((m,i)=>{
-          var card=document.createElement('div');card.className='mc fu';card.style.animationDelay=(i*.05)+'s';
-          var sq=encodeURIComponent(m.Title+' '+m.Year+' watch free');
-          var poster=m.Poster&&m.Poster!=='N/A'
-            ?`<img class="mp" src="${m.Poster}" loading="lazy" onerror="this.outerHTML='<div class=mph>🎬</div>'">`
-            :`<div class="mph">🎬</div>`;
-          card.innerHTML=`${poster}
-            <div class="mi2"><div class="mt2">${m.Title}</div><div class="mm2">${m.Year} · ${m.Type}</div></div>
-            <div class="mbs">
-              <div class="mb pri" onclick="load('https://www.google.com/search?q=${sq}')">🔍 Find</div>
-              <div class="mb" onclick="load('https://tubitv.com/search/${encodeURIComponent(m.Title)}')">Tubi</div>
-              <div class="mb" onclick="load('https://moviesjoy.plus/search/${encodeURIComponent(m.Title)}')">Joy</div>
-            </div>`;
-          g.appendChild(card);
+        var hdr=document.createElement('div');
+        hdr.style.cssText='padding:0 16px 10px;font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;color:rgba(34,211,238,.28)';
+        hdr.textContent='Results for "'+q+'" — click poster to watch';
+        res.appendChild(hdr);
+        var g=document.createElement('div'); g.className='mgrid';
+        data.Search.slice(0,12).forEach((m,i)=>{
+          g.appendChild(movieCard(m.Title, m.Year, m.Poster, m.imdbID, i));
         });
         res.appendChild(g);
-      } else fallback(q,res);
-    }).catch(()=>fallback(document.getElementById('mq').value.trim(),document.getElementById('mres')));
-}
-function fallback(q,res){
-  res.innerHTML=`<div style="padding:0 16px 14px"><div style="background:rgba(5,48,79,.4);border:1px solid rgba(34,211,238,.12);border-radius:12px;padding:14px">
-    <div style="font-size:.7rem;color:rgba(165,243,252,.42);margin-bottom:10px">Find "<b style="color:var(--glint)">${q}</b>" free on:</div>
-    <div style="display:flex;flex-wrap:wrap;gap:6px">
-      <div class="mb pri" style="flex:none;padding:7px 12px" onclick="load('https://www.google.com/search?q=${encodeURIComponent(q+' free stream')}')">🔍 Google</div>
-      <div class="mb" style="flex:none;padding:7px 12px" onclick="load('https://tubitv.com/search/${encodeURIComponent(q)}')">📺 Tubi</div>
-      <div class="mb" style="flex:none;padding:7px 12px" onclick="load('https://moviesjoy.plus/search/${encodeURIComponent(q)}')">😊 MoviesJoy</div>
-      <div class="mb" style="flex:none;padding:7px 12px" onclick="load('https://pluto.tv/search#${encodeURIComponent(q)}')">🛸 Pluto</div>
-    </div>
-  </div></div>`;
+      } else {
+        res.innerHTML='<div class="empty">No results for "'+q+'"</div>';
+      }
+    }).catch(()=>{
+      res.innerHTML='<div class="empty">Search failed — check your connection</div>';
+    });
 }
 document.getElementById('mq').addEventListener('keydown',e=>{if(e.key==='Enter')searchMovies()});
 
-// game sites
-[
-  {n:'CrazyGames',u:'https://crazygames.com',i:'🎲',d:'1000s of browser games',t:'Popular'},
-  {n:'Poki',u:'https://poki.com',i:'🎯',d:'Huge free game library',t:'Popular'},
-  {n:'Coolmath',u:'https://coolmathgames.com',i:'🧮',d:'School friendly',t:'Unblocked'},
-  {n:'itch.io',u:'https://itch.io',i:'🕹️',d:'Indie browser games',t:'Indie'},
-  {n:'GameFlare',u:'https://gameflare.com',i:'🔥',d:'Free HTML5 games',t:'Free'},
-  {n:'Y8',u:'https://y8.com',i:'🎮',d:'Thousands of games',t:'Free'},
-  {n:'Armor Games',u:'https://armorgames.com',i:'⚔️',d:'Strategy & RPG',t:'Free'},
-  {n:'Miniclip',u:'https://miniclip.com',i:'🏆',d:'Classic games',t:'Classic'},
-  {n:'Kizi',u:'https://kizi.com',i:'✨',d:'Fun free games',t:'Free'},
-  {n:'Kongregate',u:'https://kongregate.com',i:'👾',d:'Indie browser games',t:'Free'},
-  {n:'Newgrounds',u:'https://newgrounds.com',i:'🎨',d:'Games music & art',t:'Free'},
-  {n:'Addicting Games',u:'https://addictinggames.com',i:'🌀',d:'Tons of free games',t:'Free'},
-].forEach(s=>{
-  var c=document.createElement('div');c.className='gc';
-  c.innerHTML=`<div class="gi">${s.i}</div><div class="gn">${s.n}</div><div class="gd">${s.d}</div><div class="gtag">${s.t}</div>`;
-  c.onclick=()=>load(s.u);
-  document.getElementById('gsites').appendChild(c);
-});
-
-// specific games
-var AG=[
-  {n:'2048',u:'https://play2048.co',i:'🔢',d:'Slide tiles to 2048',t:'Puzzle'},
-  {n:'Agar.io',u:'https://agar.io',i:'🦠',d:'Eat cells to grow',t:'Multi'},
-  {n:'Slither.io',u:'https://slither.io',i:'🐍',d:'Snake battle',t:'Multi'},
-  {n:'Krunker.io',u:'https://krunker.io',i:'🔫',d:'Browser FPS',t:'Action'},
-  {n:'Shell Shockers',u:'https://shellshock.io',i:'🥚',d:'Egg FPS battle',t:'Action'},
-  {n:'Diep.io',u:'https://diep.io',i:'🔵',d:'Tank battle',t:'Action'},
-  {n:'Wordle',u:'https://www.nytimes.com/games/wordle',i:'🟩',d:'Guess the word',t:'Word'},
-  {n:'Chess.com',u:'https://chess.com',i:'♟️',d:'Free online chess',t:'Strategy'},
-  {n:'Skribbl.io',u:'https://skribbl.io',i:'✏️',d:'Draw & guess',t:'Party'},
-  {n:'Gartic Phone',u:'https://garticphone.com',i:'📞',d:'Drawing telephone',t:'Party'},
-  {n:'Cookie Clicker',u:'https://orteil.dashnet.org/cookieclicker',i:'🍪',d:'Idle clicking',t:'Idle'},
-  {n:'Little Alchemy 2',u:'https://littlealchemy2.com',i:'⚗️',d:'Combine elements',t:'Puzzle'},
-  {n:'Tetris',u:'https://tetris.com/play-tetris',i:'🟦',d:'Classic blocks',t:'Classic'},
-  {n:'Minesweeper',u:'https://minesweeper.online',i:'💣',d:'Classic minesweeper',t:'Classic'},
-  {n:'GeoGuessr',u:'https://geoguessr.com',i:'🗺️',d:'Guess the location',t:'Geography'},
-  {n:'Sudoku',u:'https://sudoku.com',i:'🔢',d:'Number puzzle',t:'Puzzle'},
+// ── POPULAR MOVIES (hardcoded with known IMDB IDs) ──
+var POPULAR=[
+  {t:'The Dark Knight',y:'2008',id:'tt0468569',p:'https://m.media-amazon.com/images/M/MV5BMTMxNTMwODM0NF5BMl5BanBnXkFtZTcwODAyMTk2Mw@@._V1_SX300.jpg'},
+  {t:'Inception',y:'2010',id:'tt1375666',p:'https://m.media-amazon.com/images/M/MV5BMjAxMzY3NjcxNF5BMl5BanBnXkFtZTcwNTI5OTM0Mw@@._V1_SX300.jpg'},
+  {t:'Interstellar',y:'2014',id:'tt0816692',p:'https://m.media-amazon.com/images/M/MV5BZjdkOTU3MDktN2IxOS00OGEyLWFmMjktY2FiMmZkNWIyODZiXkEyXkFqcGdeQXVyMTMxODk2OTU@._V1_SX300.jpg'},
+  {t:'The Matrix',y:'1999',id:'tt0133093',p:'https://m.media-amazon.com/images/M/MV5BNzQzOTk3OTAtNDQ0Zi00ZTVlLTM5YTUtZmI5NTU4ZGQ3ZjczXkEyXkFqcGdeQXVyNjU0OTQ0OTY@._V1_SX300.jpg'},
+  {t:'Avengers: Endgame',y:'2019',id:'tt4154796',p:'https://m.media-amazon.com/images/M/MV5BMTc5MDE2ODcwNV5BMl5BanBnXkFtZTgwMzI2NzQ2NzM@._V1_SX300.jpg'},
+  {t:'Spider-Man: No Way Home',y:'2021',id:'tt10872600',p:'https://m.media-amazon.com/images/M/MV5BZWMyYzFjYTYtNTRjYi00OGExLWE2YzgtOGRmYjAxZTU3NzAyXkEyXkFqcGdeQXVyMzQ0MzA0NTM@._V1_SX300.jpg'},
+  {t:'Top Gun: Maverick',y:'2022',id:'tt1745960',p:'https://m.media-amazon.com/images/M/MV5BOWQwNzE1NDctMDc5MS00ODc2LTliNzYtMjc2YWMzMDEwMTA3XkEyXkFqcGdeQXVyNjc2NjA5NTQ@._V1_SX300.jpg'},
+  {t:'John Wick',y:'2014',id:'tt2911666',p:'https://m.media-amazon.com/images/M/MV5BMTU2NjA1ODgzMF5BMl5BanBnXkFtZTgwMTM2MTI4MjE@._V1_SX300.jpg'},
+  {t:'Dune',y:'2021',id:'tt1160419',p:'https://m.media-amazon.com/images/M/MV5BN2FjNmEyNWMtYzM0ZS00NjIyLTg2Y2MtYThhNTg1NjM4OTk0XkEyXkFqcGdeQXVyMTkxNjUyNQ@@._V1_SX300.jpg'},
+  {t:'Black Panther',y:'2018',id:'tt1825683',p:'https://m.media-amazon.com/images/M/MV5BMTg1MTY2MjYzNV5BMl5BanBnXkFtZTgwMjgyNTEwMjE@._V1_SX300.jpg'},
+  {t:'Oppenheimer',y:'2023',id:'tt15398776',p:'https://m.media-amazon.com/images/M/MV5BMDBmYTZjNjUtN2M1MS00MTQ2LTk2ODgtNzc2M2QyZGE5NTVjXkEyXkFqcGdeQXVyNzAwMjU2MTY@._V1_SX300.jpg'},
+  {t:'Barbie',y:'2023',id:'tt1517268',p:'https://m.media-amazon.com/images/M/MV5BNjU3N2QxNzYtMjk1NC00MTc4LTk1NTQtMmUxNTljM2I0NDA5XkEyXkFqcGdeQXVyODE5NzE3OTE@._V1_SX300.jpg'},
 ];
-function renderG(list){
-  var g=document.getElementById('ggrid');g.innerHTML='';
-  list.forEach(s=>{
-    var c=document.createElement('div');c.className='gc';
-    c.innerHTML=`<div class="gi">${s.i}</div><div class="gn">${s.n}</div><div class="gd">${s.d}</div><div class="gtag">${s.t}</div>`;
-    c.onclick=()=>load(s.u);g.appendChild(c);
+var mpop=document.getElementById('mpop');
+POPULAR.forEach((m,i)=>mpop.appendChild(movieCard(m.t,m.y,m.p,m.id,i)));
+
+// ── GAMES (all with working embed URLs) ──
+var GAMES=[
+  // Puzzle
+  {n:'2048',tag:'Puzzle',icon:'🔢',url:'https://play2048.co'},
+  {n:'Tetris',tag:'Classic',icon:'🟦',url:'https://tetris.com/play-tetris'},
+  {n:'Minesweeper',tag:'Classic',icon:'💣',url:'https://minesweeper.online'},
+  {n:'Sudoku',tag:'Puzzle',icon:'🔢',url:'https://sudoku.com'},
+  {n:'Little Alchemy 2',tag:'Puzzle',icon:'⚗️',url:'https://littlealchemy2.com'},
+  {n:'Wordle',tag:'Word',icon:'🟩',url:'https://wordleunlimited.org'},
+  {n:'Chess',tag:'Strategy',icon:'♟️',url:'https://www.chess.com/play/online'},
+  // Action / Multiplayer
+  {n:'Agar.io',tag:'Multiplayer',icon:'🦠',url:'https://agar.io'},
+  {n:'Slither.io',tag:'Multiplayer',icon:'🐍',url:'https://slither.io'},
+  {n:'Diep.io',tag:'Action',icon:'🔵',url:'https://diep.io'},
+  {n:'Krunker.io',tag:'FPS',icon:'🔫',url:'https://krunker.io'},
+  {n:'Shell Shockers',tag:'FPS',icon:'🥚',url:'https://shellshock.io'},
+  {n:'Skribbl.io',tag:'Party',icon:'✏️',url:'https://skribbl.io'},
+  {n:'Gartic Phone',tag:'Party',icon:'📞',url:'https://garticphone.com'},
+  // Casual
+  {n:'Cookie Clicker',tag:'Idle',icon:'🍪',url:'https://orteil.dashnet.org/cookieclicker'},
+  {n:'GeoGuessr',tag:'Geography',icon:'🗺️',url:'https://geoguessr.com'},
+  // CrazyGames embeds
+  {n:'Drift Boss',tag:'Racing',icon:'🚗',url:'https://www.crazygames.com/game/drift-boss'},
+  {n:'Slope',tag:'Action',icon:'⚽',url:'https://www.crazygames.com/game/slope'},
+  {n:'Paper.io 2',tag:'Multiplayer',icon:'📄',url:'https://www.crazygames.com/game/paper-io-2'},
+  {n:'Venge.io',tag:'FPS',icon:'🎯',url:'https://www.crazygames.com/game/vengeio'},
+  {n:'Stickman Hook',tag:'Action',icon:'🪝',url:'https://www.crazygames.com/game/stickman-hook'},
+  {n:'Basketball Stars',tag:'Sports',icon:'🏀',url:'https://www.crazygames.com/game/basketball-stars'},
+  {n:'Roller Baller',tag:'Puzzle',icon:'🔮',url:'https://www.crazygames.com/game/roller-baller'},
+  {n:'Minecraft Classic',tag:'Sandbox',icon:'⛏️',url:'https://classic.minecraft.net'},
+  {n:'Subway Surfers',tag:'Runner',icon:'🛹',url:'https://www.crazygames.com/game/subway-surfers'},
+  {n:'Crossy Road',tag:'Casual',icon:'🐔',url:'https://www.crazygames.com/game/crossy-road'},
+  {n:'Dino Game',tag:'Classic',icon:'🦕',url:'https://chromedino.com'},
+  {n:'Flappy Bird',tag:'Classic',icon:'🐦',url:'https://flappybird.io'},
+  {n:'Tank Battle',tag:'Action',icon:'🪖',url:'https://www.crazygames.com/game/tanx'},
+  {n:'Among Us Online',tag:'Party',icon:'👨‍🚀',url:'https://www.crazygames.com/game/among-us-online'},
+];
+var allG=[...GAMES];
+function renderGames(list){
+  var g=document.getElementById('ggrid'); g.innerHTML='';
+  if(!list.length){g.innerHTML='<div class="empty" style="grid-column:1/-1">No games found</div>';return}
+  list.forEach((s,i)=>{
+    var c=document.createElement('div'); c.className='gc fu'; c.style.animationDelay=(i*.03)+'s';
+    c.innerHTML=`<div class="gc-ph">${s.icon}</div>
+      <div class="gc-play"><svg width="14" height="14" viewBox="0 0 24 24" fill="#011725"><polygon points="5,3 19,12 5,21"/></svg></div>
+      <div class="gc-info"><div class="gc-name">${s.n}</div><div class="gc-tag">${s.tag}</div></div>`;
+    c.onclick=()=>openViewer(s.url, '🎮 '+s.n);
+    g.appendChild(c);
   });
 }
-renderG(AG);
+renderGames(allG);
 function filterGames(){
   var q=document.getElementById('gq').value.trim().toLowerCase();
-  if(!q){renderG(AG);return}
-  renderG(AG.filter(g=>g.n.toLowerCase().includes(q)||g.t.toLowerCase().includes(q)||g.d.toLowerCase().includes(q)));
+  if(!q){renderGames(allG);return}
+  renderGames(allG.filter(g=>g.n.toLowerCase().includes(q)||g.tag.toLowerCase().includes(q)));
 }
 document.getElementById('gq').addEventListener('keydown',e=>{if(e.key==='Enter')filterGames()});
 
-// ocean canvas
+// ── OCEAN CANVAS ──
 (function(){
   var c=document.getElementById('bg'),ctx=c.getContext('2d'),W,H,t=0;
   function rsz(){W=c.width=innerWidth;H=c.height=innerHeight}
