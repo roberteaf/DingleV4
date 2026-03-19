@@ -140,7 +140,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--ink);font-fami
               <button class="db" id="sgo">Dive</button>
             </div>
           </div>
-          <div class="str"><div class="dot"></div>Opens inside · DuckDuckGo search</div>
+          <div class="str"><div class="dot"></div>DuckDuckGo · opens in new tab</div>
         </div>
       </div>
     </div>
@@ -214,7 +214,7 @@ function openViewer(url, title){
   document.getElementById('vframe').src = url;
   document.getElementById('viewer').classList.add('show');
 }
-function closeViewer(){
+function closeViewer(){var p=document.getElementById("movie-panel");if(p){p.style.display="none";}var f=document.getElementById("vframe");if(f)f.style.display="block";
   document.getElementById('viewer').classList.remove('show');
   document.getElementById('vframe').src = 'about:blank';
 }
@@ -231,58 +231,52 @@ function getURL(q){
   if(/^[a-zA-Z0-9-]+\.[a-zA-Z]{2,}/.test(q)&&!q.includes(' ')) return 'https://'+q;
   return 'https://duckduckgo.com/?q='+encodeURIComponent(q)+'&ia=web';
 }
-document.getElementById('sgo').onclick=()=>{var u=getURL(document.getElementById('si').value);if(u)openViewer(u,'🔍 '+document.getElementById('si').value)};
-document.getElementById('si').addEventListener('keydown',e=>{if(e.key==='Enter'){var u=getURL(e.target.value);if(u)openViewer(u,'🔍 '+e.target.value)}});
+document.getElementById('sgo').onclick=()=>{var u=getURL(document.getElementById('si').value);if(u)window.open(u,'_blank')};
+document.getElementById('si').addEventListener('keydown',e=>{if(e.key==='Enter'){var u=getURL(e.target.value);if(u)window.open(u,'_blank')}});
 
-// ── MOVIE EMBED SOURCES ──
-function getSources(imdbId){
-  return [
-    'https://vidsrc.xyz/embed/movie?imdb='+imdbId,
-    'https://vidsrc.to/embed/movie/'+imdbId,
-    'https://embed.su/embed/movie/'+imdbId,
-    'https://www.2embed.cc/embed/'+imdbId,
-    'https://multiembed.mov/?video_id='+imdbId,
-    'https://player.smashy.stream/movie/'+imdbId,
-    'https://vidsrc.me/embed/movie?imdb='+imdbId,
-    'https://autoembed.co/movie/imdb/'+imdbId,
-  ];
-}
-
-// ── MOVIE PLAYER with numbered source buttons ──
+// ── MOVIE PLAYER — opens sources in new tab (works on GitHub Pages) ──
 function openMoviePlayer(title, year, imdbId){
-  var sources = imdbId ? getSources(imdbId) : [];
-  if(!sources.length) return;
-  var idx = 0;
   var viewer = document.getElementById('viewer');
-  var vframe = document.getElementById('vframe');
+  var vbar = document.getElementById('vbar');
   document.getElementById('vtitle').textContent = title+' ('+year+')';
-  vframe.src = sources[0];
+  document.getElementById('vframe').src = 'about:blank';
   viewer.classList.add('show');
 
-  var vbar = document.getElementById('vbar');
+  // Remove old picker
   var old = document.getElementById('src-sw');
   if(old) old.remove();
-  var sw = document.createElement('div');
-  sw.id = 'src-sw';
-  sw.style.cssText = 'display:flex;align-items:center;gap:4px;flex-shrink:0';
-  var lbl = document.createElement('span');
-  lbl.style.cssText = 'font-size:.58rem;color:rgba(165,243,252,.38);letter-spacing:.06em;margin-right:2px';
-  lbl.textContent = 'SRC:';
-  sw.appendChild(lbl);
-  sources.forEach(function(src,n){
-    var btn=document.createElement('button');
-    btn.className='vbtn';
-    btn.textContent=n+1+'';
-    btn.style.cssText='padding:4px 8px;'+(n===0?'background:rgba(34,211,238,.35)':'');
-    btn.title='Try source '+(n+1);
-    btn.onclick=function(){
-      vframe.src=src;
-      sw.querySelectorAll('.vbtn').forEach(function(b,bi){b.style.background=bi===n?'rgba(34,211,238,.35)':'rgba(34,211,238,.09)'});
-    };
-    sw.appendChild(btn);
-  });
-  var fsBtn=vbar.querySelector('#vfs');
-  vbar.insertBefore(sw, fsBtn);
+
+  // Build source picker panel inside viewer instead of iframe
+  var fw = document.getElementById('vframe');
+  fw.style.display = 'none';
+
+  var panel = document.getElementById('movie-panel');
+  if(!panel){
+    panel = document.createElement('div');
+    panel.id = 'movie-panel';
+    panel.style.cssText = 'flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;padding:30px;background:#010d1a;overflow-y:auto';
+    fw.parentNode.appendChild(panel);
+  }
+  panel.style.display = 'flex';
+
+  var sources = [
+    {name:'VidSrc',        url:'https://vidsrc.to/embed/movie/'+imdbId},
+    {name:'VidSrc XYZ',   url:'https://vidsrc.xyz/embed/movie?imdb='+imdbId},
+    {name:'2Embed',        url:'https://www.2embed.cc/embed/'+imdbId},
+    {name:'EmbedSU',       url:'https://embed.su/embed/movie/'+imdbId},
+    {name:'AutoEmbed',     url:'https://autoembed.co/movie/imdb/'+imdbId},
+    {name:'SmashyStream',  url:'https://player.smashy.stream/movie/'+imdbId},
+    {name:'SuperEmbed',    url:'https://multiembed.mov/?video_id='+imdbId},
+    {name:'MoviesJoy',     url:'https://moviesjoy.plus/search/'+encodeURIComponent(title)},
+    {name:'Tubi',          url:'https://tubitv.com/search/'+encodeURIComponent(title)},
+  ];
+
+  panel.innerHTML = '<div style="text-align:center;margin-bottom:8px"><div style="font-size:1.2rem;font-weight:700;color:#a5f3fc;margin-bottom:4px">'+title+'</div><div style="font-size:.7rem;color:rgba(165,243,252,.38)">'+year+' · Pick a source to watch</div></div>'
+    +'<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;width:100%;max-width:600px">'
+    +sources.map(function(s){
+      return '<a href="'+s.url+'" target="_blank" rel="noopener" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:16px 10px;background:linear-gradient(145deg,rgba(5,48,79,.6),rgba(2,20,37,.9));border:1px solid rgba(34,211,238,.18);border-radius:12px;color:#22d3ee;text-decoration:none;font-size:.8rem;font-weight:600;font-family:Outfit,sans-serif;transition:all .2s;cursor:pointer" onmouseover="this.style.borderColor='#22d3ee';this.style.background='rgba(34,211,238,.1)'" onmouseout="this.style.borderColor='rgba(34,211,238,.18)';this.style.background='linear-gradient(145deg,rgba(5,48,79,.6),rgba(2,20,37,.9))'"><span style="font-size:1.4rem">▶</span>'+s.name+'</a>';
+    }).join('')
+    +'</div><div style="font-size:.62rem;color:rgba(165,243,252,.25);text-align:center;max-width:400px;line-height:1.6">Click any source — it opens in a new tab so it works from GitHub Pages. If one is down try the next.</div>';
 }
 
 // ── MOVIE CARD BUILDER ──
@@ -391,7 +385,7 @@ function renderGames(list){
     c.innerHTML=`<div class="gc-ph">${s.icon}</div>
       <div class="gc-play"><svg width="14" height="14" viewBox="0 0 24 24" fill="#011725"><polygon points="5,3 19,12 5,21"/></svg></div>
       <div class="gc-info"><div class="gc-name">${s.n}</div><div class="gc-tag">${s.tag}</div></div>`;
-    c.onclick=()=>openViewer(s.url, '🎮 '+s.n);
+    c.onclick=function(){ window.open(s.url,'_blank'); };
     g.appendChild(c);
   });
 }
