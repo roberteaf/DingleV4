@@ -139,11 +139,11 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--ink);font-fami
             <div class="er" id="er"></div>
             <div class="sr">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(34,211,238,.38)" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-              <input id="si" type="text" placeholder="Search or enter a URL…" autocomplete="off" spellcheck="false"/>
+              <input id="si" type="text" placeholder="Search with DuckDuckGo or enter a URL…" autocomplete="off" spellcheck="false"/>
               <button class="db" id="sgo">Dive</button>
             </div>
           </div>
-          <div class="str"><div class="dot"></div>Loads right here · no history</div>
+          <div class="str"><div class="dot"></div>DDG search · loads inside · no history</div>
         </div>
       </div>
     </div>
@@ -252,20 +252,20 @@ function tfs(){var fw=document.getElementById('fw');if(!document.fullscreenEleme
 function navBar(){var u=getURL(document.getElementById('urlinput').value);if(u)load(u)}
 document.getElementById('urlinput').addEventListener('keydown',e=>{if(e.key==='Enter')navBar()});
 
-// engines
-var ae='google';
+// engines — only iframe-friendly ones
+var ae='ddg';
 var EN={
-  google:q=>'https://www.google.com/search?q='+encodeURIComponent(q),
-  ddg:   q=>'https://duckduckgo.com/?q='+encodeURIComponent(q),
-  brave: q=>'https://search.brave.com/search?q='+encodeURIComponent(q),
-  bing:  q=>'https://www.bing.com/search?q='+encodeURIComponent(q),
-  yt:    q=>'https://www.youtube.com/results?search_query='+encodeURIComponent(q),
+  ddg:   q=>'https://duckduckgo.com/?q='+encodeURIComponent(q)+'&ia=web',
   wiki:  q=>'https://en.wikipedia.org/w/index.php?search='+encodeURIComponent(q),
+  yt:    q=>'https://www.youtube.com/results?search_query='+encodeURIComponent(q),
+  gh:    q=>'https://github.com/search?q='+encodeURIComponent(q),
+  reddit:q=>'https://old.reddit.com/search/?q='+encodeURIComponent(q),
+  maps:  q=>'https://www.openstreetmap.org/search?query='+encodeURIComponent(q),
 };
-var EL={google:'🔍 Google',ddg:'🦆 DDG',brave:'🦁 Brave',bing:'Ⓑ Bing',yt:'▶ YT',wiki:'📖 Wiki'};
+var EL={ddg:'🦆 DDG',wiki:'📖 Wiki',yt:'▶ YouTube',gh:'🐙 GitHub',reddit:'👽 Reddit',maps:'🗺️ Maps'};
 var er=document.getElementById('er');
 Object.keys(EN).forEach(k=>{
-  var b=document.createElement('div');b.className='et'+(k==='google'?' on':'');b.textContent=EL[k];
+  var b=document.createElement('div');b.className='et'+(k==='ddg'?' on':'');b.textContent=EL[k];
   b.onclick=()=>{ae=k;er.querySelectorAll('.et').forEach(x=>x.classList.remove('on'));b.classList.add('on')};
   er.appendChild(b);
 });
