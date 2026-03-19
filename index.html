@@ -14,17 +14,11 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--ink);font-fami
 .p{position:absolute;border-radius:50%;background:radial-gradient(circle at 35% 30%,rgba(165,243,252,.5),rgba(34,211,238,.04));animation:bu linear infinite;opacity:0}
 @keyframes bu{0%{opacity:0;transform:translateY(0) translateX(0)}8%{opacity:1}85%{opacity:.28}100%{opacity:0;transform:translateY(-105vh) translateX(var(--dx))}}
 .scan{position:fixed;inset:0;z-index:2;pointer-events:none;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,.022) 2px,rgba(0,0,0,.022) 4px)}
-
-/* shell */
 #app{position:relative;z-index:5;width:100%;height:100%;display:flex;flex-direction:column}
-
-/* home */
 #home{flex:1;overflow-y:auto;overflow-x:hidden;padding-bottom:calc(var(--nav)+4px)}
 #home::-webkit-scrollbar{width:3px}
 #home::-webkit-scrollbar-thumb{background:rgba(34,211,238,.18);border-radius:4px}
 .tab{display:none}.tab.active{display:block}
-
-/* BROWSER VIEW - covers whole screen when active */
 #bview{display:none;position:fixed;inset:0;z-index:300;flex-direction:column;background:#010d1a}
 #bview.show{display:flex}
 #bbar{display:flex;align-items:center;gap:6px;padding:7px 10px;background:rgba(1,13,26,.99);border-bottom:1px solid rgba(34,211,238,.15);flex-shrink:0}
@@ -42,15 +36,11 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--ink);font-fami
 .sp{width:32px;height:32px;border-radius:50%;border:2.5px solid rgba(34,211,238,.13);border-top-color:var(--foam);animation:spin 1s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 .ldtx{font-size:.65rem;letter-spacing:.16em;text-transform:uppercase;color:rgba(34,211,238,.4)}
-
-/* nav */
 #nav{position:fixed;bottom:0;left:0;right:0;z-index:50;height:var(--nav);background:rgba(1,13,26,.97);border-top:1px solid rgba(34,211,238,.14);backdrop-filter:blur(24px);display:flex;align-items:center;justify-content:space-around;padding:0 6px}
 .nb{display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 12px;border-radius:10px;border:1.5px solid transparent;background:transparent;color:rgba(165,243,252,.3);cursor:pointer;transition:all .2s;font-family:'Outfit',sans-serif;flex:1;user-select:none}
 .nb span{font-size:.56rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase}
 .nb.on{border-color:rgba(34,211,238,.26);background:rgba(34,211,238,.08);color:var(--foam)}
 .nb:hover{color:var(--glint);background:rgba(34,211,238,.04)}
-
-/* search */
 #shome{min-height:calc(100vh - var(--nav));display:flex;align-items:center;justify-content:center;padding:28px 16px}
 .hub{width:min(520px,96vw);display:flex;flex-direction:column;align-items:center;animation:em .9s cubic-bezier(.16,1,.3,1) both}
 @keyframes em{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:translateY(0)}}
@@ -71,8 +61,6 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--ink);font-fami
 .str{margin-top:12px;font-size:.57rem;letter-spacing:.14em;text-transform:uppercase;color:rgba(34,211,238,.17);display:flex;align-items:center;justify-content:center;gap:6px}
 .dot{width:5px;height:5px;border-radius:50%;background:var(--foam);box-shadow:0 0 6px var(--foam);animation:bl 2.2s ease-in-out infinite}
 @keyframes bl{0%,100%{opacity:1}50%{opacity:.14}}
-
-/* shared */
 .sh{padding:20px 16px 10px;display:flex;align-items:baseline;justify-content:space-between}
 .st{font-family:'Cinzel Decorative',serif;font-size:.9rem;background:linear-gradient(135deg,#a5f3fc,#22d3ee);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
 .ss{font-size:.56rem;letter-spacing:.14em;text-transform:uppercase;color:rgba(34,211,238,.24)}
@@ -82,8 +70,6 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--ink);font-fami
 .ts input::placeholder{color:rgba(165,243,252,.17)}
 .ts button{background:linear-gradient(135deg,#22d3ee,#0891b2);border:none;border-radius:7px;padding:7px 14px;color:#011725;font-size:.7rem;font-weight:700;cursor:pointer;font-family:'Outfit',sans-serif;white-space:nowrap}
 .divider{margin:2px 16px 14px;height:1px;background:linear-gradient(90deg,transparent,rgba(34,211,238,.12),transparent)}
-
-/* movie grid */
 .mgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px;padding:0 16px 16px}
 .mc{background:linear-gradient(145deg,rgba(5,48,79,.5),rgba(2,20,37,.8));border:1px solid rgba(34,211,238,.1);border-radius:12px;overflow:hidden;cursor:pointer;transition:all .2s;position:relative}
 .mc:hover{border-color:rgba(34,211,238,.5);transform:translateY(-3px);box-shadow:0 10px 30px rgba(1,13,26,.8)}
@@ -94,8 +80,6 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--ink);font-fami
 .mc-info{padding:8px 9px}
 .mc-title{font-size:.72rem;font-weight:600;color:var(--glint);line-height:1.3;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .mc-year{font-size:.6rem;color:rgba(165,243,252,.32)}
-
-/* games grid */
 .ggrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;padding:0 16px 16px}
 .gc{background:linear-gradient(145deg,rgba(5,48,79,.5),rgba(2,20,37,.8));border:1px solid rgba(34,211,238,.1);border-radius:12px;overflow:hidden;cursor:pointer;transition:all .2s;position:relative}
 .gc:hover{border-color:rgba(34,211,238,.5);transform:translateY(-3px);box-shadow:0 10px 30px rgba(1,13,26,.8)}
@@ -104,7 +88,6 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--ink);font-fami
 .gc-info{padding:8px 9px}
 .gc-name{font-size:.76rem;font-weight:600;color:var(--glint);margin-bottom:3px}
 .gc-tag{display:inline-block;padding:2px 7px;border-radius:4px;font-size:.54rem;font-weight:600;text-transform:uppercase;background:rgba(34,211,238,.09);color:var(--foam);border:1px solid rgba(34,211,238,.15)}
-
 .ld{display:flex;align-items:center;justify-content:center;gap:9px;padding:28px;color:rgba(34,211,238,.35);font-size:.7rem;letter-spacing:.1em;text-transform:uppercase}
 @keyframes fu{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}.fu{animation:fu .35s ease both}
 .empty{padding:24px 16px;text-align:center;color:rgba(165,243,252,.28);font-size:.8rem}
@@ -114,11 +97,8 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--ink);font-fami
 <canvas id="bg"></canvas>
 <div id="pts"></div>
 <div class="scan"></div>
-
 <div id="app">
   <div id="home">
-
-    <!-- SEARCH -->
     <div class="tab active" id="tab-search">
       <div id="shome">
         <div class="hub">
@@ -147,12 +127,11 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--ink);font-fami
               <button class="db" id="sgo">Dive</button>
             </div>
           </div>
-          <div class="str"><div class="dot"></div>Loads inside · DuckDuckGo powered</div>
+          <div class="str"><div class="dot"></div>Powered by html.duckduckgo.com</div>
         </div>
       </div>
     </div>
 
-    <!-- MOVIES -->
     <div class="tab" id="tab-movies">
       <div class="sh"><div class="st">🎬 Movies</div><div class="ss">Click to watch inside</div></div>
       <div class="ts">
@@ -166,7 +145,6 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--ink);font-fami
       <div class="mgrid" id="mpop"></div>
     </div>
 
-    <!-- GAMES -->
     <div class="tab" id="tab-games">
       <div class="sh"><div class="st">🎮 Games</div><div class="ss">Click to play inside</div></div>
       <div class="ts">
@@ -178,7 +156,6 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--ink);font-fami
     </div>
   </div>
 
-  <!-- BROWSER VIEW — full screen over everything -->
   <div id="bview">
     <div id="bbar">
       <button class="bbtn" onclick="goBack()">←</button>
@@ -190,16 +167,15 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--ink);font-fami
         <button id="burlgo" onclick="navFromBar()">Go</button>
       </div>
       <button class="bbtn" onclick="toggleFS()">⛶</button>
+      <button class="bbtn" onclick="window.open(currentURL,'_blank')">↗</button>
       <button class="bbtn" onclick="closeBrowser()" style="background:rgba(255,60,60,.15);border-color:rgba(255,100,100,.2);color:#ff7070">✕</button>
     </div>
     <div id="bframe-wrap">
-      <div id="bloader">
-        <div class="sp"></div>
-        <div class="ldtx">Loading…</div>
-      </div>
+      <div id="bloader"><div class="sp"></div><div class="ldtx">Loading…</div></div>
       <iframe id="bframe"
         allow="fullscreen; autoplay; encrypted-media; picture-in-picture; accelerometer; gyroscope"
         allowfullscreen
+        sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals allow-pointer-lock allow-presentation allow-top-navigation-by-user-activation"
       ></iframe>
     </div>
   </div>
@@ -221,7 +197,8 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--ink);font-fami
 </div>
 
 <script>
-// ── TABS ──
+var currentURL = '';
+
 function sw(n){
   document.querySelectorAll('.tab').forEach(function(t){t.classList.remove('active')});
   document.querySelectorAll('.nb').forEach(function(b){b.classList.remove('on')});
@@ -230,112 +207,103 @@ function sw(n){
   document.getElementById('home').scrollTop=0;
 }
 
-// ── BROWSER ──
-var bframe = document.getElementById('bframe');
-var bloader = document.getElementById('bloader');
-var burlinput = document.getElementById('burlinput');
+var bframe=document.getElementById('bframe');
+var bloader=document.getElementById('bloader');
+var burlinput=document.getElementById('burlinput');
 
-function openBrowser(url, label){
+function openBrowser(url){
+  currentURL=url;
+  burlinput.value=url;
   bloader.classList.remove('gone');
-  bframe.src = '';
-  burlinput.value = url;
+  bframe.src='about:blank';
   document.getElementById('bview').classList.add('show');
-  // small delay so browser paints the loader first
-  setTimeout(function(){ bframe.src = url; }, 80);
+  setTimeout(function(){ bframe.src=url; },80);
 }
 
-bframe.addEventListener('load', function(){
+bframe.addEventListener('load',function(){
   bloader.classList.add('gone');
-  try{ burlinput.value = bframe.contentWindow.location.href; }catch(e){}
+  try{ burlinput.value=bframe.contentWindow.location.href; }catch(e){}
 });
 
 function closeBrowser(){
   document.getElementById('bview').classList.remove('show');
-  bframe.src = 'about:blank';
+  bframe.src='about:blank';
   bloader.classList.remove('gone');
+  currentURL='';
 }
 
 function goBack(){  try{ bframe.contentWindow.history.back(); }catch(e){} }
 function goFwd(){   try{ bframe.contentWindow.history.forward(); }catch(e){} }
-function reloadFrame(){ bframe.src = bframe.src; }
+function reloadFrame(){ bloader.classList.remove('gone'); bframe.src=currentURL; }
 function toggleFS(){
-  var w = document.getElementById('bframe-wrap');
-  if(!document.fullscreenElement) w.requestFullscreen && w.requestFullscreen();
-  else document.exitFullscreen && document.exitFullscreen();
+  var w=document.getElementById('bframe-wrap');
+  if(!document.fullscreenElement) w.requestFullscreen&&w.requestFullscreen();
+  else document.exitFullscreen&&document.exitFullscreen();
 }
 function navFromBar(){
-  var u = getURL(burlinput.value);
-  if(u){ bloader.classList.remove('gone'); bframe.src = u; burlinput.value = u; }
+  var u=getURL(burlinput.value);
+  if(u) openBrowser(u);
 }
-burlinput.addEventListener('keydown', function(e){ if(e.key==='Enter') navFromBar(); });
+burlinput.addEventListener('keydown',function(e){ if(e.key==='Enter') navFromBar(); });
 
-// ── URL HELPER ──
+// All searches go through html.duckduckgo.com — no X-Frame-Options, allows embedding
 function getURL(q){
-  q = (q||'').trim(); if(!q) return null;
+  q=(q||'').trim(); if(!q) return null;
   if(/^https?:\/\//i.test(q)) return q;
-  if(/^[a-zA-Z0-9-]+\.[a-zA-Z]{2,}/.test(q) && !q.includes(' ')) return 'https://'+q;
-  return 'https://duckduckgo.com/?q='+encodeURIComponent(q)+'&ia=web';
+  if(/^[a-zA-Z0-9-]+\.[a-zA-Z]{2,}/.test(q)&&!q.includes(' ')) return 'https://'+q;
+  return 'https://html.duckduckgo.com/html/?q='+encodeURIComponent(q);
 }
 
-// ── SEARCH ──
-document.getElementById('sgo').onclick = function(){
-  var u = getURL(document.getElementById('si').value);
+document.getElementById('sgo').onclick=function(){
+  var u=getURL(document.getElementById('si').value);
   if(u) openBrowser(u);
 };
-document.getElementById('si').addEventListener('keydown', function(e){
+document.getElementById('si').addEventListener('keydown',function(e){
   if(e.key==='Enter'){ var u=getURL(this.value); if(u) openBrowser(u); }
 });
 
-// ── MOVIE CARD ──
-function movieCard(title, year, poster, imdbId, i){
-  var c = document.createElement('div');
-  c.className = 'mc fu'; c.style.animationDelay = (i*0.04)+'s';
-  var img = (poster && poster!=='N/A')
-    ? '<img class="mc-img" src="'+poster+'" loading="lazy" onerror="this.outerHTML=\'<div class=mc-ph>🎬</div>\'">'
-    : '<div class="mc-ph">🎬</div>';
-  c.innerHTML = img
-    + '<div class="play-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="#011725"><polygon points="5,3 19,12 5,21"/></svg></div>'
-    + '<div class="mc-info"><div class="mc-title">'+title+'</div><div class="mc-year">'+(year||'')+'</div></div>';
-  // try vidsrc first, fallback to ddg search
-  c.onclick = function(){
-    var url = imdbId
-      ? 'https://vidsrc.xyz/embed/movie?imdb='+imdbId
-      : 'https://duckduckgo.com/?q='+encodeURIComponent(title+' '+year+' watch free');
-    openBrowser(url, title);
+function movieCard(title,year,poster,imdbId,i){
+  var c=document.createElement('div');
+  c.className='mc fu'; c.style.animationDelay=(i*0.04)+'s';
+  var img=(poster&&poster!=='N/A')
+    ?'<img class="mc-img" src="'+poster+'" loading="lazy" onerror="this.outerHTML=\'<div class=mc-ph>🎬</div>\'">'
+    :'<div class="mc-ph">🎬</div>';
+  c.innerHTML=img
+    +'<div class="play-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="#011725"><polygon points="5,3 19,12 5,21"/></svg></div>'
+    +'<div class="mc-info"><div class="mc-title">'+title+'</div><div class="mc-year">'+(year||'')+'</div></div>';
+  c.onclick=function(){
+    var url=imdbId
+      ?'https://vidsrc.xyz/embed/movie?imdb='+imdbId
+      :'https://html.duckduckgo.com/html/?q='+encodeURIComponent(title+' '+year+' watch free');
+    openBrowser(url);
   };
   return c;
 }
 
-// ── MOVIE SEARCH ──
 function searchMovies(){
-  var q = document.getElementById('mq').value.trim(); if(!q) return;
-  var res = document.getElementById('mres');
-  res.innerHTML = '<div class="ld"><div class="sp"></div>Searching…</div>';
+  var q=document.getElementById('mq').value.trim(); if(!q) return;
+  var res=document.getElementById('mres');
+  res.innerHTML='<div class="ld"><div class="sp"></div>Searching…</div>';
   fetch('https://www.omdbapi.com/?s='+encodeURIComponent(q)+'&apikey=trilogy')
     .then(function(r){ return r.json(); })
     .then(function(data){
-      res.innerHTML = '';
-      if(data.Search && data.Search.length){
-        var hdr = document.createElement('div');
-        hdr.style.cssText = 'padding:0 16px 10px;font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;color:rgba(34,211,238,.28)';
-        hdr.textContent = 'Results for "'+q+'" — click to watch';
+      res.innerHTML='';
+      if(data.Search&&data.Search.length){
+        var hdr=document.createElement('div');
+        hdr.style.cssText='padding:0 16px 10px;font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;color:rgba(34,211,238,.28)';
+        hdr.textContent='Results for "'+q+'" — click to watch';
         res.appendChild(hdr);
-        var g = document.createElement('div'); g.className = 'mgrid';
-        data.Search.slice(0,12).forEach(function(m,i){
-          g.appendChild(movieCard(m.Title, m.Year, m.Poster, m.imdbID, i));
-        });
+        var g=document.createElement('div'); g.className='mgrid';
+        data.Search.slice(0,12).forEach(function(m,i){ g.appendChild(movieCard(m.Title,m.Year,m.Poster,m.imdbID,i)); });
         res.appendChild(g);
       } else {
-        res.innerHTML = '<div class="empty">No results — try a different spelling</div>';
+        res.innerHTML='<div class="empty">No results — try a different spelling</div>';
       }
-    }).catch(function(){
-      res.innerHTML = '<div class="empty">Search failed</div>';
-    });
+    }).catch(function(){ res.innerHTML='<div class="empty">Search failed</div>'; });
 }
-document.getElementById('mq').addEventListener('keydown', function(e){ if(e.key==='Enter') searchMovies(); });
+document.getElementById('mq').addEventListener('keydown',function(e){ if(e.key==='Enter') searchMovies(); });
 
-// ── POPULAR MOVIES ──
-var POP = [
+var POP=[
   {t:'The Dark Knight',y:'2008',id:'tt0468569',p:'https://m.media-amazon.com/images/M/MV5BMTMxNTMwODM0NF5BMl5BanBnXkFtZTcwODAyMTk2Mw@@._V1_SX300.jpg'},
   {t:'Inception',y:'2010',id:'tt1375666',p:'https://m.media-amazon.com/images/M/MV5BMjAxMzY3NjcxNF5BMl5BanBnXkFtZTcwNTI5OTM0Mw@@._V1_SX300.jpg'},
   {t:'Interstellar',y:'2014',id:'tt0816692',p:'https://m.media-amazon.com/images/M/MV5BZjdkOTU3MDktN2IxOS00OGEyLWFmMjktY2FiMmZkNWIyODZiXkEyXkFqcGdeQXVyMTMxODk2OTU@._V1_SX300.jpg'},
@@ -350,14 +318,12 @@ var POP = [
   {t:'Black Panther',y:'2018',id:'tt1825683',p:'https://m.media-amazon.com/images/M/MV5BMTg1MTY2MjYzNV5BMl5BanBnXkFtZTgwMjgyNTEwMjE@._V1_SX300.jpg'},
   {t:'Parasite',y:'2019',id:'tt6751668',p:'https://m.media-amazon.com/images/M/MV5BYWZjMjk3ZTItODQ2ZC00NTY5LWE0ZDYtZTI3MjcwN2Q5NTVkXkEyXkFqcGdeQXVyODk4OTc3MTY@._V1_SX300.jpg'},
   {t:'Everything Everywhere',y:'2022',id:'tt6710474',p:'https://m.media-amazon.com/images/M/MV5BYTdiOTIyZTQtNmQ1OS00NjZlLWIyMTgtYzk5Y2M3ZDVmMDk1XkEyXkFqcGdeQXVyMTAzMDg4NzU0._V1_SX300.jpg'},
-  {t:'The Avengers',y:'2012',id:'tt0848228',p:'https://m.media-amazon.com/images/M/MV5BNDYxNjQyMjAtNTdiOS00NGYwLWFmNTAtNThmYjU5ZGM2NTFkXkEyXkFqcGdeQXVyMTMxODk2OTU@._V1_SX300.jpg'},
   {t:'Guardians of the Galaxy',y:'2014',id:'tt2015381',p:'https://m.media-amazon.com/images/M/MV5BMTAwMjU5OTgxNjZeQTJeQWpwZ15BbWU4MDUxNDYxNTMx._V1_SX300.jpg'},
 ];
-var mpop = document.getElementById('mpop');
-POP.forEach(function(m,i){ mpop.appendChild(movieCard(m.t, m.y, m.p, m.id, i)); });
+var mpop=document.getElementById('mpop');
+POP.forEach(function(m,i){ mpop.appendChild(movieCard(m.t,m.y,m.p,m.id,i)); });
 
-// ── GAMES ──
-var GAMES = [
+var GAMES=[
   {n:'Agar.io',tag:'Multiplayer',icon:'🦠',url:'https://agar.io'},
   {n:'Slither.io',tag:'Multiplayer',icon:'🐍',url:'https://slither.io'},
   {n:'Diep.io',tag:'Action',icon:'🔵',url:'https://diep.io'},
@@ -389,29 +355,28 @@ var GAMES = [
   {n:'Among Us Online',tag:'Party',icon:'👨‍🚀',url:'https://www.crazygames.com/game/among-us-online'},
   {n:'Rooftop Snipers',tag:'Action',icon:'🎯',url:'https://www.crazygames.com/game/rooftop-snipers'},
 ];
-var allG = GAMES.slice();
+var allG=GAMES.slice();
 function renderGames(list){
-  var g = document.getElementById('ggrid'); g.innerHTML = '';
+  var g=document.getElementById('ggrid'); g.innerHTML='';
   if(!list.length){ g.innerHTML='<div class="empty" style="grid-column:1/-1">No games found</div>'; return; }
   list.forEach(function(s,i){
-    var c = document.createElement('div');
-    c.className = 'gc fu'; c.style.animationDelay = (i*0.03)+'s';
-    c.innerHTML = '<div class="gc-ph">'+s.icon+'</div>'
-      + '<div class="play-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="#011725"><polygon points="5,3 19,12 5,21"/></svg></div>'
-      + '<div class="gc-info"><div class="gc-name">'+s.n+'</div><div class="gc-tag">'+s.tag+'</div></div>';
-    (function(url){ c.onclick = function(){ openBrowser(url); }; })(s.url);
+    var c=document.createElement('div');
+    c.className='gc fu'; c.style.animationDelay=(i*0.03)+'s';
+    c.innerHTML='<div class="gc-ph">'+s.icon+'</div>'
+      +'<div class="play-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="#011725"><polygon points="5,3 19,12 5,21"/></svg></div>'
+      +'<div class="gc-info"><div class="gc-name">'+s.n+'</div><div class="gc-tag">'+s.tag+'</div></div>';
+    (function(url){ c.onclick=function(){ openBrowser(url); }; })(s.url);
     g.appendChild(c);
   });
 }
 renderGames(allG);
 function filterGames(){
-  var q = document.getElementById('gq').value.trim().toLowerCase();
+  var q=document.getElementById('gq').value.trim().toLowerCase();
   if(!q){ renderGames(allG); return; }
   renderGames(allG.filter(function(g){ return g.n.toLowerCase().includes(q)||g.tag.toLowerCase().includes(q); }));
 }
-document.getElementById('gq').addEventListener('keydown', function(e){ if(e.key==='Enter') filterGames(); });
+document.getElementById('gq').addEventListener('keydown',function(e){ if(e.key==='Enter') filterGames(); });
 
-// ── CANVAS ──
 (function(){
   var c=document.getElementById('bg'),ctx=c.getContext('2d'),W,H,t=0;
   function rsz(){W=c.width=innerWidth;H=c.height=innerHeight;}
