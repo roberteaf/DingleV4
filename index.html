@@ -575,7 +575,7 @@
       </div>
       FINDING BEST SOURCE…
     </div>
-    <iframe id="player-iframe" allowfullscreen sandbox="allow-scripts allow-same-origin allow-forms"></iframe>
+    <iframe id="player-iframe" allowfullscreen allow="autoplay; fullscreen; encrypted-media"></iframe>
   </div>
 </div>
 
@@ -586,7 +586,7 @@
     <span id="game-title">Game</span>
     <button id="game-close" onclick="closeGame()">✕ Exit Game</button>
   </div>
-  <iframe id="game-iframe" allowfullscreen sandbox="allow-scripts allow-same-origin allow-forms allow-top-navigation-by-user-activation"></iframe>
+  <iframe id="game-iframe" allowfullscreen allow="autoplay; fullscreen; gamepad"></iframe>
 </div>
 
 <!-- SETTINGS MODAL -->
@@ -663,7 +663,6 @@ function setSearchMode(m){
 setSearchMode(searchMode);
 
 // ══ PROXY ══
-// Routes any URL through our Cloudflare worker to bypass blocks
 function proxify(url){
   return `/proxy?url=${encodeURIComponent(url)}`;
 }
@@ -831,110 +830,105 @@ function closePlayer(){
   movieEmbedIndex = 0;
 }
 
-// ══ GAMES ══ (all iframe-friendly embed URLs only)
+// ══ GAMES ══ (onlinegames.io + direct IO sites — confirmed iframe friendly)
 const GAMES = [
   // Action
-  {n:'Bullet Force',g:'action',e:'🔫',c:'#1c3a5e',url:'https://www.crazygames.com/embed/bullet-force-multiplayer'},
-  {n:'Forward Assault',g:'action',e:'💥',c:'#0d2a45',url:'https://www.crazygames.com/embed/forward-assault-remix'},
-  {n:'Combat Online',g:'action',e:'🗡️',c:'#142840',url:'https://www.crazygames.com/embed/combat-online'},
-  {n:'Stickman Fighter',g:'action',e:'🥊',c:'#1a3a60',url:'https://www.crazygames.com/embed/stickman-fighter-epic-battle'},
-  {n:'Masked Forces',g:'action',e:'🪖',c:'#0f2e52',url:'https://www.crazygames.com/embed/masked-forces'},
-  {n:'Warscrap.io',g:'action',e:'⚔️',c:'#122c48',url:'https://www.crazygames.com/embed/warscrap-io'},
-  {n:'Pixel Warfare',g:'action',e:'🎯',c:'#0a2540',url:'https://www.crazygames.com/embed/pixel-warfare'},
-  {n:'Mad GunZ',g:'action',e:'💣',c:'#102848',url:'https://www.crazygames.com/embed/mad-gunz'},
-  {n:'War Strides',g:'action',e:'🔱',c:'#0d2c4a',url:'https://www.crazygames.com/embed/war-strides'},
-  {n:'Among Us Online',g:'action',e:'👨‍🚀',c:'#1a3860',url:'https://www.crazygames.com/embed/among-us-online-edition'},
-  // IO (embed-friendly versions)
-  {n:'Smash Karts',g:'io',e:'🛺',c:'#0a2840',url:'https://www.crazygames.com/embed/smash-karts'},
-  {n:'Brutal.io',g:'io',e:'⭕',c:'#0f3050',url:'https://www.crazygames.com/embed/brutal-io'},
-  {n:'Snowball.io',g:'io',e:'❄️',c:'#122c4a',url:'https://www.crazygames.com/embed/snowball-io'},
-  {n:'Skribbl.io',g:'io',e:'🖊️',c:'#0d2840',url:'https://www.crazygames.com/embed/skribbl-io'},
-  {n:'Ev.io',g:'io',e:'🔵',c:'#143058',url:'https://www.crazygames.com/embed/ev-io'},
-  {n:'Lordz.io',g:'io',e:'👑',c:'#0a2038',url:'https://www.crazygames.com/embed/lordz-io'},
-  {n:'Zombs Royale',g:'io',e:'🧟',c:'#0d2a48',url:'https://www.crazygames.com/embed/zombs-royale-io'},
-  {n:'Flyordie.io',g:'io',e:'🦋',c:'#0f3050',url:'https://www.crazygames.com/embed/flyordie-io'},
-  {n:'Stabfish.io',g:'io',e:'🐡',c:'#122848',url:'https://www.crazygames.com/embed/stabfish-io'},
-  {n:'Territorial.io',g:'io',e:'🗺️',c:'#0a2238',url:'https://www.crazygames.com/embed/territorial-io'},
-  {n:'Foes.io',g:'io',e:'🏹',c:'#0d3060',url:'https://www.crazygames.com/embed/foes-io'},
-  {n:'Warbot.io',g:'io',e:'🤖',c:'#102a48',url:'https://www.crazygames.com/embed/warbot-io'},
+  {n:'Bullet Force',g:'action',e:'🔫',c:'#1c3a5e',url:'https://www.onlinegames.io/games/2021/unity2/bullet-force/index.html'},
+  {n:'Combat Reloaded',g:'action',e:'💥',c:'#0d2a45',url:'https://www.onlinegames.io/games/2022/unity/combat-reloaded-2/index.html'},
+  {n:'Stickman Fighter',g:'action',e:'🥊',c:'#1a3a60',url:'https://www.onlinegames.io/games/2022/construct/stickman-fighter-epic-battle/index.html'},
+  {n:'Masked Forces',g:'action',e:'🪖',c:'#0f2e52',url:'https://www.onlinegames.io/games/2021/unity2/masked-forces/index.html'},
+  {n:'Pixel Warfare',g:'action',e:'🎯',c:'#0a2540',url:'https://www.onlinegames.io/games/2021/unity2/pixel-warfare/index.html'},
+  {n:'Mad GunZ',g:'action',e:'💣',c:'#102848',url:'https://www.onlinegames.io/games/2021/unity2/mad-gunz/index.html'},
+  {n:'Forward Assault',g:'action',e:'🔱',c:'#0d2c4a',url:'https://www.onlinegames.io/games/2022/unity/forward-assault-remix/index.html'},
+  {n:'Shell Shockers',g:'action',e:'🥚',c:'#143054',url:'https://shellshock.io/'},
+  {n:'1v1.LOL',g:'action',e:'🏗️',c:'#0a2540',url:'https://1v1.lol/'},
+  {n:'Kirka.io',g:'action',e:'🎮',c:'#102a48',url:'https://kirka.io/'},
+  // IO
+  {n:'Smash Karts',g:'io',e:'🛺',c:'#0a2840',url:'https://smashkarts.io/'},
+  {n:'Ev.io',g:'io',e:'🔵',c:'#143058',url:'https://ev.io/'},
+  {n:'Zombs Royale',g:'io',e:'🧟',c:'#0a2038',url:'https://zombsroyale.io/'},
+  {n:'Territorial.io',g:'io',e:'🗺️',c:'#0a2238',url:'https://territorial.io/'},
+  {n:'Brutal.io',g:'io',e:'⭕',c:'#0f3050',url:'https://brutal.io/'},
+  {n:'Snowball.io',g:'io',e:'❄️',c:'#122c4a',url:'https://snowball.io/'},
+  {n:'Flyordie.io',g:'io',e:'🦋',c:'#0f3050',url:'https://flyordie.io/'},
+  {n:'Stabfish.io',g:'io',e:'🐡',c:'#122848',url:'https://stabfish.io/'},
+  {n:'Lordz.io',g:'io',e:'👑',c:'#0a2038',url:'https://www.lordz.io/'},
+  {n:'Foes.io',g:'io',e:'🏹',c:'#0d3060',url:'https://foes.io/'},
+  {n:'Warbot.io',g:'io',e:'🤖',c:'#102a48',url:'https://warbot.io/'},
   // Puzzle
-  {n:'2048',g:'puzzle',e:'🔢',c:'#0d3358',url:'https://www.crazygames.com/embed/2048'},
-  {n:'Cut the Rope',g:'puzzle',e:'🍬',c:'#1a3858',url:'https://www.crazygames.com/embed/cut-the-rope-remastered'},
-  {n:'Block Puzzle',g:'puzzle',e:'🧩',c:'#0d2e50',url:'https://www.crazygames.com/embed/block-puzzle-jewel'},
-  {n:'Unblock It',g:'puzzle',e:'📦',c:'#0a2a4a',url:'https://www.crazygames.com/embed/unblock-it'},
-  {n:'Mahjong Classic',g:'puzzle',e:'🀄',c:'#0f2d4c',url:'https://www.crazygames.com/embed/mahjong-classic'},
-  {n:'Jigsaw Puzzles',g:'puzzle',e:'🔲',c:'#122840',url:'https://www.crazygames.com/embed/jigsaw-puzzles-real'},
-  {n:'Bubble Shooter',g:'puzzle',e:'🫧',c:'#0a2a50',url:'https://www.crazygames.com/embed/bubble-shooter'},
-  {n:'Sugar Sugar',g:'puzzle',e:'🍭',c:'#142a48',url:'https://www.crazygames.com/embed/sugar-sugar-3'},
-  {n:'Wordle Unlimited',g:'puzzle',e:'🟩',c:'#0f2e52',url:'https://www.crazygames.com/embed/wordle-unlimited'},
-  {n:'Color Fill',g:'puzzle',e:'🎨',c:'#122c4a',url:'https://www.crazygames.com/embed/color-fill-3d'},
+  {n:'2048',g:'puzzle',e:'🔢',c:'#0d3358',url:'https://play2048.co/'},
+  {n:'Wordle Unlimited',g:'puzzle',e:'🟩',c:'#0f2e52',url:'https://wordleunlimited.org/'},
+  {n:'Cut the Rope',g:'puzzle',e:'🍬',c:'#1a3858',url:'https://www.onlinegames.io/games/2023/html5/cut-the-rope/index.html'},
+  {n:'Block Puzzle',g:'puzzle',e:'🧩',c:'#0d2e50',url:'https://www.onlinegames.io/games/2022/html5/block-puzzle-jewel/index.html'},
+  {n:'Bubble Shooter',g:'puzzle',e:'🫧',c:'#0a2a50',url:'https://www.onlinegames.io/games/2021/html5/bubble-shooter/index.html'},
+  {n:'Unblock It',g:'puzzle',e:'📦',c:'#0a2a4a',url:'https://www.onlinegames.io/games/2021/html5/unblock-it/index.html'},
+  {n:'Mahjong',g:'puzzle',e:'🀄',c:'#0f2d4c',url:'https://www.onlinegames.io/games/2021/html5/mahjong-classic/index.html'},
+  {n:'Color Fill',g:'puzzle',e:'🎨',c:'#122c4a',url:'https://www.onlinegames.io/games/2022/html5/color-fill-3d/index.html'},
+  {n:'Sugar Sugar',g:'puzzle',e:'🍭',c:'#142a48',url:'https://www.onlinegames.io/games/2021/html5/sugar-sugar/index.html'},
   // Racing
-  {n:'Madalin Cars',g:'racing',e:'🏎️',c:'#1a3a60',url:'https://www.crazygames.com/embed/madalin-cars-multiplayer'},
-  {n:'Drift Boss',g:'racing',e:'💨',c:'#102e55',url:'https://www.crazygames.com/embed/drift-boss'},
-  {n:'Moto X3M',g:'racing',e:'🏍️',c:'#0f2d52',url:'https://www.crazygames.com/embed/moto-x3m'},
-  {n:'Derby Crash 4',g:'racing',e:'💥',c:'#122850',url:'https://www.crazygames.com/embed/derby-crash-4'},
-  {n:'Road Rush Cars',g:'racing',e:'🚗',c:'#0d3260',url:'https://www.crazygames.com/embed/road-rush-cars'},
-  {n:'Driving Mad',g:'racing',e:'🚙',c:'#143060',url:'https://www.crazygames.com/embed/driving-mad'},
-  {n:'Moto X3M Winter',g:'racing',e:'❄️',c:'#0a2840',url:'https://www.crazygames.com/embed/moto-x3m-winter'},
-  {n:'Traffic Rider',g:'racing',e:'🛵',c:'#102c50',url:'https://www.crazygames.com/embed/traffic-rider'},
+  {n:'Madalin Cars',g:'racing',e:'🏎️',c:'#1a3a60',url:'https://www.onlinegames.io/games/2021/unity2/madalin-cars-multiplayer/index.html'},
+  {n:'Drift Boss',g:'racing',e:'💨',c:'#102e55',url:'https://www.onlinegames.io/games/2021/html5/drift-boss/index.html'},
+  {n:'Moto X3M',g:'racing',e:'🏍️',c:'#0f2d52',url:'https://www.onlinegames.io/games/2021/html5/moto-x3m/index.html'},
+  {n:'Moto X3M Winter',g:'racing',e:'❄️',c:'#0a2840',url:'https://www.onlinegames.io/games/2021/html5/moto-x3m-winter/index.html'},
+  {n:'Derby Crash',g:'racing',e:'💥',c:'#122850',url:'https://www.onlinegames.io/games/2022/unity/derby-crash-4/index.html'},
+  {n:'Road Rush',g:'racing',e:'🚗',c:'#0d3260',url:'https://www.onlinegames.io/games/2021/html5/road-rush-cars/index.html'},
+  {n:'Driving Mad',g:'racing',e:'🚙',c:'#143060',url:'https://www.onlinegames.io/games/2022/html5/driving-mad/index.html'},
+  {n:'Traffic Rider',g:'racing',e:'🛵',c:'#102c50',url:'https://www.onlinegames.io/games/2021/unity2/traffic-rider/index.html'},
   // Adventure
-  {n:'Fireboy & Watergirl',g:'adventure',e:'🔥',c:'#0d3050',url:'https://www.crazygames.com/embed/fireboy-and-watergirl-1'},
-  {n:'Stickman Hook',g:'adventure',e:'🕷️',c:'#0a2545',url:'https://www.crazygames.com/embed/stickman-hook'},
-  {n:'Vex 6',g:'adventure',e:'🏃',c:'#122d50',url:'https://www.crazygames.com/embed/vex-6'},
-  {n:'Tomb of the Mask',g:'adventure',e:'💀',c:'#0d2840',url:'https://www.crazygames.com/embed/tomb-of-the-mask'},
-  {n:'Bob the Robber',g:'adventure',e:'🦹',c:'#0f3055',url:'https://www.crazygames.com/embed/bob-the-robber'},
-  {n:'Adam & Eve',g:'adventure',e:'🍎',c:'#143060',url:'https://www.crazygames.com/embed/adam-and-eve-1'},
-  {n:'Red Ball 4',g:'adventure',e:'🔴',c:'#0a2842',url:'https://www.crazygames.com/embed/red-ball-4'},
-  {n:'Cat Ninja',g:'adventure',e:'🐱',c:'#0a2845',url:'https://www.crazygames.com/embed/cat-ninja'},
-  {n:'Crossy Road',g:'adventure',e:'🐔',c:'#102a48',url:'https://www.crazygames.com/embed/crossy-road-online'},
-  {n:'Vex 5',g:'adventure',e:'🧗',c:'#0d2c50',url:'https://www.crazygames.com/embed/vex-5'},
-  {n:'Slope 2',g:'adventure',e:'🏂',c:'#1a4080',url:'https://www.crazygames.com/embed/slope-2'},
-  {n:'Run 3',g:'adventure',e:'🚀',c:'#0d3b6e',url:'https://www.crazygames.com/embed/run-3'},
+  {n:'Fireboy & Watergirl',g:'adventure',e:'🔥',c:'#0d3050',url:'https://www.onlinegames.io/games/2021/html5/fireboy-and-watergirl-1/index.html'},
+  {n:'Stickman Hook',g:'adventure',e:'🕷️',c:'#0a2545',url:'https://www.onlinegames.io/games/2021/html5/stickman-hook/index.html'},
+  {n:'Vex 6',g:'adventure',e:'🏃',c:'#122d50',url:'https://www.onlinegames.io/games/2022/html5/vex-6/index.html'},
+  {n:'Vex 5',g:'adventure',e:'🧗',c:'#0d2c50',url:'https://www.onlinegames.io/games/2021/html5/vex-5/index.html'},
+  {n:'Tomb of the Mask',g:'adventure',e:'💀',c:'#0d2840',url:'https://www.onlinegames.io/games/2022/html5/tomb-of-the-mask/index.html'},
+  {n:'Bob the Robber',g:'adventure',e:'🦹',c:'#0f3055',url:'https://www.onlinegames.io/games/2021/html5/bob-the-robber/index.html'},
+  {n:'Red Ball 4',g:'adventure',e:'🔴',c:'#0a2842',url:'https://www.onlinegames.io/games/2021/html5/red-ball-4/index.html'},
+  {n:'Cat Ninja',g:'adventure',e:'🐱',c:'#0a2845',url:'https://www.onlinegames.io/games/2022/html5/cat-ninja/index.html'},
+  {n:'Crossy Road',g:'adventure',e:'🐔',c:'#102a48',url:'https://www.onlinegames.io/games/2021/html5/crossy-road/index.html'},
+  {n:'Run 3',g:'adventure',e:'🚀',c:'#0d3b6e',url:'https://www.onlinegames.io/games/2021/html5/run-3/index.html'},
+  {n:'Slope',g:'adventure',e:'🏂',c:'#1a4080',url:'https://www.onlinegames.io/games/2021/html5/slope/index.html'},
+  {n:'Adam & Eve',g:'adventure',e:'🍎',c:'#143060',url:'https://www.onlinegames.io/games/2021/html5/adam-and-eve/index.html'},
   // Sports
-  {n:'Basketball Stars',g:'sports',e:'🏀',c:'#1a3858',url:'https://www.crazygames.com/embed/basketball-stars'},
-  {n:'Head Soccer',g:'sports',e:'⚽',c:'#0d2e52',url:'https://www.crazygames.com/embed/head-soccer'},
-  {n:'8-Ball Pool',g:'sports',e:'🎱',c:'#0a2845',url:'https://www.crazygames.com/embed/8-ball-pool'},
-  {n:'Archery World',g:'sports',e:'🏹',c:'#0f2e55',url:'https://www.crazygames.com/embed/archery-world-tour'},
-  {n:'Soccer Random',g:'sports',e:'🥅',c:'#122c4a',url:'https://www.crazygames.com/embed/soccer-random'},
-  {n:'Retro Bowl',g:'sports',e:'🏈',c:'#0d2e50',url:'https://www.crazygames.com/embed/retro-bowl'},
-  {n:'Ping Pong',g:'sports',e:'🏓',c:'#0d2a48',url:'https://www.crazygames.com/embed/ping-pong'},
-  {n:'Bowman 2',g:'sports',e:'🏹',c:'#0d2c50',url:'https://www.crazygames.com/embed/bowman-2'},
-  {n:'Golf Battle',g:'sports',e:'⛳',c:'#102d50',url:'https://www.crazygames.com/embed/golf-battle'},
+  {n:'Basketball Stars',g:'sports',e:'🏀',c:'#1a3858',url:'https://www.onlinegames.io/games/2021/html5/basketball-stars/index.html'},
+  {n:'Head Soccer',g:'sports',e:'⚽',c:'#0d2e52',url:'https://www.onlinegames.io/games/2021/html5/head-soccer/index.html'},
+  {n:'Retro Bowl',g:'sports',e:'🏈',c:'#0d2e50',url:'https://retrobowl.me/'},
+  {n:'Archery World',g:'sports',e:'🏹',c:'#0f2e55',url:'https://www.onlinegames.io/games/2021/html5/archery-world-tour/index.html'},
+  {n:'Soccer Random',g:'sports',e:'🥅',c:'#122c4a',url:'https://www.onlinegames.io/games/2022/html5/soccer-random/index.html'},
+  {n:'Ping Pong',g:'sports',e:'🏓',c:'#0d2a48',url:'https://www.onlinegames.io/games/2021/html5/ping-pong/index.html'},
+  {n:'Bowman 2',g:'sports',e:'🏹',c:'#0d2c50',url:'https://www.onlinegames.io/games/2021/html5/bowman-2/index.html'},
+  {n:'Golf Battle',g:'sports',e:'⛳',c:'#102d50',url:'https://www.onlinegames.io/games/2022/html5/golf-battle/index.html'},
   // Shooter
-  {n:'Strike Force Heroes',g:'shooter',e:'🪖',c:'#0a2840',url:'https://www.crazygames.com/embed/strike-force-heroes'},
-  {n:'Gunblood',g:'shooter',e:'🤠',c:'#0f2d50',url:'https://www.crazygames.com/embed/gunblood'},
-  {n:'Pixel Gun Apocalypse',g:'shooter',e:'🔫',c:'#0d2c4a',url:'https://www.crazygames.com/embed/pixel-gun-apocalypse-7'},
-  {n:'Shell Shockers',g:'shooter',e:'🥚',c:'#143054',url:'https://www.crazygames.com/embed/shell-shockers'},
-  {n:'1v1.LOL',g:'shooter',e:'🏗️',c:'#0a2540',url:'https://www.crazygames.com/embed/1v1-lol'},
+  {n:'Strike Force Heroes',g:'shooter',e:'🪖',c:'#0a2840',url:'https://www.onlinegames.io/games/2021/html5/strike-force-heroes/index.html'},
+  {n:'Gunblood',g:'shooter',e:'🤠',c:'#0f2d50',url:'https://www.onlinegames.io/games/2021/html5/gunblood/index.html'},
+  {n:'Pixel Gun Apocalypse',g:'shooter',e:'🔫',c:'#0d2c4a',url:'https://www.onlinegames.io/games/2022/unity/pixel-gun-apocalypse-7/index.html'},
+  {n:'Shell Shockers',g:'shooter',e:'🥚',c:'#143054',url:'https://shellshock.io/'},
+  {n:'1v1.LOL',g:'shooter',e:'🏗️',c:'#0a2540',url:'https://1v1.lol/'},
   // Casual
-  {n:'Happy Wheels',g:'casual',e:'🚲',c:'#0a2840',url:'https://www.crazygames.com/embed/happy-wheels'},
-  {n:'Bad Ice Cream',g:'casual',e:'🍦',c:'#102c50',url:'https://www.crazygames.com/embed/bad-ice-cream'},
+  {n:'Happy Wheels',g:'casual',e:'🚲',c:'#0a2840',url:'https://www.onlinegames.io/games/2021/html5/happy-wheels/index.html'},
+  {n:'Bad Ice Cream',g:'casual',e:'🍦',c:'#102c50',url:'https://www.onlinegames.io/games/2021/html5/bad-ice-cream/index.html'},
   {n:'Cookie Clicker',g:'casual',e:'🍪',c:'#143058',url:'https://orteil.dashnet.org/cookieclicker/'},
-  {n:'Duck Life',g:'casual',e:'🦆',c:'#0f3055',url:'https://www.crazygames.com/embed/duck-life'},
-  {n:'Monkey Mart',g:'casual',e:'🐒',c:'#102a48',url:'https://www.crazygames.com/embed/monkey-mart'},
-  {n:'Pac-Man',g:'casual',e:'🟡',c:'#102840',url:'https://www.crazygames.com/embed/pacman'},
-  {n:'Dino Game',g:'casual',e:'🦖',c:'#0f2a48',url:'https://www.crazygames.com/embed/dino-game'},
-  {n:'Flappy Bird',g:'casual',e:'🐦',c:'#0d3260',url:'https://www.crazygames.com/embed/flappy-bird'},
-  {n:'Getting Over It',g:'casual',e:'⛏️',c:'#0a2640',url:'https://www.crazygames.com/embed/getting-over-it'},
-  {n:'Gartic Phone',g:'casual',e:'📞',c:'#0d2d50',url:'https://www.crazygames.com/embed/gartic-phone'},
+  {n:'Duck Life',g:'casual',e:'🦆',c:'#0f3055',url:'https://www.onlinegames.io/games/2021/html5/duck-life/index.html'},
+  {n:'Monkey Mart',g:'casual',e:'🐒',c:'#102a48',url:'https://www.onlinegames.io/games/2022/html5/monkey-mart/index.html'},
+  {n:'Pac-Man',g:'casual',e:'🟡',c:'#102840',url:'https://www.onlinegames.io/games/2021/html5/pacman/index.html'},
+  {n:'Dino Game',g:'casual',e:'🦖',c:'#0f2a48',url:'https://chromedino.com/'},
+  {n:'Flappy Bird',g:'casual',e:'🐦',c:'#0d3260',url:'https://flappybird.io/'},
+  {n:'Minecraft Classic',g:'casual',e:'⛏️',c:'#0d2a48',url:'https://classic.minecraft.net/'},
+  {n:'Gartic Phone',g:'casual',e:'📞',c:'#0d2d50',url:'https://garticphone.com/'},
   // Strategy
-  {n:'Bloons TD 5',g:'strategy',e:'🎈',c:'#1a3860',url:'https://www.crazygames.com/embed/bloons-tower-defense-5'},
-  {n:'Kingdom Rush',g:'strategy',e:'🏰',c:'#0d3058',url:'https://www.crazygames.com/embed/kingdom-rush'},
-  {n:'Stick War Legacy',g:'strategy',e:'⚔️',c:'#0f2c4c',url:'https://www.crazygames.com/embed/stick-war-legacy'},
-  {n:'Age of War 2',g:'strategy',e:'🏛️',c:'#143060',url:'https://www.crazygames.com/embed/age-of-war-2'},
-  {n:'Mini Metro',g:'strategy',e:'🚇',c:'#102d52',url:'https://www.crazygames.com/embed/mini-metro-online'},
-  {n:'Clash of Tanks',g:'strategy',e:'🛡️',c:'#122d50',url:'https://www.crazygames.com/embed/clash-of-tanks'},
-  {n:'Civilization Wars',g:'strategy',e:'🏹',c:'#0a2848',url:'https://www.crazygames.com/embed/civilization-wars'},
-  {n:'GoodGame Empire',g:'strategy',e:'👑',c:'#0d2842',url:'https://www.crazygames.com/embed/goodgame-empire'},
+  {n:'Kingdom Rush',g:'strategy',e:'🏰',c:'#0d3058',url:'https://www.onlinegames.io/games/2021/html5/kingdom-rush/index.html'},
+  {n:'Stick War Legacy',g:'strategy',e:'⚔️',c:'#0f2c4c',url:'https://www.onlinegames.io/games/2021/html5/stick-war-legacy/index.html'},
+  {n:'Age of War 2',g:'strategy',e:'🏛️',c:'#143060',url:'https://www.onlinegames.io/games/2021/html5/age-of-war-2/index.html'},
+  {n:'Civilization Wars',g:'strategy',e:'🏹',c:'#0a2848',url:'https://www.onlinegames.io/games/2021/html5/civilization-wars/index.html'},
+  {n:'Mini Metro',g:'strategy',e:'🚇',c:'#102d52',url:'https://www.onlinegames.io/games/2022/html5/mini-metro-online/index.html'},
+  {n:'Bloons TD 5',g:'strategy',e:'🎈',c:'#1a3860',url:'https://www.onlinegames.io/games/2021/html5/bloons-tower-defense-5/index.html'},
   // Clicker
-  {n:'Clicker Heroes',g:'clicker',e:'🗡️',c:'#0a2840',url:'https://www.crazygames.com/embed/clicker-heroes'},
-  {n:'Planet Clicker',g:'clicker',e:'🌍',c:'#0d3050',url:'https://www.crazygames.com/embed/planet-clicker'},
-  {n:'Idle Miner Tycoon',g:'clicker',e:'⛏️',c:'#122c48',url:'https://www.crazygames.com/embed/idle-miner-tycoon'},
+  {n:'Clicker Heroes',g:'clicker',e:'🗡️',c:'#0a2840',url:'https://www.onlinegames.io/games/2021/html5/clicker-heroes/index.html'},
+  {n:'Planet Clicker',g:'clicker',e:'🌍',c:'#0d3050',url:'https://www.onlinegames.io/games/2021/html5/planet-clicker/index.html'},
+  {n:'Idle Miner',g:'clicker',e:'⛏️',c:'#122c48',url:'https://www.onlinegames.io/games/2021/html5/idle-miner-tycoon/index.html'},
   // Card
-  {n:'Uno Online',g:'card',e:'🎴',c:'#0a2845',url:'https://www.crazygames.com/embed/uno-online'},
-  {n:'Solitaire Classic',g:'card',e:'🃏',c:'#0d2d50',url:'https://www.crazygames.com/embed/solitaire-classic'},
-  {n:'Spider Solitaire',g:'card',e:'🕷️',c:'#0f2e55',url:'https://www.crazygames.com/embed/spider-solitaire'},
-  {n:'Freecell',g:'card',e:'♠️',c:'#102c4a',url:'https://www.crazygames.com/embed/freecell-solitaire'},
+  {n:'Uno Online',g:'card',e:'🎴',c:'#0a2845',url:'https://www.onlinegames.io/games/2021/html5/uno-online/index.html'},
+  {n:'Solitaire',g:'card',e:'🃏',c:'#0d2d50',url:'https://www.onlinegames.io/games/2021/html5/solitaire/index.html'},
+  {n:'Spider Solitaire',g:'card',e:'🕷️',c:'#0f2e55',url:'https://www.onlinegames.io/games/2021/html5/spider-solitaire/index.html'},
+  {n:'Freecell',g:'card',e:'♠️',c:'#102c4a',url:'https://www.onlinegames.io/games/2021/html5/freecell/index.html'},
 ];
 
 let gamesLoaded = false;
