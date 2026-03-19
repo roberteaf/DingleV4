@@ -9,35 +9,43 @@
 :root{--ink:#010d1a;--foam:#22d3ee;--glint:#a5f3fc;--teal:#0891b2;--border:rgba(34,211,238,.2);--nav:64px}
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{width:100%;height:100%;overflow:hidden;background:var(--ink);font-family:'Outfit',sans-serif;color:var(--glint)}
+
+/* BG layers — all pointer-events:none so they never block clicks */
 #bg{position:fixed;inset:0;z-index:0;pointer-events:none}
 #pts{position:fixed;inset:0;z-index:1;pointer-events:none;overflow:hidden}
 .p{position:absolute;border-radius:50%;background:radial-gradient(circle at 35% 30%,rgba(165,243,252,.5),rgba(34,211,238,.04));animation:bu linear infinite;opacity:0}
 @keyframes bu{0%{opacity:0;transform:translateY(0) translateX(0)}8%{opacity:1}85%{opacity:.28}100%{opacity:0;transform:translateY(-105vh) translateX(var(--dx))}}
 .scan{position:fixed;inset:0;z-index:2;pointer-events:none;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,.022) 2px,rgba(0,0,0,.022) 4px)}
-#app{position:relative;z-index:10;width:100%;height:100%;display:flex;flex-direction:column}
-#home{flex:1;overflow-y:auto;overflow-x:hidden;padding-bottom:calc(var(--nav)+4px)}
+
+/* App shell */
+#app{position:relative;z-index:5;width:100%;height:100%;display:flex;flex-direction:column}
+#home{flex:1;overflow-y:auto;overflow-x:hidden;padding-bottom:calc(var(--nav)+8px);position:relative;z-index:5}
 #home::-webkit-scrollbar{width:3px}
 #home::-webkit-scrollbar-thumb{background:rgba(34,211,238,.18);border-radius:4px}
 .tab{display:none}.tab.active{display:block}
 
-/* ── VIEWER (fullscreen iframe overlay) ── */
-#viewer{display:none;position:fixed;inset:0;z-index:999;flex-direction:column;background:#000}
-#viewer.show{display:flex}
-#vbar{display:flex;align-items:center;gap:8px;padding:7px 12px;background:rgba(1,13,26,.98);border-bottom:1px solid rgba(34,211,238,.14);flex-shrink:0}
-.vbtn{background:rgba(34,211,238,.09);border:1px solid rgba(34,211,238,.18);color:var(--foam);border-radius:7px;padding:5px 11px;font-size:.7rem;font-weight:600;cursor:pointer;font-family:'Outfit',sans-serif;white-space:nowrap;transition:background .15s}
-.vbtn:hover{background:rgba(34,211,238,.22)}
-#vtitle{flex:1;font-size:.82rem;font-weight:500;color:rgba(165,243,252,.7);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-#vframe{flex:1;border:none;width:100%;height:100%;background:#000}
-
-/* ── NAV ── */
-#nav{position:fixed;bottom:0;left:0;right:0;z-index:100;height:var(--nav);background:rgba(1,13,26,.97);border-top:1px solid rgba(34,211,238,.14);backdrop-filter:blur(24px);display:flex;align-items:center;justify-content:space-around;padding:0 6px}
-.nb{display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 12px;border-radius:10px;border:1.5px solid transparent;background:transparent;color:rgba(165,243,252,.3);cursor:pointer;transition:all .2s;font-family:'Outfit',sans-serif;flex:1}
+/* Bottom nav */
+#nav{position:fixed;bottom:0;left:0;right:0;z-index:50;height:var(--nav);background:rgba(1,13,26,.97);border-top:1px solid rgba(34,211,238,.14);backdrop-filter:blur(24px);display:flex;align-items:center;justify-content:space-around;padding:0 6px}
+.nb{display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 12px;border-radius:10px;border:1.5px solid transparent;background:transparent;color:rgba(165,243,252,.3);cursor:pointer;transition:all .2s;font-family:'Outfit',sans-serif;flex:1;user-select:none}
 .nb span{font-size:.56rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase}
 .nb.on{border-color:rgba(34,211,238,.26);background:rgba(34,211,238,.08);color:var(--foam)}
-.nb.on svg{filter:drop-shadow(0 0 4px rgba(34,211,238,.5))}
 .nb:hover{color:var(--glint);background:rgba(34,211,238,.04)}
 
-/* ── SEARCH TAB ── */
+/* Movie picker overlay */
+#picker{display:none;position:fixed;inset:0;z-index:200;background:rgba(1,13,26,.96);backdrop-filter:blur(16px);flex-direction:column;align-items:center;justify-content:center;padding:24px}
+#picker.open{display:flex}
+#picker-inner{width:min(580px,96vw);display:flex;flex-direction:column;gap:16px;max-height:90vh;overflow-y:auto}
+#picker-title{font-family:'Cinzel Decorative',serif;font-size:1rem;background:linear-gradient(135deg,#a5f3fc,#22d3ee);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;text-align:center}
+#picker-year{font-size:.7rem;color:rgba(165,243,252,.35);text-align:center;margin-top:2px}
+.src-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px}
+.src-btn{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:16px 10px;background:linear-gradient(145deg,rgba(5,48,79,.7),rgba(2,20,37,.95));border:1px solid rgba(34,211,238,.18);border-radius:12px;color:var(--foam);text-decoration:none;font-size:.78rem;font-weight:600;font-family:'Outfit',sans-serif;cursor:pointer;transition:all .2s}
+.src-btn:hover{border-color:var(--foam);background:rgba(34,211,238,.1);transform:translateY(-2px)}
+.src-icon{font-size:1.6rem}
+.src-note{font-size:.6rem;color:rgba(165,243,252,.3);text-align:center;line-height:1.5;margin-top:4px}
+#picker-close{background:rgba(255,70,70,.12);border:1px solid rgba(255,100,100,.2);color:#ff7070;border-radius:9px;padding:10px;font-family:'Outfit',sans-serif;font-size:.78rem;font-weight:600;cursor:pointer;transition:background .2s}
+#picker-close:hover{background:rgba(255,70,70,.25)}
+
+/* Search tab */
 #shome{min-height:calc(100vh - var(--nav));display:flex;align-items:center;justify-content:center;padding:28px 16px}
 .hub{width:min(520px,96vw);display:flex;flex-direction:column;align-items:center;animation:em .9s cubic-bezier(.16,1,.3,1) both}
 @keyframes em{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:translateY(0)}}
@@ -59,7 +67,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--ink);font-fami
 .dot{width:5px;height:5px;border-radius:50%;background:var(--foam);box-shadow:0 0 6px var(--foam);animation:bl 2.2s ease-in-out infinite}
 @keyframes bl{0%,100%{opacity:1}50%{opacity:.14}}
 
-/* ── SHARED ── */
+/* Shared */
 .sh{padding:20px 16px 10px;display:flex;align-items:baseline;justify-content:space-between}
 .st{font-family:'Cinzel Decorative',serif;font-size:.9rem;background:linear-gradient(135deg,#a5f3fc,#22d3ee);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
 .ss{font-size:.56rem;letter-spacing:.14em;text-transform:uppercase;color:rgba(34,211,238,.24)}
@@ -70,31 +78,27 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--ink);font-fami
 .ts button{background:linear-gradient(135deg,#22d3ee,#0891b2);border:none;border-radius:7px;padding:7px 14px;color:#011725;font-size:.7rem;font-weight:700;cursor:pointer;font-family:'Outfit',sans-serif;white-space:nowrap}
 .divider{margin:2px 16px 14px;height:1px;background:linear-gradient(90deg,transparent,rgba(34,211,238,.12),transparent)}
 
-/* ── MOVIE GRID ── */
+/* Movie grid */
 .mgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px;padding:0 16px 16px}
 .mc{background:linear-gradient(145deg,rgba(5,48,79,.5),rgba(2,20,37,.8));border:1px solid rgba(34,211,238,.1);border-radius:12px;overflow:hidden;cursor:pointer;transition:all .2s;position:relative}
 .mc:hover{border-color:rgba(34,211,238,.5);transform:translateY(-3px);box-shadow:0 10px 30px rgba(1,13,26,.8)}
-.mc:hover .mc-play{opacity:1}
+.mc:hover .play-icon{opacity:1}
 .mc-img{width:100%;aspect-ratio:2/3;object-fit:cover;display:block;background:#021425}
 .mc-ph{width:100%;aspect-ratio:2/3;background:linear-gradient(135deg,rgba(5,48,79,.8),rgba(2,20,37,.9));display:flex;align-items:center;justify-content:center;font-size:2rem}
-.mc-play{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:44px;height:44px;background:rgba(34,211,238,.85);border-radius:50%;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .2s;margin-top:-20px}
-.mc-play svg{margin-left:3px}
+.play-icon{position:absolute;top:50%;left:50%;transform:translate(-50%,-60%);width:42px;height:42px;background:rgba(34,211,238,.88);border-radius:50%;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .2s}
 .mc-info{padding:8px 9px}
 .mc-title{font-size:.72rem;font-weight:600;color:var(--glint);line-height:1.3;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .mc-year{font-size:.6rem;color:rgba(165,243,252,.32)}
 
-/* ── GAMES GRID ── */
+/* Games grid */
 .ggrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;padding:0 16px 16px}
 .gc{background:linear-gradient(145deg,rgba(5,48,79,.5),rgba(2,20,37,.8));border:1px solid rgba(34,211,238,.1);border-radius:12px;overflow:hidden;cursor:pointer;transition:all .2s;position:relative}
 .gc:hover{border-color:rgba(34,211,238,.5);transform:translateY(-3px);box-shadow:0 10px 30px rgba(1,13,26,.8)}
-.gc:hover .gc-play{opacity:1}
-.gc-thumb{width:100%;aspect-ratio:16/10;object-fit:cover;display:block;background:#021425}
+.gc:hover .play-icon{opacity:1}
 .gc-ph{width:100%;aspect-ratio:16/10;background:linear-gradient(135deg,rgba(5,48,79,.8),rgba(2,20,37,.9));display:flex;align-items:center;justify-content:center;font-size:2rem}
-.gc-play{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:40px;height:40px;background:rgba(34,211,238,.85);border-radius:50%;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .2s;margin-top:-14px}
-.gc-play svg{margin-left:2px}
 .gc-info{padding:8px 9px}
-.gc-name{font-size:.76rem;font-weight:600;color:var(--glint);margin-bottom:2px}
-.gc-tag{display:inline-block;padding:1px 6px;border-radius:4px;font-size:.54rem;font-weight:600;text-transform:uppercase;background:rgba(34,211,238,.09);color:var(--foam);border:1px solid rgba(34,211,238,.15)}
+.gc-name{font-size:.76rem;font-weight:600;color:var(--glint);margin-bottom:3px}
+.gc-tag{display:inline-block;padding:2px 7px;border-radius:4px;font-size:.54rem;font-weight:600;text-transform:uppercase;background:rgba(34,211,238,.09);color:var(--foam);border:1px solid rgba(34,211,238,.15)}
 
 .ld{display:flex;align-items:center;justify-content:center;gap:9px;padding:28px;color:rgba(34,211,238,.35);font-size:.7rem;letter-spacing:.1em;text-transform:uppercase}
 .sp{width:26px;height:26px;border-radius:50%;border:2.5px solid rgba(34,211,238,.13);border-top-color:var(--foam);animation:spin 1s linear infinite}
@@ -111,7 +115,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--ink);font-fami
 <div id="app">
   <div id="home">
 
-    <!-- SEARCH TAB -->
+    <!-- SEARCH -->
     <div class="tab active" id="tab-search">
       <div id="shome">
         <div class="hub">
@@ -140,14 +144,14 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--ink);font-fami
               <button class="db" id="sgo">Dive</button>
             </div>
           </div>
-          <div class="str"><div class="dot"></div>DuckDuckGo · opens in new tab</div>
+          <div class="str"><div class="dot"></div>Opens in new tab · DuckDuckGo</div>
         </div>
       </div>
     </div>
 
-    <!-- MOVIES TAB -->
+    <!-- MOVIES -->
     <div class="tab" id="tab-movies">
-      <div class="sh"><div class="st">🎬 Movies</div><div class="ss">Click to watch inside</div></div>
+      <div class="sh"><div class="st">🎬 Movies</div><div class="ss">Click poster to watch</div></div>
       <div class="ts">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(34,211,238,.38)" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
         <input id="mq" type="text" placeholder="Search a movie or show…" autocomplete="off" spellcheck="false"/>
@@ -155,13 +159,13 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--ink);font-fami
       </div>
       <div id="mres"></div>
       <div class="divider"></div>
-      <div class="sh" style="padding-top:4px"><div class="st" style="font-size:.82rem">🔥 Popular Right Now</div></div>
+      <div class="sh" style="padding-top:4px"><div class="st" style="font-size:.82rem">🔥 Popular</div></div>
       <div class="mgrid" id="mpop"></div>
     </div>
 
-    <!-- GAMES TAB -->
+    <!-- GAMES -->
     <div class="tab" id="tab-games">
-      <div class="sh"><div class="st">🎮 Games</div><div class="ss">Click to play inside</div></div>
+      <div class="sh"><div class="st">🎮 Games</div><div class="ss">Click to play</div></div>
       <div class="ts">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(34,211,238,.38)" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
         <input id="gq" type="text" placeholder="Search games…" autocomplete="off" spellcheck="false"/>
@@ -172,14 +176,18 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--ink);font-fami
 
   </div>
 
-  <!-- VIEWER OVERLAY -->
-  <div id="viewer">
-    <div id="vbar">
-      <button class="vbtn" onclick="closeViewer()">← Back</button>
-      <div id="vtitle"></div>
-      <button class="vbtn" onclick="fsViewer()">⛶ Fullscreen</button>
+  <!-- MOVIE SOURCE PICKER (overlay, not iframe) -->
+  <div id="picker">
+    <div id="picker-inner">
+      <div>
+        <div id="picker-title"></div>
+        <div id="picker-year"></div>
+      </div>
+      <div style="font-size:.68rem;color:rgba(165,243,252,.4);text-align:center">Choose a source — opens in new tab. If one doesn't work, try the next.</div>
+      <div class="src-grid" id="src-grid"></div>
+      <div class="src-note">💡 VidSrc and 2Embed work most of the time. If it's a newer movie try EmbedSU or AutoEmbed.</div>
+      <button id="picker-close" onclick="closePicker()">✕ Close</button>
     </div>
-    <iframe id="vframe" allowfullscreen allow="fullscreen; autoplay; encrypted-media; picture-in-picture" sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-top-navigation-by-user-activation allow-presentation"></iframe>
   </div>
 
   <nav id="nav">
@@ -199,7 +207,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--ink);font-fami
 </div>
 
 <script>
-// ── TAB SWITCH ──
+// ── TABS ──
 function sw(n){
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
   document.querySelectorAll('.nb').forEach(b=>b.classList.remove('on'));
@@ -208,121 +216,104 @@ function sw(n){
   document.getElementById('home').scrollTop=0;
 }
 
-// ── VIEWER ──
-function openViewer(url, title){
-  document.getElementById('vtitle').textContent = title||url;
-  document.getElementById('vframe').src = url;
-  document.getElementById('viewer').classList.add('show');
-}
-function closeViewer(){var p=document.getElementById("movie-panel");if(p){p.style.display="none";}var f=document.getElementById("vframe");if(f)f.style.display="block";
-  document.getElementById('viewer').classList.remove('show');
-  document.getElementById('vframe').src = 'about:blank';
-}
-function fsViewer(){
-  var v=document.getElementById('viewer');
-  if(!document.fullscreenElement) v.requestFullscreen&&v.requestFullscreen();
-  else document.exitFullscreen&&document.exitFullscreen();
-}
-
-// ── SEARCH (DDG works in iframe) ──
+// ── SEARCH ──
 function getURL(q){
   q=(q||'').trim(); if(!q) return null;
   if(/^https?:\/\//i.test(q)) return q;
   if(/^[a-zA-Z0-9-]+\.[a-zA-Z]{2,}/.test(q)&&!q.includes(' ')) return 'https://'+q;
   return 'https://duckduckgo.com/?q='+encodeURIComponent(q)+'&ia=web';
 }
-document.getElementById('sgo').onclick=()=>{var u=getURL(document.getElementById('si').value);if(u)window.open(u,'_blank')};
-document.getElementById('si').addEventListener('keydown',e=>{if(e.key==='Enter'){var u=getURL(e.target.value);if(u)window.open(u,'_blank')}});
+document.getElementById('sgo').onclick=function(){
+  var u=getURL(document.getElementById('si').value);
+  if(u) window.open(u,'_blank');
+};
+document.getElementById('si').addEventListener('keydown',function(e){
+  if(e.key==='Enter'){ var u=getURL(this.value); if(u) window.open(u,'_blank'); }
+});
 
-// ── MOVIE PLAYER — opens sources in new tab (works on GitHub Pages) ──
-function openMoviePlayer(title, year, imdbId){
-  var viewer = document.getElementById('viewer');
-  var vbar = document.getElementById('vbar');
-  document.getElementById('vtitle').textContent = title+' ('+year+')';
-  document.getElementById('vframe').src = 'about:blank';
-  viewer.classList.add('show');
-
-  // Remove old picker
-  var old = document.getElementById('src-sw');
-  if(old) old.remove();
-
-  // Build source picker panel inside viewer instead of iframe
-  var fw = document.getElementById('vframe');
-  fw.style.display = 'none';
-
-  var panel = document.getElementById('movie-panel');
-  if(!panel){
-    panel = document.createElement('div');
-    panel.id = 'movie-panel';
-    panel.style.cssText = 'flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;padding:30px;background:#010d1a;overflow-y:auto';
-    fw.parentNode.appendChild(panel);
-  }
-  panel.style.display = 'flex';
-
+// ── MOVIE PICKER ──
+function openPicker(title, year, imdbId){
+  document.getElementById('picker-title').textContent = title;
+  document.getElementById('picker-year').textContent = year + ' · Click a source below to watch';
+  var grid = document.getElementById('src-grid');
+  grid.innerHTML = '';
   var sources = [
-    {name:'VidSrc',        url:'https://vidsrc.to/embed/movie/'+imdbId},
-    {name:'VidSrc XYZ',   url:'https://vidsrc.xyz/embed/movie?imdb='+imdbId},
-    {name:'2Embed',        url:'https://www.2embed.cc/embed/'+imdbId},
-    {name:'EmbedSU',       url:'https://embed.su/embed/movie/'+imdbId},
-    {name:'AutoEmbed',     url:'https://autoembed.co/movie/imdb/'+imdbId},
-    {name:'SmashyStream',  url:'https://player.smashy.stream/movie/'+imdbId},
-    {name:'SuperEmbed',    url:'https://multiembed.mov/?video_id='+imdbId},
-    {name:'MoviesJoy',     url:'https://moviesjoy.plus/search/'+encodeURIComponent(title)},
-    {name:'Tubi',          url:'https://tubitv.com/search/'+encodeURIComponent(title)},
+    {name:'VidSrc',      icon:'🎬', url:'https://vidsrc.to/embed/movie/'+imdbId},
+    {name:'VidSrc XYZ',  icon:'🎥', url:'https://vidsrc.xyz/embed/movie?imdb='+imdbId},
+    {name:'2Embed',      icon:'▶️',  url:'https://www.2embed.cc/embed/'+imdbId},
+    {name:'EmbedSU',     icon:'🌐', url:'https://embed.su/embed/movie/'+imdbId},
+    {name:'AutoEmbed',   icon:'⚡',  url:'https://autoembed.co/movie/imdb/'+imdbId},
+    {name:'SmashyStream',icon:'🔥', url:'https://player.smashy.stream/movie/'+imdbId},
+    {name:'SuperEmbed',  icon:'🚀', url:'https://multiembed.mov/?video_id='+imdbId},
+    {name:'MoviesJoy',   icon:'😊', url:'https://moviesjoy.plus/search/'+encodeURIComponent(title)},
+    {name:'Tubi',        icon:'📺', url:'https://tubitv.com/search/'+encodeURIComponent(title)},
+    {name:'Google',      icon:'🔍', url:'https://www.google.com/search?q='+encodeURIComponent(title+' '+year+' watch free online')},
   ];
-
-  panel.innerHTML = '<div style="text-align:center;margin-bottom:8px"><div style="font-size:1.2rem;font-weight:700;color:#a5f3fc;margin-bottom:4px">'+title+'</div><div style="font-size:.7rem;color:rgba(165,243,252,.38)">'+year+' · Pick a source to watch</div></div>'
-    +'<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;width:100%;max-width:600px">'
-    +sources.map(function(s){
-      return '<a href="'+s.url+'" target="_blank" rel="noopener" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:16px 10px;background:linear-gradient(145deg,rgba(5,48,79,.6),rgba(2,20,37,.9));border:1px solid rgba(34,211,238,.18);border-radius:12px;color:#22d3ee;text-decoration:none;font-size:.8rem;font-weight:600;font-family:Outfit,sans-serif;transition:all .2s;cursor:pointer" onmouseover="this.style.borderColor='#22d3ee';this.style.background='rgba(34,211,238,.1)'" onmouseout="this.style.borderColor='rgba(34,211,238,.18)';this.style.background='linear-gradient(145deg,rgba(5,48,79,.6),rgba(2,20,37,.9))'"><span style="font-size:1.4rem">▶</span>'+s.name+'</a>';
-    }).join('')
-    +'</div><div style="font-size:.62rem;color:rgba(165,243,252,.25);text-align:center;max-width:400px;line-height:1.6">Click any source — it opens in a new tab so it works from GitHub Pages. If one is down try the next.</div>';
+  sources.forEach(function(s){
+    var a = document.createElement('a');
+    a.className = 'src-btn';
+    a.href = s.url;
+    a.target = '_blank';
+    a.rel = 'noopener noreferrer';
+    a.innerHTML = '<span class="src-icon">'+s.icon+'</span>'+s.name;
+    grid.appendChild(a);
+  });
+  document.getElementById('picker').classList.add('open');
 }
+function closePicker(){
+  document.getElementById('picker').classList.remove('open');
+}
+// close picker on background click
+document.getElementById('picker').addEventListener('click', function(e){
+  if(e.target === this) closePicker();
+});
 
-// ── MOVIE CARD BUILDER ──
+// ── MOVIE CARD ──
 function movieCard(title, year, poster, imdbId, i){
-  var c=document.createElement('div');
-  c.className='mc fu'; c.style.animationDelay=(i*.04)+'s';
-  var imgHtml = poster && poster!=='N/A'
-    ? `<img class="mc-img" src="${poster}" loading="lazy" onerror="this.outerHTML='<div class=mc-ph>🎬</div>'">`
-    : `<div class="mc-ph">🎬</div>`;
-  c.innerHTML=imgHtml+
-    '<div class="mc-play"><svg width="16" height="16" viewBox="0 0 24 24" fill="#011725"><polygon points="5,3 19,12 5,21"/></svg></div>'+
-    '<div class="mc-info"><div class="mc-title">'+title+'</div><div class="mc-year">'+(year||'')+'</div></div>';
-  c.onclick=function(){ openMoviePlayer(title, year, imdbId); };
+  var c = document.createElement('div');
+  c.className = 'mc fu';
+  c.style.animationDelay = (i*0.04)+'s';
+  var img = poster && poster!=='N/A'
+    ? '<img class="mc-img" src="'+poster+'" loading="lazy" onerror="this.outerHTML=\'<div class=mc-ph>🎬</div>\'">'
+    : '<div class="mc-ph">🎬</div>';
+  c.innerHTML = img
+    + '<div class="play-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="#011725"><polygon points="5,3 19,12 5,21"/></svg></div>'
+    + '<div class="mc-info"><div class="mc-title">'+title+'</div><div class="mc-year">'+(year||'')+'</div></div>';
+  c.onclick = function(){ openPicker(title, year, imdbId); };
   return c;
 }
 
 // ── MOVIE SEARCH ──
 function searchMovies(){
-  var q=document.getElementById('mq').value.trim(); if(!q) return;
-  var res=document.getElementById('mres');
-  res.innerHTML='<div class="ld"><div class="sp"></div>Searching…</div>';
+  var q = document.getElementById('mq').value.trim(); if(!q) return;
+  var res = document.getElementById('mres');
+  res.innerHTML = '<div class="ld"><div class="sp"></div>Searching…</div>';
   fetch('https://www.omdbapi.com/?s='+encodeURIComponent(q)+'&apikey=trilogy')
-    .then(r=>r.json())
-    .then(data=>{
-      res.innerHTML='';
-      if(data.Search&&data.Search.length){
-        var hdr=document.createElement('div');
-        hdr.style.cssText='padding:0 16px 10px;font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;color:rgba(34,211,238,.28)';
-        hdr.textContent='Results for "'+q+'" — click poster to watch';
+    .then(function(r){ return r.json(); })
+    .then(function(data){
+      res.innerHTML = '';
+      if(data.Search && data.Search.length){
+        var hdr = document.createElement('div');
+        hdr.style.cssText = 'padding:0 16px 10px;font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;color:rgba(34,211,238,.28)';
+        hdr.textContent = 'Results for "'+q+'" — click poster to pick a source';
         res.appendChild(hdr);
-        var g=document.createElement('div'); g.className='mgrid';
-        data.Search.slice(0,12).forEach((m,i)=>{
+        var g = document.createElement('div');
+        g.className = 'mgrid';
+        data.Search.slice(0,12).forEach(function(m,i){
           g.appendChild(movieCard(m.Title, m.Year, m.Poster, m.imdbID, i));
         });
         res.appendChild(g);
       } else {
-        res.innerHTML='<div class="empty">No results for "'+q+'"</div>';
+        res.innerHTML = '<div class="empty">No results for "'+q+'" — try a different spelling</div>';
       }
-    }).catch(()=>{
-      res.innerHTML='<div class="empty">Search failed — check your connection</div>';
+    }).catch(function(){
+      res.innerHTML = '<div class="empty">Search failed — check connection</div>';
     });
 }
-document.getElementById('mq').addEventListener('keydown',e=>{if(e.key==='Enter')searchMovies()});
+document.getElementById('mq').addEventListener('keydown',function(e){ if(e.key==='Enter') searchMovies(); });
 
-// ── POPULAR MOVIES (hardcoded with known IMDB IDs) ──
-var POPULAR=[
+// ── POPULAR MOVIES ──
+var POP = [
   {t:'The Dark Knight',y:'2008',id:'tt0468569',p:'https://m.media-amazon.com/images/M/MV5BMTMxNTMwODM0NF5BMl5BanBnXkFtZTcwODAyMTk2Mw@@._V1_SX300.jpg'},
   {t:'Inception',y:'2010',id:'tt1375666',p:'https://m.media-amazon.com/images/M/MV5BMjAxMzY3NjcxNF5BMl5BanBnXkFtZTcwNTI5OTM0Mw@@._V1_SX300.jpg'},
   {t:'Interstellar',y:'2014',id:'tt0816692',p:'https://m.media-amazon.com/images/M/MV5BZjdkOTU3MDktN2IxOS00OGEyLWFmMjktY2FiMmZkNWIyODZiXkEyXkFqcGdeQXVyMTMxODk2OTU@._V1_SX300.jpg'},
@@ -332,24 +323,19 @@ var POPULAR=[
   {t:'Top Gun: Maverick',y:'2022',id:'tt1745960',p:'https://m.media-amazon.com/images/M/MV5BOWQwNzE1NDctMDc5MS00ODc2LTliNzYtMjc2YWMzMDEwMTA3XkEyXkFqcGdeQXVyNjc2NjA5NTQ@._V1_SX300.jpg'},
   {t:'John Wick',y:'2014',id:'tt2911666',p:'https://m.media-amazon.com/images/M/MV5BMTU2NjA1ODgzMF5BMl5BanBnXkFtZTgwMTM2MTI4MjE@._V1_SX300.jpg'},
   {t:'Dune',y:'2021',id:'tt1160419',p:'https://m.media-amazon.com/images/M/MV5BN2FjNmEyNWMtYzM0ZS00NjIyLTg2Y2MtYThhNTg1NjM4OTk0XkEyXkFqcGdeQXVyMTkxNjUyNQ@@._V1_SX300.jpg'},
-  {t:'Black Panther',y:'2018',id:'tt1825683',p:'https://m.media-amazon.com/images/M/MV5BMTg1MTY2MjYzNV5BMl5BanBnXkFtZTgwMjgyNTEwMjE@._V1_SX300.jpg'},
   {t:'Oppenheimer',y:'2023',id:'tt15398776',p:'https://m.media-amazon.com/images/M/MV5BMDBmYTZjNjUtN2M1MS00MTQ2LTk2ODgtNzc2M2QyZGE5NTVjXkEyXkFqcGdeQXVyNzAwMjU2MTY@._V1_SX300.jpg'},
   {t:'Barbie',y:'2023',id:'tt1517268',p:'https://m.media-amazon.com/images/M/MV5BNjU3N2QxNzYtMjk1NC00MTc4LTk1NTQtMmUxNTljM2I0NDA5XkEyXkFqcGdeQXVyODE5NzE3OTE@._V1_SX300.jpg'},
+  {t:'Black Panther',y:'2018',id:'tt1825683',p:'https://m.media-amazon.com/images/M/MV5BMTg1MTY2MjYzNV5BMl5BanBnXkFtZTgwMjgyNTEwMjE@._V1_SX300.jpg'},
+  {t:'Guardians of the Galaxy',y:'2014',id:'tt2015381',p:'https://m.media-amazon.com/images/M/MV5BMTAwMjU5OTgxNjZeQTJeQWpwZ15BbWU4MDUxNDYxNTMx._V1_SX300.jpg'},
+  {t:'The Avengers',y:'2012',id:'tt0848228',p:'https://m.media-amazon.com/images/M/MV5BNDYxNjQyMjAtNTdiOS00NGYwLWFmNTAtNThmYjU5ZGM2NTFkXkEyXkFqcGdeQXVyMTMxODk2OTU@._V1_SX300.jpg'},
+  {t:'Parasite',y:'2019',id:'tt6751668',p:'https://m.media-amazon.com/images/M/MV5BYWZjMjk3ZTItODQ2ZC00NTY5LWE0ZDYtZTI3MjcwN2Q5NTVkXkEyXkFqcGdeQXVyODk4OTc3MTY@._V1_SX300.jpg'},
+  {t:'Everything Everywhere',y:'2022',id:'tt6710474',p:'https://m.media-amazon.com/images/M/MV5BYTdiOTIyZTQtNmQ1OS00NjZlLWIyMTgtYzk5Y2M3ZDVmMDk1XkEyXkFqcGdeQXVyMTAzMDg4NzU0._V1_SX300.jpg'},
 ];
-var mpop=document.getElementById('mpop');
-POPULAR.forEach((m,i)=>mpop.appendChild(movieCard(m.t,m.y,m.p,m.id,i)));
+var mpop = document.getElementById('mpop');
+POP.forEach(function(m,i){ mpop.appendChild(movieCard(m.t, m.y, m.p, m.id, i)); });
 
-// ── GAMES (all with working embed URLs) ──
-var GAMES=[
-  // Puzzle
-  {n:'2048',tag:'Puzzle',icon:'🔢',url:'https://play2048.co'},
-  {n:'Tetris',tag:'Classic',icon:'🟦',url:'https://tetris.com/play-tetris'},
-  {n:'Minesweeper',tag:'Classic',icon:'💣',url:'https://minesweeper.online'},
-  {n:'Sudoku',tag:'Puzzle',icon:'🔢',url:'https://sudoku.com'},
-  {n:'Little Alchemy 2',tag:'Puzzle',icon:'⚗️',url:'https://littlealchemy2.com'},
-  {n:'Wordle',tag:'Word',icon:'🟩',url:'https://wordleunlimited.org'},
-  {n:'Chess',tag:'Strategy',icon:'♟️',url:'https://www.chess.com/play/online'},
-  // Action / Multiplayer
+// ── GAMES ──
+var GAMES = [
   {n:'Agar.io',tag:'Multiplayer',icon:'🦠',url:'https://agar.io'},
   {n:'Slither.io',tag:'Multiplayer',icon:'🐍',url:'https://slither.io'},
   {n:'Diep.io',tag:'Action',icon:'🔵',url:'https://diep.io'},
@@ -357,50 +343,56 @@ var GAMES=[
   {n:'Shell Shockers',tag:'FPS',icon:'🥚',url:'https://shellshock.io'},
   {n:'Skribbl.io',tag:'Party',icon:'✏️',url:'https://skribbl.io'},
   {n:'Gartic Phone',tag:'Party',icon:'📞',url:'https://garticphone.com'},
-  // Casual
+  {n:'2048',tag:'Puzzle',icon:'🔢',url:'https://play2048.co'},
+  {n:'Minesweeper',tag:'Classic',icon:'💣',url:'https://minesweeper.online'},
+  {n:'Sudoku',tag:'Puzzle',icon:'🧩',url:'https://sudoku.com'},
+  {n:'Little Alchemy 2',tag:'Puzzle',icon:'⚗️',url:'https://littlealchemy2.com'},
+  {n:'Wordle Unlimited',tag:'Word',icon:'🟩',url:'https://wordleunlimited.org'},
+  {n:'Chess.com',tag:'Strategy',icon:'♟️',url:'https://www.chess.com/play/online'},
   {n:'Cookie Clicker',tag:'Idle',icon:'🍪',url:'https://orteil.dashnet.org/cookieclicker'},
   {n:'GeoGuessr',tag:'Geography',icon:'🗺️',url:'https://geoguessr.com'},
-  // CrazyGames embeds
-  {n:'Drift Boss',tag:'Racing',icon:'🚗',url:'https://www.crazygames.com/game/drift-boss'},
-  {n:'Slope',tag:'Action',icon:'⚽',url:'https://www.crazygames.com/game/slope'},
-  {n:'Paper.io 2',tag:'Multiplayer',icon:'📄',url:'https://www.crazygames.com/game/paper-io-2'},
-  {n:'Venge.io',tag:'FPS',icon:'🎯',url:'https://www.crazygames.com/game/vengeio'},
-  {n:'Stickman Hook',tag:'Action',icon:'🪝',url:'https://www.crazygames.com/game/stickman-hook'},
-  {n:'Basketball Stars',tag:'Sports',icon:'🏀',url:'https://www.crazygames.com/game/basketball-stars'},
-  {n:'Roller Baller',tag:'Puzzle',icon:'🔮',url:'https://www.crazygames.com/game/roller-baller'},
   {n:'Minecraft Classic',tag:'Sandbox',icon:'⛏️',url:'https://classic.minecraft.net'},
-  {n:'Subway Surfers',tag:'Runner',icon:'🛹',url:'https://www.crazygames.com/game/subway-surfers'},
-  {n:'Crossy Road',tag:'Casual',icon:'🐔',url:'https://www.crazygames.com/game/crossy-road'},
   {n:'Dino Game',tag:'Classic',icon:'🦕',url:'https://chromedino.com'},
   {n:'Flappy Bird',tag:'Classic',icon:'🐦',url:'https://flappybird.io'},
+  {n:'Slope',tag:'Action',icon:'⚽',url:'https://slope-game.github.io'},
+  {n:'Paper.io 2',tag:'Multiplayer',icon:'📄',url:'https://paper-io.com'},
+  {n:'Stickman Hook',tag:'Action',icon:'🪝',url:'https://stickmanhook.com'},
+  {n:'Basketball Stars',tag:'Sports',icon:'🏀',url:'https://www.crazygames.com/game/basketball-stars'},
+  {n:'Drift Boss',tag:'Racing',icon:'🚗',url:'https://www.crazygames.com/game/drift-boss'},
+  {n:'Venge.io',tag:'FPS',icon:'🎯',url:'https://venge.io'},
+  {n:'Tetris',tag:'Classic',icon:'🟦',url:'https://tetris.com/play-tetris'},
+  {n:'Bloxorz',tag:'Puzzle',icon:'📦',url:'https://www.coolmathgames.com/0-bloxorz'},
+  {n:'Run 3',tag:'Runner',icon:'🏃',url:'https://www.coolmathgames.com/0-run-3'},
   {n:'Tank Battle',tag:'Action',icon:'🪖',url:'https://www.crazygames.com/game/tanx'},
   {n:'Among Us Online',tag:'Party',icon:'👨‍🚀',url:'https://www.crazygames.com/game/among-us-online'},
+  {n:'Rooftop Snipers',tag:'Action',icon:'🎯',url:'https://www.crazygames.com/game/rooftop-snipers'},
 ];
-var allG=[...GAMES];
+var allG = GAMES.slice();
 function renderGames(list){
-  var g=document.getElementById('ggrid'); g.innerHTML='';
-  if(!list.length){g.innerHTML='<div class="empty" style="grid-column:1/-1">No games found</div>';return}
-  list.forEach((s,i)=>{
-    var c=document.createElement('div'); c.className='gc fu'; c.style.animationDelay=(i*.03)+'s';
-    c.innerHTML=`<div class="gc-ph">${s.icon}</div>
-      <div class="gc-play"><svg width="14" height="14" viewBox="0 0 24 24" fill="#011725"><polygon points="5,3 19,12 5,21"/></svg></div>
-      <div class="gc-info"><div class="gc-name">${s.n}</div><div class="gc-tag">${s.tag}</div></div>`;
-    c.onclick=function(){ window.open(s.url,'_blank'); };
+  var g = document.getElementById('ggrid'); g.innerHTML = '';
+  if(!list.length){ g.innerHTML='<div class="empty" style="grid-column:1/-1">No games found</div>'; return; }
+  list.forEach(function(s,i){
+    var c = document.createElement('div');
+    c.className = 'gc fu'; c.style.animationDelay=(i*0.03)+'s';
+    c.innerHTML = '<div class="gc-ph">'+s.icon+'</div>'
+      + '<div class="play-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="#011725"><polygon points="5,3 19,12 5,21"/></svg></div>'
+      + '<div class="gc-info"><div class="gc-name">'+s.n+'</div><div class="gc-tag">'+s.tag+'</div></div>';
+    c.onclick = function(){ window.open(s.url,'_blank'); };
     g.appendChild(c);
   });
 }
 renderGames(allG);
 function filterGames(){
-  var q=document.getElementById('gq').value.trim().toLowerCase();
-  if(!q){renderGames(allG);return}
-  renderGames(allG.filter(g=>g.n.toLowerCase().includes(q)||g.tag.toLowerCase().includes(q)));
+  var q = document.getElementById('gq').value.trim().toLowerCase();
+  if(!q){ renderGames(allG); return; }
+  renderGames(allG.filter(function(g){ return g.n.toLowerCase().includes(q)||g.tag.toLowerCase().includes(q); }));
 }
-document.getElementById('gq').addEventListener('keydown',e=>{if(e.key==='Enter')filterGames()});
+document.getElementById('gq').addEventListener('keydown',function(e){ if(e.key==='Enter') filterGames(); });
 
 // ── OCEAN CANVAS ──
 (function(){
   var c=document.getElementById('bg'),ctx=c.getContext('2d'),W,H,t=0;
-  function rsz(){W=c.width=innerWidth;H=c.height=innerHeight}
+  function rsz(){W=c.width=innerWidth;H=c.height=innerHeight;}
   window.addEventListener('resize',rsz);rsz();
   (function draw(){
     t+=.006;ctx.clearRect(0,0,W,H);
@@ -414,7 +406,7 @@ document.getElementById('gq').addEventListener('keydown',e=>{if(e.key==='Enter')
       ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x+70,H*.7);ctx.lineTo(x+40,H*.7);ctx.lineTo(x-20,0);
       ctx.fillStyle=lg;ctx.fill();
     }
-    [[28,.004,0,.14,H*.72],[20,.007,1.8,.18,H*.79],[14,.011,3.5,.23,H*.85],[9,.017,1.1,.3,H*.91]].forEach(w=>{
+    [[28,.004,0,.14,H*.72],[20,.007,1.8,.18,H*.79],[14,.011,3.5,.23,H*.85],[9,.017,1.1,.3,H*.91]].forEach(function(w){
       ctx.beginPath();ctx.moveTo(0,H);
       for(var x=0;x<=W;x+=5)ctx.lineTo(x,w[4]+Math.sin(x*w[1]+w[2]+t)*w[0]+Math.sin(x*w[1]*1.6+w[2]*1.4+t*1.3)*(w[0]*.35));
       ctx.lineTo(W,H);ctx.closePath();
@@ -425,6 +417,8 @@ document.getElementById('gq').addEventListener('keydown',e=>{if(e.key==='Enter')
     requestAnimationFrame(draw);
   })();
 })();
+
+// ── PARTICLES ──
 (function(){
   var b=document.getElementById('pts');
   for(var i=0;i<14;i++){
