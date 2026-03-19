@@ -1,15 +1,6 @@
-import HTML from './index.html';
-
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
-
-    // Serve the HTML at root
-    if (url.pathname === '/' || url.pathname === '/index.html') {
-      return new Response(HTML, {
-        headers: { 'Content-Type': 'text/html; charset=utf-8' }
-      });
-    }
 
     // Handle proxy requests at /proxy?url=...
     if (url.pathname === '/proxy') {
@@ -59,6 +50,7 @@ export default {
             (m, attr, path) => `${attr}="${proxyBase}${encodeURIComponent(base + path)}"`);
 
           const inject = `
+            <meta charset="utf-8">
             <base href="${targetUrl.toString()}">
             <script>
               document.addEventListener('click', function(e) {
@@ -69,7 +61,7 @@ export default {
                 }
               }, true);
             <\/script>`;
-          body = body.replace('</head>', inject + '</head>');
+          body = body.replace('<head>', '<head>' + inject);
           resHeaders.set('content-type', 'text/html; charset=utf-8');
           return new Response(body, { status: response.status, headers: resHeaders });
         }
@@ -88,6 +80,7 @@ export default {
       }
     }
 
-    return new Response('Not found', { status: 404 });
+    // Serve static assets (index.html, etc.) for everything else
+    return env.ASSETS.fetch(request);
   }
 }
