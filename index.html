@@ -492,8 +492,10 @@
           <button id="search-go" onclick="doSearch()">Search</button>
         </div>
         <div id="engine-pills">
-          <div class="engine-pill active" id="pill-google" onclick="setEngine('google')">Google</div>
-          <div class="engine-pill" id="pill-ddg" onclick="setEngine('ddg')">Bing</div>
+          <div class="engine-pill active" id="pill-bing" onclick="setEngine('bing')">Bing</div>
+          <div class="engine-pill" id="pill-brave" onclick="setEngine('brave')">Brave</div>
+          <div class="engine-pill" id="pill-yahoo" onclick="setEngine('yahoo')">Yahoo</div>
+          <div class="engine-pill" id="pill-ddg" onclick="setEngine('ddg')">DuckDuckGo</div>
         </div>
       </div>
       <div id="search-results-area"></div>
@@ -595,9 +597,11 @@
     <h2>⚙ Settings</h2>
     <div class="setting-row">
       <label>Default Search Engine</label>
-      <div class="setting-options">
-        <div class="setting-option active" id="set-google" onclick="setEngineSetting('google')">🔍 Google</div>
-        <div class="setting-option" id="set-ddg" onclick="setEngineSetting('ddg')">🔷 Bing</div>
+      <div class="setting-options" style="flex-wrap:wrap;gap:8px;">
+        <div class="setting-option active" id="set-bing" onclick="setEngineSetting('bing')">🔷 Bing</div>
+        <div class="setting-option" id="set-brave" onclick="setEngineSetting('brave')">🦁 Brave</div>
+        <div class="setting-option" id="set-yahoo" onclick="setEngineSetting('yahoo')">💜 Yahoo</div>
+        <div class="setting-option" id="set-ddg" onclick="setEngineSetting('ddg')">🦆 DuckDuckGo</div>
       </div>
     </div>
     <div class="setting-row">
@@ -642,17 +646,31 @@ function switchTab(tab){
 }
 
 // ══ SEARCH ENGINE ══
+const ENGINES = {
+  bing:  q=>`https://www.bing.com/search?q=${encodeURIComponent(q)}`,
+  brave: q=>`https://search.brave.com/search?q=${encodeURIComponent(q)}`,
+  yahoo: q=>`https://search.yahoo.com/search?p=${encodeURIComponent(q)}`,
+  ddg:   q=>`https://html.duckduckgo.com/html/?q=${encodeURIComponent(q)}`,
+};
+
 function setEngine(e){
   currentEngine=e;
   localStorage.setItem('dv5_engine',e);
-  document.getElementById('pill-google').classList.toggle('active',e==='google');
-  document.getElementById('pill-ddg').classList.toggle('active',e==='ddg');
-  document.getElementById('set-google').classList.toggle('active',e==='google');
-  document.getElementById('set-ddg').classList.toggle('active',e==='ddg');
+  document.querySelectorAll('.engine-pill').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.setting-option[id^="set-"]').forEach(p=>p.classList.remove('active'));
+  const pill = document.getElementById('pill-'+e);
+  const set = document.getElementById('set-'+e);
+  if(pill) pill.classList.add('active');
+  if(set) set.classList.add('active');
 }
-setEngine(currentEngine);
+setEngine(currentEngine==='google' ? 'bing' : currentEngine);
 
 function setEngineSetting(e){ setEngine(e); }
+
+function getEngineUrl(q){
+  const fn = ENGINES[currentEngine] || ENGINES.bing;
+  return fn(q);
+}
 
 function setSearchMode(m){
   searchMode=m;
@@ -671,9 +689,7 @@ function proxify(url){
 function doSearch(){
   const q = document.getElementById('search-input').value.trim();
   if(!q) return;
-  const url = currentEngine==='google'
-    ? `https://www.google.com/search?q=${encodeURIComponent(q)}&igu=1`
-    : `https://www.bing.com/search?q=${encodeURIComponent(q)}`;
+  const url = getEngineUrl(q);
   if(searchMode==='newtab'){ window.open(url,'_blank'); return; }
   openEmbed(proxify(url), q);
 }
@@ -686,10 +702,7 @@ function openEmbed(url,q){
 function updateEmbed(){
   const q=document.getElementById('embed-search-input').value.trim();
   if(!q) return;
-  const url = currentEngine==='google'
-    ? `https://www.google.com/search?q=${encodeURIComponent(q)}&igu=1`
-    : `https://www.bing.com/search?q=${encodeURIComponent(q)}`;
-  document.getElementById('search-iframe').src=proxify(url);
+  document.getElementById('search-iframe').src=proxify(getEngineUrl(q));
 }
 function closeEmbed(){
   document.getElementById('search-embed-wrap').classList.remove('open');
