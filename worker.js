@@ -1,56 +1,599 @@
-const HTML = "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charset=\"UTF-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n<title>DingleV5</title>\n<style>\n  @import url('https://fonts.googleapis.com/css2?family=Josefin+Sans:wght@300;400;600;700&family=Playfair+Display:ital,wght@0,700;1,400&display=swap');\n\n  :root {\n    --deep: #020b18;\n    --abyss: #030f20;\n    --ocean: #0a2540;\n    --mid: #0d3b6e;\n    --surface: #1a5c9a;\n    --foam: #3a9bd5;\n    --shimmer: #7dd3fc;\n    --glow: #a8edff;\n    --white: #e8f4ff;\n    --coral: #ff6b6b;\n    --amber: #ffd166;\n    --sand: #c9a96e;\n    --glass: rgba(10,37,64,0.6);\n    --glass2: rgba(26,92,154,0.15);\n    --blur: blur(18px);\n  }\n\n  * { margin:0; padding:0; box-sizing:border-box; }\n\n  html, body {\n    width:100%; height:100%;\n    background: var(--deep);\n    font-family: 'Josefin Sans', sans-serif;\n    color: var(--white);\n    overflow: hidden;\n  }\n\n  /* \u2500\u2500 OCEAN BACKGROUND \u2500\u2500 */\n  #bg {\n    position: fixed; inset: 0; z-index: 0;\n    background: radial-gradient(ellipse at 50% 0%, #0d3b6e 0%, #020b18 70%);\n    overflow: hidden;\n  }\n  .wave {\n    position: absolute; width: 300%; height: 300%;\n    background: radial-gradient(ellipse, rgba(58,155,213,0.07) 0%, transparent 60%);\n    animation: drift 18s ease-in-out infinite alternate;\n  }\n  .wave:nth-child(2){ animation-duration:24s; animation-delay:-8s; opacity:.5; top:20%; }\n  .wave:nth-child(3){ animation-duration:30s; animation-delay:-15s; opacity:.3; top:40%; }\n  @keyframes drift { 0%{transform:translate(-30%,-10%) rotate(0deg)} 100%{transform:translate(10%,10%) rotate(8deg)} }\n\n  .bubble {\n    position: absolute; border-radius: 50%;\n    background: radial-gradient(circle at 35% 35%, rgba(168,237,255,0.4), rgba(58,155,213,0.05));\n    border: 1px solid rgba(168,237,255,0.15);\n    animation: rise linear infinite;\n  }\n  @keyframes rise {\n    0% { transform: translateY(100vh) scale(0); opacity:0; }\n    10% { opacity:.8; }\n    90% { opacity:.3; }\n    100% { transform: translateY(-10vh) scale(1.5); opacity:0; }\n  }\n\n  /* \u2500\u2500 LAYOUT \u2500\u2500 */\n  #app {\n    position: relative; z-index: 1;\n    width: 100%; height: 100%;\n    display: flex; flex-direction: column;\n  }\n\n  /* \u2500\u2500 HEADER \u2500\u2500 */\n  #header {\n    padding: 16px 28px 0;\n    display: flex; align-items: center; justify-content: space-between;\n    flex-shrink: 0;\n  }\n  #logo {\n    font-family: 'Playfair Display', serif;\n    font-size: 1.6rem; font-style: italic;\n    background: linear-gradient(135deg, var(--glow), var(--shimmer), var(--foam));\n    -webkit-background-clip: text; -webkit-text-fill-color: transparent;\n    letter-spacing: 1px;\n    filter: drop-shadow(0 0 12px rgba(125,211,252,0.5));\n  }\n  #settings-btn {\n    background: var(--glass2); border: 1px solid rgba(125,211,252,0.2);\n    color: var(--shimmer); padding: 8px 16px; border-radius: 20px;\n    cursor: pointer; font-family: 'Josefin Sans', sans-serif;\n    font-size: .75rem; letter-spacing: 2px; text-transform: uppercase;\n    backdrop-filter: var(--blur); transition: all .3s;\n  }\n  #settings-btn:hover { background: rgba(58,155,213,0.3); border-color: var(--foam); }\n\n  /* \u2500\u2500 CONTENT AREA \u2500\u2500 */\n  #content {\n    flex: 1; overflow: hidden; position: relative;\n  }\n  .tab-panel {\n    position: absolute; inset: 0;\n    display: none; flex-direction: column;\n    align-items: center; padding: 0 20px 20px;\n    overflow-y: auto;\n  }\n  .tab-panel.active { display: flex; }\n  .tab-panel::-webkit-scrollbar { width: 4px; }\n  .tab-panel::-webkit-scrollbar-track { background: transparent; }\n  .tab-panel::-webkit-scrollbar-thumb { background: var(--mid); border-radius: 2px; }\n\n  /* \u2500\u2500 SEARCH TAB \u2500\u2500 */\n  #search-hero {\n    display: flex; flex-direction: column; align-items: center;\n    justify-content: center; flex: 1; width: 100%; max-width: 760px;\n    margin: 0 auto;\n  }\n  #search-tagline {\n    font-family: 'Playfair Display', serif; font-style: italic;\n    font-size: clamp(1rem, 2.5vw, 1.3rem); color: var(--shimmer);\n    opacity: .7; margin-bottom: 32px; letter-spacing: 1px;\n  }\n  #search-frame {\n    width: 100%;\n    background: var(--glass); border: 1px solid rgba(125,211,252,0.25);\n    border-radius: 60px; backdrop-filter: var(--blur);\n    display: flex; align-items: center; gap: 0;\n    box-shadow: 0 8px 40px rgba(0,0,0,0.4), 0 0 0 1px rgba(125,211,252,0.1) inset;\n    transition: box-shadow .3s, border-color .3s;\n    padding: 6px 6px 6px 28px;\n  }\n  #search-frame:focus-within {\n    border-color: rgba(125,211,252,0.6);\n    box-shadow: 0 8px 60px rgba(0,0,0,0.5), 0 0 30px rgba(58,155,213,0.2), 0 0 0 1px rgba(125,211,252,0.2) inset;\n  }\n  #search-input {\n    flex: 1; background: none; border: none; outline: none;\n    color: var(--white); font-family: 'Josefin Sans', sans-serif;\n    font-size: 1.05rem; letter-spacing: .5px;\n  }\n  #search-input::placeholder { color: rgba(168,237,255,0.4); }\n  #search-go {\n    background: linear-gradient(135deg, var(--surface), var(--foam));\n    border: none; border-radius: 50px; padding: 12px 26px;\n    color: white; font-family: 'Josefin Sans', sans-serif;\n    font-size: .85rem; font-weight: 700; letter-spacing: 2px;\n    text-transform: uppercase; cursor: pointer;\n    transition: all .2s; white-space: nowrap;\n    box-shadow: 0 4px 20px rgba(58,155,213,0.3);\n  }\n  #search-go:hover { transform: scale(1.04); box-shadow: 0 6px 30px rgba(58,155,213,0.5); }\n\n  #engine-pills {\n    display: flex; gap: 12px; margin-top: 20px;\n  }\n  .engine-pill {\n    background: var(--glass2); border: 1px solid rgba(125,211,252,0.15);\n    color: var(--shimmer); padding: 6px 18px; border-radius: 20px;\n    cursor: pointer; font-size: .75rem; letter-spacing: 1.5px;\n    text-transform: uppercase; transition: all .2s; backdrop-filter: var(--blur);\n  }\n  .engine-pill.active, .engine-pill:hover {\n    background: rgba(58,155,213,0.3); border-color: var(--foam);\n    color: var(--glow);\n  }\n\n  #search-results-area {\n    width: 100%; max-width: 760px; margin-top: 28px;\n  }\n\n  /* \u2500\u2500 EMBEDDED SEARCH IFRAME \u2500\u2500 */\n  #search-embed-wrap {\n    display: none; position: fixed; inset: 0; z-index: 200;\n    flex-direction: column; background: var(--abyss);\n  }\n  #search-embed-wrap.open { display: flex; }\n  #embed-bar {\n    background: var(--ocean); padding: 10px 16px;\n    display: flex; align-items: center; gap: 12px;\n    border-bottom: 1px solid rgba(125,211,252,0.15);\n    flex-shrink: 0;\n  }\n  #embed-bar input {\n    flex:1; background: var(--glass); border: 1px solid rgba(125,211,252,0.2);\n    border-radius: 30px; padding: 8px 20px; color: var(--white);\n    font-family: 'Josefin Sans', sans-serif; font-size: .9rem; outline:none;\n  }\n  #embed-close {\n    background: rgba(255,107,107,0.2); border: 1px solid rgba(255,107,107,0.4);\n    color: var(--coral); padding: 8px 16px; border-radius: 20px;\n    cursor: pointer; font-family: 'Josefin Sans', sans-serif;\n    font-size: .75rem; letter-spacing: 1px; white-space: nowrap;\n  }\n  #search-iframe { flex:1; border:none; width:100%; }\n\n  /* \u2500\u2500 MOVIES TAB \u2500\u2500 */\n  #movies-search-wrap {\n    width: 100%; max-width: 700px; margin: 32px auto 28px;\n    flex-shrink: 0;\n  }\n  .tab-search-frame {\n    display: flex; align-items: center; gap: 0;\n    background: var(--glass); border: 1px solid rgba(125,211,252,0.2);\n    border-radius: 50px; backdrop-filter: var(--blur);\n    padding: 6px 6px 6px 22px;\n    box-shadow: 0 4px 30px rgba(0,0,0,0.3);\n    transition: border-color .3s;\n  }\n  .tab-search-frame:focus-within { border-color: rgba(125,211,252,0.5); }\n  .tab-search-frame input {\n    flex:1; background:none; border:none; outline:none;\n    color: var(--white); font-family: 'Josefin Sans', sans-serif;\n    font-size: .95rem; letter-spacing:.5px;\n  }\n  .tab-search-frame input::placeholder { color: rgba(168,237,255,0.35); }\n  .tab-search-btn {\n    background: linear-gradient(135deg, var(--mid), var(--surface));\n    border: none; border-radius: 40px; padding: 10px 22px;\n    color: white; font-family: 'Josefin Sans', sans-serif;\n    font-size: .8rem; font-weight: 700; letter-spacing: 1.5px;\n    text-transform: uppercase; cursor: pointer; transition: all .2s;\n  }\n  .tab-search-btn:hover { background: linear-gradient(135deg, var(--surface), var(--foam)); }\n\n  #movie-results {\n    width: 100%; max-width: 900px; margin: 0 auto;\n  }\n  .movie-card {\n    background: var(--glass); border: 1px solid rgba(125,211,252,0.12);\n    border-radius: 16px; padding: 18px 24px; margin-bottom: 14px;\n    display: flex; align-items: center; gap: 20px;\n    backdrop-filter: var(--blur); cursor: pointer;\n    transition: all .25s; position: relative; overflow: hidden;\n  }\n  .movie-card::before {\n    content:''; position:absolute; inset:0;\n    background: linear-gradient(135deg, rgba(58,155,213,0.05), transparent);\n    opacity:0; transition: opacity .3s;\n  }\n  .movie-card:hover { border-color: rgba(125,211,252,0.35); transform: translateY(-2px); box-shadow: 0 12px 40px rgba(0,0,0,0.3); }\n  .movie-card:hover::before { opacity:1; }\n  .movie-icon {\n    font-size: 2.5rem; flex-shrink:0;\n    filter: drop-shadow(0 0 8px rgba(125,211,252,0.4));\n  }\n  .movie-info h3 { font-size: 1rem; font-weight:600; letter-spacing:.5px; color: var(--glow); }\n  .movie-info p { font-size:.8rem; color: rgba(168,237,255,0.5); margin-top:4px; letter-spacing:.5px; }\n  .movie-badge {\n    margin-left:auto; background: rgba(58,155,213,0.2);\n    border: 1px solid rgba(58,155,213,0.4); color: var(--shimmer);\n    padding: 4px 12px; border-radius: 20px; font-size: .7rem;\n    letter-spacing: 1.5px; text-transform: uppercase; flex-shrink:0;\n  }\n\n  /* \u2500\u2500 VIDEO PLAYER OVERLAY \u2500\u2500 */\n  #player-overlay {\n    display: none; position: fixed; inset:0; z-index:300;\n    background: rgba(2,11,24,0.97); flex-direction:column;\n    align-items:center; justify-content:center;\n  }\n  #player-overlay.open { display: flex; }\n  #player-topbar {\n    position:absolute; top:0; left:0; right:0;\n    padding:14px 20px; display:flex; align-items:center; gap:16px;\n    background: linear-gradient(to bottom, rgba(2,11,24,0.9), transparent);\n    z-index:1;\n  }\n  #player-title { font-size:1rem; font-weight:600; color:var(--glow); letter-spacing:.5px; }\n  #player-close {\n    margin-left:auto; background:rgba(255,107,107,0.15);\n    border:1px solid rgba(255,107,107,0.3); color:var(--coral);\n    padding:8px 18px; border-radius:20px; cursor:pointer;\n    font-family:'Josefin Sans',sans-serif; font-size:.75rem; letter-spacing:1px;\n  }\n  #player-iframe-wrap {\n    width:90%; max-width:1100px; aspect-ratio:16/9;\n    border-radius:16px; overflow:hidden;\n    border:1px solid rgba(125,211,252,0.15);\n    box-shadow:0 30px 80px rgba(0,0,0,0.8);\n    position:relative;\n  }\n  #player-iframe { width:100%; height:100%; border:none; }\n  #player-loader {\n    position:absolute; inset:0; display:flex;\n    flex-direction:column; align-items:center; justify-content:center;\n    background: var(--ocean); gap:16px;\n    font-size:.85rem; color:var(--shimmer); letter-spacing:2px;\n  }\n  .loader-wave { display:flex; gap:6px; }\n  .loader-wave span {\n    display:block; width:6px; background:var(--foam);\n    border-radius:3px; animation: lw .8s ease-in-out infinite alternate;\n  }\n  .loader-wave span:nth-child(2){animation-delay:.1s}\n  .loader-wave span:nth-child(3){animation-delay:.2s}\n  .loader-wave span:nth-child(4){animation-delay:.3s}\n  .loader-wave span:nth-child(5){animation-delay:.4s}\n  @keyframes lw { 0%{height:8px;opacity:.4} 100%{height:30px;opacity:1} }\n\n  /* \u2500\u2500 GAMES TAB \u2500\u2500 */\n  #games-search-wrap {\n    width:100%; max-width:600px; margin:28px auto 24px; flex-shrink:0;\n  }\n  #games-filter {\n    display:flex; flex-wrap:wrap; gap:8px;\n    justify-content:center; margin-bottom:20px;\n    width:100%; max-width:900px;\n  }\n  .genre-pill {\n    background:var(--glass2); border:1px solid rgba(125,211,252,0.12);\n    color:rgba(168,237,255,0.6); padding:6px 16px; border-radius:20px;\n    cursor:pointer; font-size:.72rem; letter-spacing:1.5px;\n    text-transform:uppercase; transition:all .2s;\n  }\n  .genre-pill.active, .genre-pill:hover {\n    background:rgba(58,155,213,0.25); border-color:var(--foam);\n    color:var(--glow);\n  }\n\n  #games-grid {\n    display:grid; grid-template-columns:repeat(auto-fill, minmax(200px,1fr));\n    gap:16px; width:100%; max-width:1100px; padding-bottom:20px;\n  }\n  .game-card {\n    background:var(--glass); border:1px solid rgba(125,211,252,0.1);\n    border-radius:16px; overflow:hidden; cursor:pointer;\n    transition:all .25s; position:relative;\n    backdrop-filter:var(--blur);\n  }\n  .game-card:hover {\n    border-color:rgba(125,211,252,0.35); transform:translateY(-4px) scale(1.02);\n    box-shadow:0 16px 40px rgba(0,0,0,0.4);\n  }\n  .game-thumb {\n    width:100%; height:130px; display:flex;\n    align-items:center; justify-content:center;\n    font-size:3.5rem; position:relative; overflow:hidden;\n  }\n  .game-thumb-bg {\n    position:absolute; inset:0; opacity:.15;\n  }\n  .game-thumb-emoji { position:relative; z-index:1; filter:drop-shadow(0 4px 8px rgba(0,0,0,0.5)); }\n  .game-info { padding:12px 14px 14px; }\n  .game-info h4 { font-size:.85rem; font-weight:600; letter-spacing:.5px; color:var(--glow); margin-bottom:4px; }\n  .game-genre-tag {\n    font-size:.65rem; letter-spacing:1.5px; text-transform:uppercase;\n    color:rgba(125,211,252,0.5);\n  }\n  .game-play-btn {\n    position:absolute; top:10px; right:10px;\n    background:rgba(58,155,213,0.3); border:1px solid rgba(125,211,252,0.3);\n    color:var(--shimmer); padding:4px 10px; border-radius:12px;\n    font-size:.65rem; font-weight:700; letter-spacing:1px;\n    opacity:0; transition:opacity .2s;\n    font-family:'Josefin Sans',sans-serif;\n  }\n  .game-card:hover .game-play-btn { opacity:1; }\n\n  /* \u2500\u2500 GAME PLAYER OVERLAY \u2500\u2500 */\n  #game-overlay {\n    display:none; position:fixed; inset:0; z-index:400;\n    background:var(--abyss); flex-direction:column;\n  }\n  #game-overlay.open { display:flex; }\n  #game-topbar {\n    background:var(--ocean); padding:10px 16px;\n    display:flex; align-items:center; gap:12px;\n    border-bottom:1px solid rgba(125,211,252,0.15); flex-shrink:0;\n  }\n  #game-title { font-size:.95rem; font-weight:600; color:var(--glow); letter-spacing:.5px; }\n  #game-close {\n    margin-left:auto; background:rgba(255,107,107,0.15);\n    border:1px solid rgba(255,107,107,0.3); color:var(--coral);\n    padding:7px 16px; border-radius:16px; cursor:pointer;\n    font-family:'Josefin Sans',sans-serif; font-size:.75rem; letter-spacing:1px;\n  }\n  #game-iframe { flex:1; border:none; width:100%; }\n\n  /* \u2500\u2500 BOTTOM NAV \u2500\u2500 */\n  #bottom-nav {\n    flex-shrink:0; padding:12px 20px 16px;\n    display:flex; justify-content:center; gap:8px;\n  }\n  .nav-tab {\n    display:flex; flex-direction:column; align-items:center; gap:5px;\n    background:var(--glass2); border:1px solid rgba(125,211,252,0.1);\n    border-radius:20px; padding:10px 28px; cursor:pointer;\n    transition:all .3s; backdrop-filter:var(--blur); min-width:100px;\n  }\n  .nav-tab.active, .nav-tab:hover {\n    background:rgba(26,92,154,0.4); border-color:rgba(125,211,252,0.35);\n    box-shadow:0 4px 20px rgba(0,0,0,0.3);\n  }\n  .nav-tab.active { border-color:var(--foam); box-shadow:0 0 20px rgba(58,155,213,0.2); }\n  .nav-icon { font-size:1.3rem; }\n  .nav-label { font-size:.65rem; letter-spacing:2px; text-transform:uppercase; color:var(--shimmer); }\n\n  /* \u2500\u2500 SETTINGS MODAL \u2500\u2500 */\n  #settings-modal {\n    display:none; position:fixed; inset:0; z-index:500;\n    background:rgba(2,11,24,0.85); backdrop-filter:var(--blur);\n    align-items:center; justify-content:center;\n  }\n  #settings-modal.open { display:flex; }\n  #settings-box {\n    background:var(--ocean); border:1px solid rgba(125,211,252,0.2);\n    border-radius:24px; padding:36px; width:90%; max-width:440px;\n    box-shadow:0 30px 80px rgba(0,0,0,0.6);\n    animation: slideUp .3s ease;\n  }\n  @keyframes slideUp { from{transform:translateY(20px);opacity:0} to{transform:translateY(0);opacity:1} }\n  #settings-box h2 {\n    font-family:'Playfair Display',serif; font-size:1.4rem;\n    color:var(--glow); margin-bottom:28px; letter-spacing:.5px;\n  }\n  .setting-row { margin-bottom:22px; }\n  .setting-row label {\n    display:block; font-size:.75rem; letter-spacing:2px;\n    text-transform:uppercase; color:var(--shimmer);\n    margin-bottom:10px;\n  }\n  .setting-options { display:flex; gap:10px; }\n  .setting-option {\n    flex:1; background:var(--glass2); border:1px solid rgba(125,211,252,0.15);\n    border-radius:12px; padding:12px; text-align:center;\n    cursor:pointer; transition:all .2s; font-size:.85rem; color:var(--white);\n  }\n  .setting-option.active, .setting-option:hover {\n    background:rgba(58,155,213,0.3); border-color:var(--foam); color:var(--glow);\n  }\n  #settings-close {\n    width:100%; margin-top:10px; background:var(--glass2);\n    border:1px solid rgba(125,211,252,0.2); color:var(--shimmer);\n    padding:12px; border-radius:12px; cursor:pointer;\n    font-family:'Josefin Sans',sans-serif; font-size:.8rem;\n    letter-spacing:2px; text-transform:uppercase; transition:all .2s;\n  }\n  #settings-close:hover { background:rgba(58,155,213,0.2); }\n\n  /* \u2500\u2500 STATUS BAR \u2500\u2500 */\n  #status { height:20px; flex-shrink:0; display:flex; align-items:center; justify-content:center; }\n  .status-dot {\n    width:6px; height:6px; border-radius:50%; background:var(--foam);\n    box-shadow:0 0 8px var(--foam); margin-right:8px;\n    animation: pulse 2s ease-in-out infinite;\n  }\n  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }\n  #status-text { font-size:.65rem; letter-spacing:2px; color:rgba(125,211,252,0.4); }\n\n  /* scroll smooth */\n  .tab-panel { scroll-behavior:smooth; }\n\n  /* loading state */\n  .searching-anim {\n    display:flex; flex-direction:column; align-items:center;\n    gap:16px; padding:40px; color:var(--shimmer);\n    font-size:.8rem; letter-spacing:2px; text-transform:uppercase;\n  }\n  .empty-state {\n    text-align:center; padding:60px 20px;\n    color:rgba(168,237,255,0.25); font-size:.85rem; letter-spacing:2px;\n    text-transform:uppercase; line-height:2;\n  }\n  .empty-state .big { font-size:3rem; display:block; margin-bottom:16px; opacity:.3; }\n</style>\n</head>\n<body>\n\n<!-- BACKGROUND -->\n<div id=\"bg\">\n  <div class=\"wave\"></div>\n  <div class=\"wave\"></div>\n  <div class=\"wave\"></div>\n</div>\n\n<!-- MAIN APP -->\n<div id=\"app\">\n  <div id=\"header\">\n    <div id=\"logo\">DingleV5</div>\n    <button id=\"settings-btn\" onclick=\"openSettings()\">\u2699 Settings</button>\n  </div>\n  <div id=\"status\"><div class=\"status-dot\"></div><span id=\"status-text\">SECURE \u2022 NO HISTORY LEAKS</span></div>\n\n  <div id=\"content\">\n\n    <!-- \u2550\u2550 SEARCH TAB \u2550\u2550 -->\n    <div class=\"tab-panel active\" id=\"tab-search\">\n      <div id=\"search-hero\">\n        <div id=\"search-tagline\">dive into the deep web \u2014 privately</div>\n        <div id=\"search-frame\">\n          <input type=\"text\" id=\"search-input\" placeholder=\"search anything\u2026\" autocomplete=\"off\"\n            onkeydown=\"if(event.key==='Enter')doSearch()\">\n          <button id=\"search-go\" onclick=\"doSearch()\">Search</button>\n        </div>\n        <div id=\"engine-pills\">\n          <div class=\"engine-pill active\" id=\"pill-bing\" onclick=\"setEngine('bing')\">Bing</div>\n          <div class=\"engine-pill\" id=\"pill-brave\" onclick=\"setEngine('brave')\">Brave</div>\n          <div class=\"engine-pill\" id=\"pill-yahoo\" onclick=\"setEngine('yahoo')\">Yahoo</div>\n          <div class=\"engine-pill\" id=\"pill-ddg\" onclick=\"setEngine('ddg')\">DuckDuckGo</div>\n        </div>\n      </div>\n      <div id=\"search-results-area\"></div>\n    </div>\n\n    <!-- \u2550\u2550 MOVIES TAB \u2550\u2550 -->\n    <div class=\"tab-panel\" id=\"tab-movies\">\n      <div id=\"movies-search-wrap\">\n        <div style=\"font-family:'Playfair Display',serif;font-size:1.2rem;font-style:italic;color:var(--shimmer);text-align:center;margin-bottom:18px;letter-spacing:1px;\">\n          \ud83c\udfac Stream anything, privately\n        </div>\n        <div class=\"tab-search-frame\">\n          <input type=\"text\" id=\"movie-input\" placeholder=\"Search movies, shows, anime\u2026\" autocomplete=\"off\"\n            onkeydown=\"if(event.key==='Enter')searchMovies()\">\n          <button class=\"tab-search-btn\" onclick=\"searchMovies()\">Find</button>\n        </div>\n      </div>\n      <div id=\"movie-results\">\n        <div class=\"empty-state\"><span class=\"big\">\ud83c\udf0a</span>Search for a movie or show to stream it free \u2014 right here, no new tabs.</div>\n      </div>\n    </div>\n\n    <!-- \u2550\u2550 GAMES TAB \u2550\u2550 -->\n    <div class=\"tab-panel\" id=\"tab-games\">\n      <div id=\"games-search-wrap\">\n        <div style=\"font-family:'Playfair Display',serif;font-size:1.2rem;font-style:italic;color:var(--shimmer);text-align:center;margin-bottom:18px;letter-spacing:1px;\">\n          \ud83c\udfae 100+ HTML5 Games\n        </div>\n        <div class=\"tab-search-frame\">\n          <input type=\"text\" id=\"games-search-input\" placeholder=\"Search games\u2026\" autocomplete=\"off\"\n            oninput=\"filterGames()\">\n        </div>\n      </div>\n      <div id=\"games-filter\"></div>\n      <div id=\"games-grid\"></div>\n    </div>\n\n  </div><!-- /content -->\n\n  <!-- BOTTOM NAV -->\n  <div id=\"bottom-nav\">\n    <div class=\"nav-tab active\" id=\"nav-search\" onclick=\"switchTab('search')\">\n      <span class=\"nav-icon\">\ud83d\udd0d</span>\n      <span class=\"nav-label\">Search</span>\n    </div>\n    <div class=\"nav-tab\" id=\"nav-movies\" onclick=\"switchTab('movies')\">\n      <span class=\"nav-icon\">\ud83c\udfac</span>\n      <span class=\"nav-label\">Movies</span>\n    </div>\n    <div class=\"nav-tab\" id=\"nav-games\" onclick=\"switchTab('games')\">\n      <span class=\"nav-icon\">\ud83c\udfae</span>\n      <span class=\"nav-label\">Games</span>\n    </div>\n  </div>\n</div><!-- /app -->\n\n<!-- EMBEDDED SEARCH OVERLAY -->\n<div id=\"search-embed-wrap\">\n  <div id=\"embed-bar\">\n    <input type=\"text\" id=\"embed-search-input\" placeholder=\"Search\u2026\" autocomplete=\"off\"\n      onkeydown=\"if(event.key==='Enter')updateEmbed()\">\n    <button onclick=\"updateEmbed()\" style=\"background:rgba(58,155,213,0.3);border:1px solid rgba(125,211,252,0.3);color:var(--shimmer);padding:8px 16px;border-radius:20px;cursor:pointer;font-family:'Josefin Sans',sans-serif;font-size:.75rem;letter-spacing:1px;\">Go</button>\n    <button id=\"embed-close\" onclick=\"closeEmbed()\">\u2715 Close</button>\n  </div>\n  <iframe id=\"search-iframe\" id=\"search-iframe\" sandbox=\"allow-scripts allow-same-origin allow-forms allow-popups-to-escape-sandbox\" referrerpolicy=\"no-referrer\"></iframe>\n</div>\n\n<!-- VIDEO PLAYER OVERLAY -->\n<div id=\"player-overlay\">\n  <div id=\"player-topbar\">\n    <span>\ud83c\udfac</span>\n    <span id=\"player-title\">Loading\u2026</span>\n    <button id=\"player-close\" onclick=\"closePlayer()\">\u2715 Close</button>\n  </div>\n  <div id=\"player-iframe-wrap\">\n    <div id=\"player-loader\">\n      <div class=\"loader-wave\">\n        <span></span><span></span><span></span><span></span><span></span>\n      </div>\n      FINDING BEST SOURCE\u2026\n    </div>\n    <iframe id=\"player-iframe\" allowfullscreen allow=\"autoplay; fullscreen; encrypted-media\"></iframe>\n  </div>\n</div>\n\n<!-- GAME OVERLAY -->\n<div id=\"game-overlay\">\n  <div id=\"game-topbar\">\n    <span>\ud83c\udfae</span>\n    <span id=\"game-title\">Game</span>\n    <button id=\"game-close\" onclick=\"closeGame()\">\u2715 Exit Game</button>\n  </div>\n  <iframe id=\"game-iframe\" allowfullscreen allow=\"autoplay; fullscreen; gamepad\"></iframe>\n</div>\n\n<!-- SETTINGS MODAL -->\n<div id=\"settings-modal\">\n  <div id=\"settings-box\">\n    <h2>\u2699 Settings</h2>\n    <div class=\"setting-row\">\n      <label>Default Search Engine</label>\n      <div class=\"setting-options\" style=\"flex-wrap:wrap;gap:8px;\">\n        <div class=\"setting-option active\" id=\"set-bing\" onclick=\"setEngineSetting('bing')\">\ud83d\udd37 Bing</div>\n        <div class=\"setting-option\" id=\"set-brave\" onclick=\"setEngineSetting('brave')\">\ud83e\udd81 Brave</div>\n        <div class=\"setting-option\" id=\"set-yahoo\" onclick=\"setEngineSetting('yahoo')\">\ud83d\udc9c Yahoo</div>\n        <div class=\"setting-option\" id=\"set-ddg\" onclick=\"setEngineSetting('ddg')\">\ud83e\udd86 DuckDuckGo</div>\n      </div>\n    </div>\n    <div class=\"setting-row\">\n      <label>Search Mode</label>\n      <div class=\"setting-options\">\n        <div class=\"setting-option active\" id=\"set-embed\" onclick=\"setSearchMode('embed')\">\ud83d\udcf1 In-Page (Private)</div>\n        <div class=\"setting-option\" id=\"set-newtab\" onclick=\"setSearchMode('newtab')\">\ud83d\udd17 New Tab</div>\n      </div>\n    </div>\n    <button id=\"settings-close\" onclick=\"closeSettings()\">Done</button>\n  </div>\n</div>\n\n<script>\n// \u2550\u2550 BUBBLE GENERATOR \u2550\u2550\n(function(){\n  const bg = document.getElementById('bg');\n  for(let i=0;i<18;i++){\n    const b=document.createElement('div');\n    b.className='bubble';\n    const s=Math.random()*30+6;\n    b.style.cssText=`width:${s}px;height:${s}px;left:${Math.random()*100}%;animation-duration:${Math.random()*15+8}s;animation-delay:-${Math.random()*15}s;`;\n    bg.appendChild(b);\n  }\n})();\n\n// \u2550\u2550 STATE \u2550\u2550\nlet currentEngine = localStorage.getItem('dv5_engine')||'google';\nlet searchMode = localStorage.getItem('dv5_mode')||'embed';\nlet currentTab = 'search';\nlet currentMovieQuery = '';\nlet gamesFilter = 'all';\n\n// \u2550\u2550 TABS \u2550\u2550\nfunction switchTab(tab){\n  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));\n  document.querySelectorAll('.nav-tab').forEach(n=>n.classList.remove('active'));\n  document.getElementById('tab-'+tab).classList.add('active');\n  document.getElementById('nav-'+tab).classList.add('active');\n  currentTab=tab;\n  if(tab==='games' && !gamesLoaded) loadGames();\n}\n\n// \u2550\u2550 SEARCH ENGINE \u2550\u2550\nconst ENGINES = {\n  bing:  q=>`https://www.bing.com/search?q=${encodeURIComponent(q)}`,\n  brave: q=>`https://search.brave.com/search?q=${encodeURIComponent(q)}`,\n  yahoo: q=>`https://search.yahoo.com/search?p=${encodeURIComponent(q)}`,\n  ddg:   q=>`https://html.duckduckgo.com/html/?q=${encodeURIComponent(q)}`,\n};\n\nfunction setEngine(e){\n  currentEngine=e;\n  localStorage.setItem('dv5_engine',e);\n  document.querySelectorAll('.engine-pill').forEach(p=>p.classList.remove('active'));\n  document.querySelectorAll('.setting-option[id^=\"set-\"]').forEach(p=>p.classList.remove('active'));\n  const pill = document.getElementById('pill-'+e);\n  const set = document.getElementById('set-'+e);\n  if(pill) pill.classList.add('active');\n  if(set) set.classList.add('active');\n}\nsetEngine(currentEngine==='google' ? 'bing' : currentEngine);\n\nfunction setEngineSetting(e){ setEngine(e); }\n\nfunction getEngineUrl(q){\n  const fn = ENGINES[currentEngine] || ENGINES.bing;\n  return fn(q);\n}\n\nfunction setSearchMode(m){\n  searchMode=m;\n  localStorage.setItem('dv5_mode',m);\n  document.getElementById('set-embed').classList.toggle('active',m==='embed');\n  document.getElementById('set-newtab').classList.toggle('active',m==='newtab');\n}\nsetSearchMode(searchMode);\n\n// \u2550\u2550 PROXY \u2550\u2550\nfunction proxify(url){\n  return `/proxy?url=${encodeURIComponent(url)}`;\n}\n\n// \u2550\u2550 SEARCH \u2550\u2550\nfunction doSearch(){\n  const q = document.getElementById('search-input').value.trim();\n  if(!q) return;\n  const url = getEngineUrl(q);\n  if(searchMode==='newtab'){ window.open(url,'_blank'); return; }\n  openEmbed(proxify(url), q);\n}\n\nfunction openEmbed(url,q){\n  document.getElementById('embed-search-input').value = q||'';\n  document.getElementById('search-iframe').src = url;\n  document.getElementById('search-embed-wrap').classList.add('open');\n}\nfunction updateEmbed(){\n  const q=document.getElementById('embed-search-input').value.trim();\n  if(!q) return;\n  document.getElementById('search-iframe').src=proxify(getEngineUrl(q));\n}\nfunction closeEmbed(){\n  document.getElementById('search-embed-wrap').classList.remove('open');\n  document.getElementById('search-iframe').src='about:blank';\n}\n\n// \u2550\u2550 SETTINGS \u2550\u2550\nfunction openSettings(){ document.getElementById('settings-modal').classList.add('open'); }\nfunction closeSettings(){ document.getElementById('settings-modal').classList.remove('open'); }\ndocument.getElementById('settings-modal').addEventListener('click',function(e){\n  if(e.target===this) closeSettings();\n});\n\n// \u2550\u2550 MOVIES \u2550\u2550\nconst TMDB_KEY = '4ef0d7355d9ffb5151e987764708ce96'; // public read-only key\n\n// Embed sources \u2014 cleaner/less ad-heavy first\nconst EMBED_SOURCES = [\n  id=>`https://vidlink.pro/movie/${id}`,\n  id=>`https://embed.su/embed/movie/${id}`,\n  id=>`https://autoembed.cc/movie/tmdb/${id}`,\n  id=>`https://multiembed.mov/?video_id=${id}&tmdb=1`,\n  id=>`https://moviesapi.club/movie/${id}`,\n  id=>`https://player.smashy.stream/movie/${id}`,\n  id=>`https://vidsrc.me/embed/movie?tmdb=${id}`,\n  id=>`https://vidsrc.to/embed/movie/${id}`,\n  id=>`https://www.2embed.cc/embed/${id}`,\n  id=>`https://www.nontongo.win/embed/movie/${id}`,\n];\n\nlet movieEmbedIndex = 0;\nlet currentTmdbId = null;\nlet currentMovieTitle = '';\n\nasync function searchMovies(){\n  const q = document.getElementById('movie-input').value.trim();\n  if(!q) return;\n  const res = document.getElementById('movie-results');\n  res.innerHTML=`<div class=\"searching-anim\"><div class=\"loader-wave\"><span></span><span></span><span></span><span></span><span></span></div>SEARCHING\u2026</div>`;\n\n  try {\n    const r = await fetch(`https://api.themoviedb.org/3/search/multi?api_key=${TMDB_KEY}&query=${encodeURIComponent(q)}&include_adult=false`);\n    const data = await r.json();\n    const results = (data.results||[]).filter(x=>x.media_type==='movie'||x.media_type==='tv').slice(0,12);\n\n    if(!results.length){\n      res.innerHTML=`<div class=\"empty-state\"><span class=\"big\">\ud83c\udf0a</span>Nothing found for \"${escHtml(q)}\"</div>`;\n      return;\n    }\n\n    res.innerHTML = results.map(item=>{\n      const title = item.title||item.name||'Untitled';\n      const year = (item.release_date||item.first_air_date||'').slice(0,4);\n      const poster = item.poster_path ? `https://image.tmdb.org/t/p/w300${item.poster_path}` : '';\n      const rating = item.vote_average ? item.vote_average.toFixed(1) : '';\n      const type = item.media_type==='tv' ? 'SHOW' : 'MOVIE';\n      return `\n        <div class=\"movie-card\" onclick=\"playMovie(${item.id},'${encodeURIComponent(title)}','${item.media_type}')\">\n          ${poster\n            ? `<img src=\"${poster}\" alt=\"${escHtml(title)}\" style=\"width:60px;height:88px;object-fit:cover;border-radius:8px;flex-shrink:0;\">`\n            : `<div class=\"movie-icon\">\ud83c\udfac</div>`}\n          <div class=\"movie-info\">\n            <h3>${escHtml(title)}</h3>\n            <p>${year}${rating?' \u00b7 \u2b50 '+rating:''} \u00b7 ${type}</p>\n            <p style=\"font-size:.72rem;color:rgba(168,237,255,0.35);margin-top:4px;\">${escHtml((item.overview||'').slice(0,80))}${item.overview&&item.overview.length>80?'\u2026':''}</p>\n          </div>\n          <div class=\"movie-badge\">STREAM</div>\n        </div>\n      `;\n    }).join('');\n\n  } catch(e) {\n    res.innerHTML=`<div class=\"empty-state\"><span class=\"big\">\u26a0\ufe0f</span>Search failed \u2014 check connection</div>`;\n  }\n}\n\nfunction playMovie(tmdbId, titleEnc, mediaType){\n  currentTmdbId = tmdbId;\n  currentMovieTitle = decodeURIComponent(titleEnc);\n  movieEmbedIndex = 0;\n  // For TV shows swap embed pattern\n  if(mediaType==='tv'){\n    window._embedBuilders = EMBED_SOURCES.map(fn=>{\n      // rewrite to tv endpoints\n      return id=>`https://vidsrc.to/embed/tv/${id}`;\n    });\n    window._embedBuilders = [\n      id=>`https://vidsrc.to/embed/tv/${id}`,\n      id=>`https://vidsrc.me/embed/tv?tmdb=${id}`,\n      id=>`https://embed.su/embed/tv/${id}`,\n      id=>`https://multiembed.mov/?video_id=${id}&tmdb=1&s=1&e=1`,\n      id=>`https://vidlink.pro/tv/${id}/1/1`,\n      id=>`https://autoembed.cc/tv/tmdb/${id}-1-1`,\n      id=>`https://player.smashy.stream/tv/${id}`,\n    ];\n  } else {\n    window._embedBuilders = EMBED_SOURCES;\n  }\n\n  document.getElementById('player-title').textContent = currentMovieTitle;\n  const loader = document.getElementById('player-loader');\n  loader.style.display='flex';\n  loader.innerHTML=`\n    <div class=\"loader-wave\"><span></span><span></span><span></span><span></span><span></span></div>\n    <span id=\"loader-status\">LOADING\u2026</span>\n    <button onclick=\"tryNextSource()\" style=\"background:rgba(58,155,213,0.2);border:1px solid rgba(125,211,252,0.3);color:var(--shimmer);padding:8px 20px;border-radius:20px;cursor:pointer;font-family:'Josefin Sans',sans-serif;font-size:.75rem;letter-spacing:1.5px;margin-top:10px;\">\n      \u27f3 Try Next Source\n    </button>\n  `;\n  document.getElementById('player-iframe').src='about:blank';\n  document.getElementById('player-overlay').classList.add('open');\n  loadMovieSource();\n}\n\nfunction loadMovieSource(){\n  const builders = window._embedBuilders || EMBED_SOURCES;\n  if(movieEmbedIndex >= builders.length){\n    const s = document.getElementById('loader-status');\n    if(s) s.textContent='ALL SOURCES TRIED \u2014 try a different title';\n    return;\n  }\n  const url = builders[movieEmbedIndex](currentTmdbId);\n  const s = document.getElementById('loader-status');\n  if(s) s.textContent=`SOURCE ${movieEmbedIndex+1} OF ${builders.length}\u2026`;\n  const iframe = document.getElementById('player-iframe');\n  iframe.onload = ()=>{\n    setTimeout(()=>{ document.getElementById('player-loader').style.display='none'; }, 1000);\n  };\n  iframe.src = url;\n  movieEmbedIndex++;\n}\n\nfunction tryNextSource(){ loadMovieSource(); }\n\nfunction closePlayer(){\n  document.getElementById('player-overlay').classList.remove('open');\n  document.getElementById('player-iframe').src='about:blank';\n  movieEmbedIndex = 0;\n}\n\n// \u2550\u2550 GAMES \u2550\u2550 (onlinegames.io + direct IO sites \u2014 confirmed iframe friendly)\nconst GAMES = [\n  // Action\n  {n:'Bullet Force',g:'action',e:'\ud83d\udd2b',c:'#1c3a5e',url:'https://www.onlinegames.io/games/2021/unity2/bullet-force/index.html'},\n  {n:'Combat Reloaded',g:'action',e:'\ud83d\udca5',c:'#0d2a45',url:'https://www.onlinegames.io/games/2022/unity/combat-reloaded-2/index.html'},\n  {n:'Stickman Fighter',g:'action',e:'\ud83e\udd4a',c:'#1a3a60',url:'https://www.onlinegames.io/games/2022/construct/stickman-fighter-epic-battle/index.html'},\n  {n:'Masked Forces',g:'action',e:'\ud83e\ude96',c:'#0f2e52',url:'https://www.onlinegames.io/games/2021/unity2/masked-forces/index.html'},\n  {n:'Pixel Warfare',g:'action',e:'\ud83c\udfaf',c:'#0a2540',url:'https://www.onlinegames.io/games/2021/unity2/pixel-warfare/index.html'},\n  {n:'Mad GunZ',g:'action',e:'\ud83d\udca3',c:'#102848',url:'https://www.onlinegames.io/games/2021/unity2/mad-gunz/index.html'},\n  {n:'Forward Assault',g:'action',e:'\ud83d\udd31',c:'#0d2c4a',url:'https://www.onlinegames.io/games/2022/unity/forward-assault-remix/index.html'},\n  {n:'Shell Shockers',g:'action',e:'\ud83e\udd5a',c:'#143054',url:'https://shellshock.io/'},\n  {n:'1v1.LOL',g:'action',e:'\ud83c\udfd7\ufe0f',c:'#0a2540',url:'https://1v1.lol/'},\n  {n:'Kirka.io',g:'action',e:'\ud83c\udfae',c:'#102a48',url:'https://kirka.io/'},\n  // IO\n  {n:'Smash Karts',g:'io',e:'\ud83d\udefa',c:'#0a2840',url:'https://smashkarts.io/'},\n  {n:'Ev.io',g:'io',e:'\ud83d\udd35',c:'#143058',url:'https://ev.io/'},\n  {n:'Zombs Royale',g:'io',e:'\ud83e\udddf',c:'#0a2038',url:'https://zombsroyale.io/'},\n  {n:'Territorial.io',g:'io',e:'\ud83d\uddfa\ufe0f',c:'#0a2238',url:'https://territorial.io/'},\n  {n:'Brutal.io',g:'io',e:'\u2b55',c:'#0f3050',url:'https://brutal.io/'},\n  {n:'Snowball.io',g:'io',e:'\u2744\ufe0f',c:'#122c4a',url:'https://snowball.io/'},\n  {n:'Flyordie.io',g:'io',e:'\ud83e\udd8b',c:'#0f3050',url:'https://flyordie.io/'},\n  {n:'Stabfish.io',g:'io',e:'\ud83d\udc21',c:'#122848',url:'https://stabfish.io/'},\n  {n:'Lordz.io',g:'io',e:'\ud83d\udc51',c:'#0a2038',url:'https://www.lordz.io/'},\n  {n:'Foes.io',g:'io',e:'\ud83c\udff9',c:'#0d3060',url:'https://foes.io/'},\n  {n:'Warbot.io',g:'io',e:'\ud83e\udd16',c:'#102a48',url:'https://warbot.io/'},\n  // Puzzle\n  {n:'2048',g:'puzzle',e:'\ud83d\udd22',c:'#0d3358',url:'https://play2048.co/'},\n  {n:'Wordle Unlimited',g:'puzzle',e:'\ud83d\udfe9',c:'#0f2e52',url:'https://wordleunlimited.org/'},\n  {n:'Cut the Rope',g:'puzzle',e:'\ud83c\udf6c',c:'#1a3858',url:'https://www.onlinegames.io/games/2023/html5/cut-the-rope/index.html'},\n  {n:'Block Puzzle',g:'puzzle',e:'\ud83e\udde9',c:'#0d2e50',url:'https://www.onlinegames.io/games/2022/html5/block-puzzle-jewel/index.html'},\n  {n:'Bubble Shooter',g:'puzzle',e:'\ud83e\udee7',c:'#0a2a50',url:'https://www.onlinegames.io/games/2021/html5/bubble-shooter/index.html'},\n  {n:'Unblock It',g:'puzzle',e:'\ud83d\udce6',c:'#0a2a4a',url:'https://www.onlinegames.io/games/2021/html5/unblock-it/index.html'},\n  {n:'Mahjong',g:'puzzle',e:'\ud83c\udc04',c:'#0f2d4c',url:'https://www.onlinegames.io/games/2021/html5/mahjong-classic/index.html'},\n  {n:'Color Fill',g:'puzzle',e:'\ud83c\udfa8',c:'#122c4a',url:'https://www.onlinegames.io/games/2022/html5/color-fill-3d/index.html'},\n  {n:'Sugar Sugar',g:'puzzle',e:'\ud83c\udf6d',c:'#142a48',url:'https://www.onlinegames.io/games/2021/html5/sugar-sugar/index.html'},\n  // Racing\n  {n:'Madalin Cars',g:'racing',e:'\ud83c\udfce\ufe0f',c:'#1a3a60',url:'https://www.onlinegames.io/games/2021/unity2/madalin-cars-multiplayer/index.html'},\n  {n:'Drift Boss',g:'racing',e:'\ud83d\udca8',c:'#102e55',url:'https://www.onlinegames.io/games/2021/html5/drift-boss/index.html'},\n  {n:'Moto X3M',g:'racing',e:'\ud83c\udfcd\ufe0f',c:'#0f2d52',url:'https://www.onlinegames.io/games/2021/html5/moto-x3m/index.html'},\n  {n:'Moto X3M Winter',g:'racing',e:'\u2744\ufe0f',c:'#0a2840',url:'https://www.onlinegames.io/games/2021/html5/moto-x3m-winter/index.html'},\n  {n:'Derby Crash',g:'racing',e:'\ud83d\udca5',c:'#122850',url:'https://www.onlinegames.io/games/2022/unity/derby-crash-4/index.html'},\n  {n:'Road Rush',g:'racing',e:'\ud83d\ude97',c:'#0d3260',url:'https://www.onlinegames.io/games/2021/html5/road-rush-cars/index.html'},\n  {n:'Driving Mad',g:'racing',e:'\ud83d\ude99',c:'#143060',url:'https://www.onlinegames.io/games/2022/html5/driving-mad/index.html'},\n  {n:'Traffic Rider',g:'racing',e:'\ud83d\udef5',c:'#102c50',url:'https://www.onlinegames.io/games/2021/unity2/traffic-rider/index.html'},\n  // Adventure\n  {n:'Fireboy & Watergirl',g:'adventure',e:'\ud83d\udd25',c:'#0d3050',url:'https://www.onlinegames.io/games/2021/html5/fireboy-and-watergirl-1/index.html'},\n  {n:'Stickman Hook',g:'adventure',e:'\ud83d\udd77\ufe0f',c:'#0a2545',url:'https://www.onlinegames.io/games/2021/html5/stickman-hook/index.html'},\n  {n:'Vex 6',g:'adventure',e:'\ud83c\udfc3',c:'#122d50',url:'https://www.onlinegames.io/games/2022/html5/vex-6/index.html'},\n  {n:'Vex 5',g:'adventure',e:'\ud83e\uddd7',c:'#0d2c50',url:'https://www.onlinegames.io/games/2021/html5/vex-5/index.html'},\n  {n:'Tomb of the Mask',g:'adventure',e:'\ud83d\udc80',c:'#0d2840',url:'https://www.onlinegames.io/games/2022/html5/tomb-of-the-mask/index.html'},\n  {n:'Bob the Robber',g:'adventure',e:'\ud83e\uddb9',c:'#0f3055',url:'https://www.onlinegames.io/games/2021/html5/bob-the-robber/index.html'},\n  {n:'Red Ball 4',g:'adventure',e:'\ud83d\udd34',c:'#0a2842',url:'https://www.onlinegames.io/games/2021/html5/red-ball-4/index.html'},\n  {n:'Cat Ninja',g:'adventure',e:'\ud83d\udc31',c:'#0a2845',url:'https://www.onlinegames.io/games/2022/html5/cat-ninja/index.html'},\n  {n:'Crossy Road',g:'adventure',e:'\ud83d\udc14',c:'#102a48',url:'https://www.onlinegames.io/games/2021/html5/crossy-road/index.html'},\n  {n:'Run 3',g:'adventure',e:'\ud83d\ude80',c:'#0d3b6e',url:'https://www.onlinegames.io/games/2021/html5/run-3/index.html'},\n  {n:'Slope',g:'adventure',e:'\ud83c\udfc2',c:'#1a4080',url:'https://www.onlinegames.io/games/2021/html5/slope/index.html'},\n  {n:'Adam & Eve',g:'adventure',e:'\ud83c\udf4e',c:'#143060',url:'https://www.onlinegames.io/games/2021/html5/adam-and-eve/index.html'},\n  // Sports\n  {n:'Basketball Stars',g:'sports',e:'\ud83c\udfc0',c:'#1a3858',url:'https://www.onlinegames.io/games/2021/html5/basketball-stars/index.html'},\n  {n:'Head Soccer',g:'sports',e:'\u26bd',c:'#0d2e52',url:'https://www.onlinegames.io/games/2021/html5/head-soccer/index.html'},\n  {n:'Retro Bowl',g:'sports',e:'\ud83c\udfc8',c:'#0d2e50',url:'https://retrobowl.me/'},\n  {n:'Archery World',g:'sports',e:'\ud83c\udff9',c:'#0f2e55',url:'https://www.onlinegames.io/games/2021/html5/archery-world-tour/index.html'},\n  {n:'Soccer Random',g:'sports',e:'\ud83e\udd45',c:'#122c4a',url:'https://www.onlinegames.io/games/2022/html5/soccer-random/index.html'},\n  {n:'Ping Pong',g:'sports',e:'\ud83c\udfd3',c:'#0d2a48',url:'https://www.onlinegames.io/games/2021/html5/ping-pong/index.html'},\n  {n:'Bowman 2',g:'sports',e:'\ud83c\udff9',c:'#0d2c50',url:'https://www.onlinegames.io/games/2021/html5/bowman-2/index.html'},\n  {n:'Golf Battle',g:'sports',e:'\u26f3',c:'#102d50',url:'https://www.onlinegames.io/games/2022/html5/golf-battle/index.html'},\n  // Shooter\n  {n:'Strike Force Heroes',g:'shooter',e:'\ud83e\ude96',c:'#0a2840',url:'https://www.onlinegames.io/games/2021/html5/strike-force-heroes/index.html'},\n  {n:'Gunblood',g:'shooter',e:'\ud83e\udd20',c:'#0f2d50',url:'https://www.onlinegames.io/games/2021/html5/gunblood/index.html'},\n  {n:'Pixel Gun Apocalypse',g:'shooter',e:'\ud83d\udd2b',c:'#0d2c4a',url:'https://www.onlinegames.io/games/2022/unity/pixel-gun-apocalypse-7/index.html'},\n  {n:'Shell Shockers',g:'shooter',e:'\ud83e\udd5a',c:'#143054',url:'https://shellshock.io/'},\n  {n:'1v1.LOL',g:'shooter',e:'\ud83c\udfd7\ufe0f',c:'#0a2540',url:'https://1v1.lol/'},\n  // Casual\n  {n:'Happy Wheels',g:'casual',e:'\ud83d\udeb2',c:'#0a2840',url:'https://www.onlinegames.io/games/2021/html5/happy-wheels/index.html'},\n  {n:'Bad Ice Cream',g:'casual',e:'\ud83c\udf66',c:'#102c50',url:'https://www.onlinegames.io/games/2021/html5/bad-ice-cream/index.html'},\n  {n:'Cookie Clicker',g:'casual',e:'\ud83c\udf6a',c:'#143058',url:'https://orteil.dashnet.org/cookieclicker/'},\n  {n:'Duck Life',g:'casual',e:'\ud83e\udd86',c:'#0f3055',url:'https://www.onlinegames.io/games/2021/html5/duck-life/index.html'},\n  {n:'Monkey Mart',g:'casual',e:'\ud83d\udc12',c:'#102a48',url:'https://www.onlinegames.io/games/2022/html5/monkey-mart/index.html'},\n  {n:'Pac-Man',g:'casual',e:'\ud83d\udfe1',c:'#102840',url:'https://www.onlinegames.io/games/2021/html5/pacman/index.html'},\n  {n:'Dino Game',g:'casual',e:'\ud83e\udd96',c:'#0f2a48',url:'https://chromedino.com/'},\n  {n:'Flappy Bird',g:'casual',e:'\ud83d\udc26',c:'#0d3260',url:'https://flappybird.io/'},\n  {n:'Minecraft Classic',g:'casual',e:'\u26cf\ufe0f',c:'#0d2a48',url:'https://classic.minecraft.net/'},\n  {n:'Gartic Phone',g:'casual',e:'\ud83d\udcde',c:'#0d2d50',url:'https://garticphone.com/'},\n  // Strategy\n  {n:'Kingdom Rush',g:'strategy',e:'\ud83c\udff0',c:'#0d3058',url:'https://www.onlinegames.io/games/2021/html5/kingdom-rush/index.html'},\n  {n:'Stick War Legacy',g:'strategy',e:'\u2694\ufe0f',c:'#0f2c4c',url:'https://www.onlinegames.io/games/2021/html5/stick-war-legacy/index.html'},\n  {n:'Age of War 2',g:'strategy',e:'\ud83c\udfdb\ufe0f',c:'#143060',url:'https://www.onlinegames.io/games/2021/html5/age-of-war-2/index.html'},\n  {n:'Civilization Wars',g:'strategy',e:'\ud83c\udff9',c:'#0a2848',url:'https://www.onlinegames.io/games/2021/html5/civilization-wars/index.html'},\n  {n:'Mini Metro',g:'strategy',e:'\ud83d\ude87',c:'#102d52',url:'https://www.onlinegames.io/games/2022/html5/mini-metro-online/index.html'},\n  {n:'Bloons TD 5',g:'strategy',e:'\ud83c\udf88',c:'#1a3860',url:'https://www.onlinegames.io/games/2021/html5/bloons-tower-defense-5/index.html'},\n  // Clicker\n  {n:'Clicker Heroes',g:'clicker',e:'\ud83d\udde1\ufe0f',c:'#0a2840',url:'https://www.onlinegames.io/games/2021/html5/clicker-heroes/index.html'},\n  {n:'Planet Clicker',g:'clicker',e:'\ud83c\udf0d',c:'#0d3050',url:'https://www.onlinegames.io/games/2021/html5/planet-clicker/index.html'},\n  {n:'Idle Miner',g:'clicker',e:'\u26cf\ufe0f',c:'#122c48',url:'https://www.onlinegames.io/games/2021/html5/idle-miner-tycoon/index.html'},\n  // Card\n  {n:'Uno Online',g:'card',e:'\ud83c\udfb4',c:'#0a2845',url:'https://www.onlinegames.io/games/2021/html5/uno-online/index.html'},\n  {n:'Solitaire',g:'card',e:'\ud83c\udccf',c:'#0d2d50',url:'https://www.onlinegames.io/games/2021/html5/solitaire/index.html'},\n  {n:'Spider Solitaire',g:'card',e:'\ud83d\udd77\ufe0f',c:'#0f2e55',url:'https://www.onlinegames.io/games/2021/html5/spider-solitaire/index.html'},\n  {n:'Freecell',g:'card',e:'\u2660\ufe0f',c:'#102c4a',url:'https://www.onlinegames.io/games/2021/html5/freecell/index.html'},\n];\n\nlet gamesLoaded = false;\nlet allGames = [...GAMES];\n\nfunction loadGames(){\n  gamesLoaded = true;\n  renderGenreFilters();\n  renderGames(allGames);\n}\n\nfunction renderGenreFilters(){\n  const genres = ['all', ...new Set(allGames.map(g=>g.g))];\n  const labels = {all:'All',action:'Action',io:'IO',puzzle:'Puzzle',racing:'Racing',adventure:'Adventure',sports:'Sports',shooter:'Shooter',casual:'Casual',strategy:'Strategy',clicker:'Clicker',card:'Card'};\n  document.getElementById('games-filter').innerHTML = genres.map(g=>`\n    <div class=\"genre-pill ${g==='all'?'active':''}\" data-genre=\"${g}\" onclick=\"filterByGenre('${g}')\">\n      ${labels[g]||g}\n    </div>\n  `).join('');\n}\n\nfunction filterByGenre(g){\n  gamesFilter=g;\n  document.querySelectorAll('.genre-pill').forEach(p=>{\n    p.classList.toggle('active', p.dataset.genre===g);\n  });\n  const filtered = g==='all' ? allGames : allGames.filter(gm=>gm.g===g);\n  const q = document.getElementById('games-search-input').value.trim().toLowerCase();\n  renderGames(filtered.filter(gm=>!q||gm.n.toLowerCase().includes(q)));\n}\n\nfunction filterGames(){\n  const q = document.getElementById('games-search-input').value.trim().toLowerCase();\n  const byGenre = gamesFilter==='all' ? allGames : allGames.filter(gm=>gm.g===gamesFilter);\n  renderGames(q ? byGenre.filter(gm=>gm.n.toLowerCase().includes(q)) : byGenre);\n}\n\nfunction renderGames(list){\n  if(!list.length){\n    document.getElementById('games-grid').innerHTML='<div class=\"empty-state\" style=\"grid-column:1/-1\"><span class=\"big\">\ud83c\udfae</span>No games found</div>';\n    return;\n  }\n  document.getElementById('games-grid').innerHTML = list.map((g,i)=>`\n    <div class=\"game-card\" onclick=\"openGame('${encodeURIComponent(g.url)}','${encodeURIComponent(g.n)}')\">\n      <div class=\"game-thumb\">\n        <div class=\"game-thumb-bg\" style=\"background:${g.c}\"></div>\n        <div class=\"game-thumb-emoji\">${g.e}</div>\n      </div>\n      <div class=\"game-info\">\n        <h4>${escHtml(g.n)}</h4>\n        <div class=\"game-genre-tag\">${g.g}</div>\n      </div>\n      <div class=\"game-play-btn\">PLAY</div>\n    </div>\n  `).join('');\n}\n\nfunction openGame(urlEnc, nameEnc){\n  const url = decodeURIComponent(urlEnc);\n  const name = decodeURIComponent(nameEnc);\n  document.getElementById('game-title').textContent = name;\n  document.getElementById('game-iframe').src = url;\n  document.getElementById('game-overlay').classList.add('open');\n}\nfunction closeGame(){\n  document.getElementById('game-overlay').classList.remove('open');\n  document.getElementById('game-iframe').src='about:blank';\n}\n\n// \u2550\u2550 UTILS \u2550\u2550\nfunction escHtml(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\"/g,'&quot;'); }\n\n// \u2550\u2550 INIT \u2550\u2550\n// Keyboard shortcut: Escape to close overlays\ndocument.addEventListener('keydown',e=>{\n  if(e.key==='Escape'){\n    closeEmbed(); closePlayer(); closeGame(); closeSettings();\n  }\n});\n\n// Status message rotation\nconst statusMsgs=['SECURE \u2022 NO HISTORY LEAKS','100+ GAMES READY','ZERO TRACKING','PRIVATE BROWSING MODE','OCEAN DEEP'];\nlet si=0;\nsetInterval(()=>{\n  si=(si+1)%statusMsgs.length;\n  const el=document.getElementById('status-text');\n  el.style.opacity=0;\n  setTimeout(()=>{ el.textContent=statusMsgs[si]; el.style.opacity=''; },300);\n},5000);\n</script>\n</body>\n</html>\n";
+const HTML = `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DingleV5</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Josefin+Sans:wght@300;400;600;700&family=Playfair+Display:ital,wght@0,700;1,400&display=swap');
+:root{--deep:#020b18;--abyss:#030f20;--ocean:#0a2540;--mid:#0d3b6e;--surface:#1a5c9a;--foam:#3a9bd5;--shimmer:#7dd3fc;--glow:#a8edff;--white:#e8f4ff;--coral:#ff6b6b;--glass:rgba(10,37,64,0.6);--glass2:rgba(26,92,154,0.15);}
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{width:100%;height:100%;background:var(--deep);font-family:'Josefin Sans',sans-serif;color:var(--white);overflow:hidden;}
+#bg{position:fixed;inset:0;z-index:0;background:radial-gradient(ellipse at 50% 0%,#0d3b6e 0%,#020b18 70%);overflow:hidden;}
+.wave{position:absolute;width:300%;height:300%;background:radial-gradient(ellipse,rgba(58,155,213,0.07) 0%,transparent 60%);animation:drift 18s ease-in-out infinite alternate;}
+.wave:nth-child(2){animation-duration:24s;animation-delay:-8s;opacity:.5;top:20%;}
+.wave:nth-child(3){animation-duration:30s;animation-delay:-15s;opacity:.3;top:40%;}
+@keyframes drift{0%{transform:translate(-30%,-10%) rotate(0deg)}100%{transform:translate(10%,10%) rotate(8deg)}}
+.bubble{position:absolute;border-radius:50%;background:radial-gradient(circle at 35% 35%,rgba(168,237,255,0.4),rgba(58,155,213,0.05));border:1px solid rgba(168,237,255,0.15);animation:rise linear infinite;}
+@keyframes rise{0%{transform:translateY(100vh) scale(0);opacity:0}10%{opacity:.8}90%{opacity:.3}100%{transform:translateY(-10vh) scale(1.5);opacity:0}}
+#app{position:relative;z-index:1;width:100%;height:100%;display:flex;flex-direction:column;}
+#header{padding:14px 24px 0;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+#logo{font-family:'Playfair Display',serif;font-size:1.5rem;font-style:italic;background:linear-gradient(135deg,var(--glow),var(--shimmer),var(--foam));-webkit-background-clip:text;-webkit-text-fill-color:transparent;filter:drop-shadow(0 0 12px rgba(125,211,252,0.5));}
+#status{height:18px;flex-shrink:0;display:flex;align-items:center;justify-content:center;margin-top:4px;}
+.sdot{width:5px;height:5px;border-radius:50%;background:var(--foam);box-shadow:0 0 8px var(--foam);margin-right:7px;animation:pulse 2s ease-in-out infinite;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+#stxt{font-size:.6rem;letter-spacing:2px;color:rgba(125,211,252,0.4);}
+#content{flex:1;overflow:hidden;position:relative;}
+.tab-panel{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;padding:0 20px 20px;overflow-y:auto;}
+.tab-panel.active{display:flex;}
+.tab-panel::-webkit-scrollbar{width:4px;}
+.tab-panel::-webkit-scrollbar-thumb{background:var(--mid);border-radius:2px;}
+#search-hero{display:flex;flex-direction:column;align-items:center;justify-content:center;flex:1;width:100%;max-width:720px;margin:0 auto;gap:10px;}
+#search-tagline{font-family:'Playfair Display',serif;font-style:italic;font-size:1.1rem;color:var(--shimmer);opacity:.7;margin-bottom:16px;letter-spacing:1px;}
+.sbar-label{font-size:.68rem;letter-spacing:2px;text-transform:uppercase;color:rgba(125,211,252,0.45);align-self:flex-start;width:100%;margin-bottom:4px;margin-top:8px;}
+.sbar{width:100%;background:var(--glass);border:1px solid rgba(125,211,252,0.22);border-radius:60px;backdrop-filter:blur(18px);display:flex;align-items:center;padding:6px 6px 6px 24px;box-shadow:0 8px 40px rgba(0,0,0,0.4);transition:border-color .3s;}
+.sbar:focus-within{border-color:rgba(125,211,252,0.55);}
+.sbar input{flex:1;background:none;border:none;outline:none;color:var(--white);font-family:'Josefin Sans',sans-serif;font-size:.95rem;}
+.sbar input::placeholder{color:rgba(168,237,255,0.35);}
+.sbtn{background:linear-gradient(135deg,var(--surface),var(--foam));border:none;border-radius:50px;padding:10px 22px;color:white;font-family:'Josefin Sans',sans-serif;font-size:.75rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;cursor:pointer;transition:transform .2s;white-space:nowrap;}
+.sbtn:hover{transform:scale(1.04);}
+.sbtn.alt{background:linear-gradient(135deg,var(--mid),var(--surface));}
+#search-embed-wrap{display:none;position:fixed;inset:0;z-index:200;flex-direction:column;background:var(--abyss);}
+#search-embed-wrap.open{display:flex;}
+#embed-bar{background:var(--ocean);padding:10px 14px;display:flex;align-items:center;gap:10px;border-bottom:1px solid rgba(125,211,252,0.15);flex-shrink:0;}
+#embed-bar input{flex:1;background:var(--glass);border:1px solid rgba(125,211,252,0.2);border-radius:30px;padding:8px 18px;color:var(--white);font-family:'Josefin Sans',sans-serif;font-size:.88rem;outline:none;}
+#embed-go{background:rgba(58,155,213,0.3);border:1px solid rgba(125,211,252,0.3);color:var(--shimmer);padding:8px 16px;border-radius:20px;cursor:pointer;font-family:'Josefin Sans',sans-serif;font-size:.72rem;letter-spacing:1px;white-space:nowrap;}
+#embed-close{background:rgba(255,107,107,0.2);border:1px solid rgba(255,107,107,0.4);color:var(--coral);padding:8px 16px;border-radius:20px;cursor:pointer;font-family:'Josefin Sans',sans-serif;font-size:.72rem;letter-spacing:1px;white-space:nowrap;}
+#search-iframe{flex:1;border:none;width:100%;}
+#games-header{width:100%;max-width:1100px;margin:22px auto 14px;flex-shrink:0;}
+#games-title{font-family:'Playfair Display',serif;font-size:1.1rem;font-style:italic;color:var(--shimmer);text-align:center;margin-bottom:12px;letter-spacing:1px;}
+.gsbar{display:flex;align-items:center;background:var(--glass);border:1px solid rgba(125,211,252,0.18);border-radius:50px;backdrop-filter:blur(18px);padding:6px 6px 6px 20px;}
+.gsbar input{flex:1;background:none;border:none;outline:none;color:var(--white);font-family:'Josefin Sans',sans-serif;font-size:.9rem;}
+.gsbar input::placeholder{color:rgba(168,237,255,0.3);}
+#games-filter{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:12px 0;width:100%;max-width:1100px;}
+.genre-pill{background:var(--glass2);border:1px solid rgba(125,211,252,0.1);color:rgba(168,237,255,0.55);padding:5px 13px;border-radius:20px;cursor:pointer;font-size:.66rem;letter-spacing:1.5px;text-transform:uppercase;transition:all .2s;}
+.genre-pill.active,.genre-pill:hover{background:rgba(58,155,213,0.22);border-color:var(--foam);color:var(--glow);}
+#games-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(185px,1fr));gap:13px;width:100%;max-width:1100px;padding-bottom:20px;}
+.game-card{background:var(--glass);border:1px solid rgba(125,211,252,0.1);border-radius:13px;overflow:hidden;cursor:pointer;transition:all .25s;position:relative;backdrop-filter:blur(18px);}
+.game-card:hover{border-color:rgba(125,211,252,0.35);transform:translateY(-4px) scale(1.02);box-shadow:0 14px 38px rgba(0,0,0,0.4);}
+.game-thumb{width:100%;height:115px;display:flex;align-items:center;justify-content:center;font-size:3rem;position:relative;overflow:hidden;}
+.game-thumb-bg{position:absolute;inset:0;opacity:.15;}
+.game-thumb-emoji{position:relative;z-index:1;filter:drop-shadow(0 4px 8px rgba(0,0,0,0.5));}
+.game-info{padding:9px 12px 11px;}
+.game-info h4{font-size:.8rem;font-weight:600;color:var(--glow);margin-bottom:2px;}
+.game-genre-tag{font-size:.6rem;letter-spacing:1.5px;text-transform:uppercase;color:rgba(125,211,252,0.45);}
+.game-play-btn{position:absolute;top:7px;right:7px;background:rgba(58,155,213,0.28);border:1px solid rgba(125,211,252,0.28);color:var(--shimmer);padding:3px 8px;border-radius:9px;font-size:.6rem;font-weight:700;letter-spacing:1px;opacity:0;transition:opacity .2s;font-family:'Josefin Sans',sans-serif;}
+.game-card:hover .game-play-btn{opacity:1;}
+#game-overlay{display:none;position:fixed;inset:0;z-index:400;background:var(--abyss);flex-direction:column;}
+#game-overlay.open{display:flex;}
+#game-topbar{background:var(--ocean);padding:10px 16px;display:flex;align-items:center;gap:12px;border-bottom:1px solid rgba(125,211,252,0.15);flex-shrink:0;}
+#game-title{font-size:.9rem;font-weight:600;color:var(--glow);}
+#game-close{margin-left:auto;background:rgba(255,107,107,0.15);border:1px solid rgba(255,107,107,0.3);color:var(--coral);padding:7px 16px;border-radius:16px;cursor:pointer;font-family:'Josefin Sans',sans-serif;font-size:.72rem;letter-spacing:1px;}
+#game-iframe{flex:1;border:none;width:100%;}
+#bottom-nav{flex-shrink:0;padding:10px 20px 14px;display:flex;justify-content:center;gap:10px;}
+.nav-tab{display:flex;flex-direction:column;align-items:center;gap:4px;background:var(--glass2);border:1px solid rgba(125,211,252,0.1);border-radius:20px;padding:10px 36px;cursor:pointer;transition:all .3s;backdrop-filter:blur(18px);}
+.nav-tab.active,.nav-tab:hover{background:rgba(26,92,154,0.4);border-color:rgba(125,211,252,0.35);}
+.nav-tab.active{border-color:var(--foam);box-shadow:0 0 20px rgba(58,155,213,0.2);}
+.nav-icon{font-size:1.2rem;}
+.nav-label{font-size:.62rem;letter-spacing:2px;text-transform:uppercase;color:var(--shimmer);}
+.empty-state{text-align:center;padding:60px 20px;color:rgba(168,237,255,0.25);font-size:.82rem;letter-spacing:2px;text-transform:uppercase;line-height:2;grid-column:1/-1;}
+.empty-state .big{font-size:3rem;display:block;margin-bottom:16px;opacity:.3;}
+</style>
+</head>
+<body>
+<div id="bg"><div class="wave"></div><div class="wave"></div><div class="wave"></div></div>
+<div id="app">
+  <div id="header"><div id="logo">DingleV5</div></div>
+  <div id="status"><div class="sdot"></div><span id="stxt">PRIVATE • SECURE • UNBLOCKED</span></div>
+  <div id="content">
+    <div class="tab-panel active" id="tab-search">
+      <div id="search-hero">
+        <div id="search-tagline">search & browse privately</div>
+        <div class="sbar-label">🔍 Google Search</div>
+        <div class="sbar">
+          <input type="text" id="search-input" placeholder="search anything…" autocomplete="off" onkeydown="if(event.key==='Enter')doSearch()">
+          <button class="sbtn" onclick="doSearch()">Search</button>
+        </div>
+        <div class="sbar-label">🌐 Proxy — open any blocked site</div>
+        <div class="sbar">
+          <input type="text" id="proxy-input" placeholder="youtube.com, roblox.com…" autocomplete="off" onkeydown="if(event.key==='Enter')doProxy()">
+          <button class="sbtn alt" onclick="doProxy()">Go</button>
+        </div>
+      </div>
+    </div>
+    <div class="tab-panel" id="tab-games">
+      <div id="games-header">
+        <div id="games-title">🎮 100+ Games</div>
+        <div class="gsbar"><input type="text" id="games-search-input" placeholder="Search games…" autocomplete="off" oninput="filterGames()"></div>
+      </div>
+      <div id="games-filter"></div>
+      <div id="games-grid"></div>
+    </div>
+  </div>
+  <div id="bottom-nav">
+    <div class="nav-tab active" id="nav-search" onclick="switchTab('search')"><span class="nav-icon">🔍</span><span class="nav-label">Search</span></div>
+    <div class="nav-tab" id="nav-games" onclick="switchTab('games')"><span class="nav-icon">🎮</span><span class="nav-label">Games</span></div>
+  </div>
+</div>
+<div id="search-embed-wrap">
+  <div id="embed-bar">
+    <input type="text" id="embed-input" placeholder="Enter URL or search…" autocomplete="off" onkeydown="if(event.key==='Enter')updateEmbed()">
+    <button id="embed-go" onclick="updateEmbed()">Go</button>
+    <button id="embed-close" onclick="closeEmbed()">✕ Close</button>
+  </div>
+  <iframe id="search-iframe" sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-top-navigation"></iframe>
+</div>
+<div id="game-overlay">
+  <div id="game-topbar">
+    <span>🎮</span><span id="game-title">Game</span>
+    <button id="game-close" onclick="closeGame()">✕ Exit</button>
+  </div>
+  <iframe id="game-iframe" allowfullscreen allow="autoplay; fullscreen; gamepad"></iframe>
+</div>
+<script>
+(function(){const bg=document.getElementById('bg');for(let i=0;i<18;i++){const b=document.createElement('div');b.className='bubble';const s=Math.random()*28+6;b.style.cssText='width:'+s+'px;height:'+s+'px;left:'+Math.random()*100+'%;animation-duration:'+(Math.random()*14+8)+'s;animation-delay:-'+(Math.random()*14)+'s;';bg.appendChild(b);}})();
 
+function switchTab(tab){
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(n=>n.classList.remove('active'));
+  document.getElementById('tab-'+tab).classList.add('active');
+  document.getElementById('nav-'+tab).classList.add('active');
+  if(tab==='games'&&!gamesLoaded)loadGames();
+}
+
+function doSearch(){
+  const q=document.getElementById('search-input').value.trim();
+  if(!q)return;
+  window.open('https://www.google.com/search?q='+encodeURIComponent(q),'_blank');
+}
+
+function doProxy(){
+  let q=document.getElementById('proxy-input').value.trim();
+  if(!q)return;
+  if(!q.startsWith('http'))q='https://'+q;
+  document.getElementById('embed-input').value=q;
+  document.getElementById('search-iframe').src='/proxy?url='+encodeURIComponent(q);
+  document.getElementById('search-embed-wrap').classList.add('open');
+}
+
+function updateEmbed(){
+  let q=document.getElementById('embed-input').value.trim();
+  if(!q)return;
+  if(!q.startsWith('http'))q=q.includes('.')&&!q.includes(' ')?'https://'+q:'https://www.google.com/search?q='+encodeURIComponent(q);
+  document.getElementById('search-iframe').src='/proxy?url='+encodeURIComponent(q);
+  document.getElementById('embed-input').value=q;
+}
+
+function closeEmbed(){
+  document.getElementById('search-embed-wrap').classList.remove('open');
+  document.getElementById('search-iframe').src='about:blank';
+}
+
+const GAMES=[
+  {n:'Bullet Force',g:'action',e:'🔫',c:'#1c3a5e',url:'https://www.onlinegames.io/games/2021/unity2/bullet-force/index.html'},
+  {n:'Combat Reloaded',g:'action',e:'💥',c:'#0d2a45',url:'https://www.onlinegames.io/games/2022/unity/combat-reloaded-2/index.html'},
+  {n:'Stickman Fighter',g:'action',e:'🥊',c:'#1a3a60',url:'https://www.onlinegames.io/games/2022/construct/stickman-fighter-epic-battle/index.html'},
+  {n:'Masked Forces',g:'action',e:'🪖',c:'#0f2e52',url:'https://www.onlinegames.io/games/2021/unity2/masked-forces/index.html'},
+  {n:'Pixel Warfare',g:'action',e:'🎯',c:'#0a2540',url:'https://www.onlinegames.io/games/2021/unity2/pixel-warfare/index.html'},
+  {n:'Mad GunZ',g:'action',e:'💣',c:'#102848',url:'https://www.onlinegames.io/games/2021/unity2/mad-gunz/index.html'},
+  {n:'Forward Assault',g:'action',e:'🔱',c:'#0d2c4a',url:'https://www.onlinegames.io/games/2022/unity/forward-assault-remix/index.html'},
+  {n:'Shell Shockers',g:'action',e:'🥚',c:'#143054',url:'https://shellshock.io/'},
+  {n:'1v1.LOL',g:'action',e:'🏗️',c:'#0a2540',url:'https://1v1.lol/'},
+  {n:'Kirka.io',g:'action',e:'🎮',c:'#102a48',url:'https://kirka.io/'},
+  {n:'Smash Karts',g:'io',e:'🛺',c:'#0a2840',url:'https://smashkarts.io/'},
+  {n:'Ev.io',g:'io',e:'🔵',c:'#143058',url:'https://ev.io/'},
+  {n:'Zombs Royale',g:'io',e:'🧟',c:'#0a2038',url:'https://zombsroyale.io/'},
+  {n:'Territorial.io',g:'io',e:'🗺️',c:'#0a2238',url:'https://territorial.io/'},
+  {n:'Brutal.io',g:'io',e:'⭕',c:'#0f3050',url:'https://brutal.io/'},
+  {n:'Snowball.io',g:'io',e:'❄️',c:'#122c4a',url:'https://snowball.io/'},
+  {n:'Flyordie.io',g:'io',e:'🦋',c:'#0f3050',url:'https://flyordie.io/'},
+  {n:'Stabfish.io',g:'io',e:'🐡',c:'#122848',url:'https://stabfish.io/'},
+  {n:'Lordz.io',g:'io',e:'👑',c:'#0a2038',url:'https://www.lordz.io/'},
+  {n:'Foes.io',g:'io',e:'🏹',c:'#0d3060',url:'https://foes.io/'},
+  {n:'Warbot.io',g:'io',e:'🤖',c:'#102a48',url:'https://warbot.io/'},
+  {n:'2048',g:'puzzle',e:'🔢',c:'#0d3358',url:'https://play2048.co/'},
+  {n:'Wordle Unlimited',g:'puzzle',e:'🟩',c:'#0f2e52',url:'https://wordleunlimited.org/'},
+  {n:'Cut the Rope',g:'puzzle',e:'🍬',c:'#1a3858',url:'https://www.onlinegames.io/games/2023/html5/cut-the-rope/index.html'},
+  {n:'Block Puzzle',g:'puzzle',e:'🧩',c:'#0d2e50',url:'https://www.onlinegames.io/games/2022/html5/block-puzzle-jewel/index.html'},
+  {n:'Bubble Shooter',g:'puzzle',e:'🫧',c:'#0a2a50',url:'https://www.onlinegames.io/games/2021/html5/bubble-shooter/index.html'},
+  {n:'Unblock It',g:'puzzle',e:'📦',c:'#0a2a4a',url:'https://www.onlinegames.io/games/2021/html5/unblock-it/index.html'},
+  {n:'Mahjong',g:'puzzle',e:'🀄',c:'#0f2d4c',url:'https://www.onlinegames.io/games/2021/html5/mahjong-classic/index.html'},
+  {n:'Color Fill',g:'puzzle',e:'🎨',c:'#122c4a',url:'https://www.onlinegames.io/games/2022/html5/color-fill-3d/index.html'},
+  {n:'Sugar Sugar',g:'puzzle',e:'🍭',c:'#142a48',url:'https://www.onlinegames.io/games/2021/html5/sugar-sugar/index.html'},
+  {n:'Madalin Cars',g:'racing',e:'🏎️',c:'#1a3a60',url:'https://www.onlinegames.io/games/2021/unity2/madalin-cars-multiplayer/index.html'},
+  {n:'Drift Boss',g:'racing',e:'💨',c:'#102e55',url:'https://www.onlinegames.io/games/2021/html5/drift-boss/index.html'},
+  {n:'Moto X3M',g:'racing',e:'🏍️',c:'#0f2d52',url:'https://www.onlinegames.io/games/2021/html5/moto-x3m/index.html'},
+  {n:'Moto X3M Winter',g:'racing',e:'❄️',c:'#0a2840',url:'https://www.onlinegames.io/games/2021/html5/moto-x3m-winter/index.html'},
+  {n:'Derby Crash',g:'racing',e:'💥',c:'#122850',url:'https://www.onlinegames.io/games/2022/unity/derby-crash-4/index.html'},
+  {n:'Road Rush',g:'racing',e:'🚗',c:'#0d3260',url:'https://www.onlinegames.io/games/2021/html5/road-rush-cars/index.html'},
+  {n:'Driving Mad',g:'racing',e:'🚙',c:'#143060',url:'https://www.onlinegames.io/games/2022/html5/driving-mad/index.html'},
+  {n:'Traffic Rider',g:'racing',e:'🛵',c:'#102c50',url:'https://www.onlinegames.io/games/2021/unity2/traffic-rider/index.html'},
+  {n:'Fireboy & Watergirl',g:'adventure',e:'🔥',c:'#0d3050',url:'https://www.onlinegames.io/games/2021/html5/fireboy-and-watergirl-1/index.html'},
+  {n:'Stickman Hook',g:'adventure',e:'🕷️',c:'#0a2545',url:'https://www.onlinegames.io/games/2021/html5/stickman-hook/index.html'},
+  {n:'Vex 6',g:'adventure',e:'🏃',c:'#122d50',url:'https://www.onlinegames.io/games/2022/html5/vex-6/index.html'},
+  {n:'Vex 5',g:'adventure',e:'🧗',c:'#0d2c50',url:'https://www.onlinegames.io/games/2021/html5/vex-5/index.html'},
+  {n:'Tomb of the Mask',g:'adventure',e:'💀',c:'#0d2840',url:'https://www.onlinegames.io/games/2022/html5/tomb-of-the-mask/index.html'},
+  {n:'Bob the Robber',g:'adventure',e:'🦹',c:'#0f3055',url:'https://www.onlinegames.io/games/2021/html5/bob-the-robber/index.html'},
+  {n:'Red Ball 4',g:'adventure',e:'🔴',c:'#0a2842',url:'https://www.onlinegames.io/games/2021/html5/red-ball-4/index.html'},
+  {n:'Cat Ninja',g:'adventure',e:'🐱',c:'#0a2845',url:'https://www.onlinegames.io/games/2022/html5/cat-ninja/index.html'},
+  {n:'Crossy Road',g:'adventure',e:'🐔',c:'#102a48',url:'https://www.onlinegames.io/games/2021/html5/crossy-road/index.html'},
+  {n:'Run 3',g:'adventure',e:'🚀',c:'#0d3b6e',url:'https://www.onlinegames.io/games/2021/html5/run-3/index.html'},
+  {n:'Slope',g:'adventure',e:'🏂',c:'#1a4080',url:'https://www.onlinegames.io/games/2021/html5/slope/index.html'},
+  {n:'Adam & Eve',g:'adventure',e:'🍎',c:'#143060',url:'https://www.onlinegames.io/games/2021/html5/adam-and-eve/index.html'},
+  {n:'Basketball Stars',g:'sports',e:'🏀',c:'#1a3858',url:'https://www.onlinegames.io/games/2021/html5/basketball-stars/index.html'},
+  {n:'Head Soccer',g:'sports',e:'⚽',c:'#0d2e52',url:'https://www.onlinegames.io/games/2021/html5/head-soccer/index.html'},
+  {n:'Retro Bowl',g:'sports',e:'🏈',c:'#0d2e50',url:'https://retrobowl.me/'},
+  {n:'Archery World',g:'sports',e:'🏹',c:'#0f2e55',url:'https://www.onlinegames.io/games/2021/html5/archery-world-tour/index.html'},
+  {n:'Soccer Random',g:'sports',e:'🥅',c:'#122c4a',url:'https://www.onlinegames.io/games/2022/html5/soccer-random/index.html'},
+  {n:'Ping Pong',g:'sports',e:'🏓',c:'#0d2a48',url:'https://www.onlinegames.io/games/2021/html5/ping-pong/index.html'},
+  {n:'Bowman 2',g:'sports',e:'🏹',c:'#0d2c50',url:'https://www.onlinegames.io/games/2021/html5/bowman-2/index.html'},
+  {n:'Golf Battle',g:'sports',e:'⛳',c:'#102d50',url:'https://www.onlinegames.io/games/2022/html5/golf-battle/index.html'},
+  {n:'Strike Force Heroes',g:'shooter',e:'🪖',c:'#0a2840',url:'https://www.onlinegames.io/games/2021/html5/strike-force-heroes/index.html'},
+  {n:'Gunblood',g:'shooter',e:'🤠',c:'#0f2d50',url:'https://www.onlinegames.io/games/2021/html5/gunblood/index.html'},
+  {n:'Pixel Gun Apocalypse',g:'shooter',e:'🔫',c:'#0d2c4a',url:'https://www.onlinegames.io/games/2022/unity/pixel-gun-apocalypse-7/index.html'},
+  {n:'Happy Wheels',g:'casual',e:'🚲',c:'#0a2840',url:'https://www.onlinegames.io/games/2021/html5/happy-wheels/index.html'},
+  {n:'Bad Ice Cream',g:'casual',e:'🍦',c:'#102c50',url:'https://www.onlinegames.io/games/2021/html5/bad-ice-cream/index.html'},
+  {n:'Cookie Clicker',g:'casual',e:'🍪',c:'#143058',url:'https://orteil.dashnet.org/cookieclicker/'},
+  {n:'Duck Life',g:'casual',e:'🦆',c:'#0f3055',url:'https://www.onlinegames.io/games/2021/html5/duck-life/index.html'},
+  {n:'Monkey Mart',g:'casual',e:'🐒',c:'#102a48',url:'https://www.onlinegames.io/games/2022/html5/monkey-mart/index.html'},
+  {n:'Pac-Man',g:'casual',e:'🟡',c:'#102840',url:'https://www.onlinegames.io/games/2021/html5/pacman/index.html'},
+  {n:'Dino Game',g:'casual',e:'🦖',c:'#0f2a48',url:'https://chromedino.com/'},
+  {n:'Flappy Bird',g:'casual',e:'🐦',c:'#0d3260',url:'https://flappybird.io/'},
+  {n:'Minecraft Classic',g:'casual',e:'⛏️',c:'#0d2a48',url:'https://classic.minecraft.net/'},
+  {n:'Gartic Phone',g:'casual',e:'📞',c:'#0d2d50',url:'https://garticphone.com/'},
+  {n:'Kingdom Rush',g:'strategy',e:'🏰',c:'#0d3058',url:'https://www.onlinegames.io/games/2021/html5/kingdom-rush/index.html'},
+  {n:'Stick War Legacy',g:'strategy',e:'⚔️',c:'#0f2c4c',url:'https://www.onlinegames.io/games/2021/html5/stick-war-legacy/index.html'},
+  {n:'Age of War 2',g:'strategy',e:'🏛️',c:'#143060',url:'https://www.onlinegames.io/games/2021/html5/age-of-war-2/index.html'},
+  {n:'Civilization Wars',g:'strategy',e:'🏹',c:'#0a2848',url:'https://www.onlinegames.io/games/2021/html5/civilization-wars/index.html'},
+  {n:'Mini Metro',g:'strategy',e:'🚇',c:'#102d52',url:'https://www.onlinegames.io/games/2022/html5/mini-metro-online/index.html'},
+  {n:'Bloons TD 5',g:'strategy',e:'🎈',c:'#1a3860',url:'https://www.onlinegames.io/games/2021/html5/bloons-tower-defense-5/index.html'},
+  {n:'Clicker Heroes',g:'clicker',e:'🗡️',c:'#0a2840',url:'https://www.onlinegames.io/games/2021/html5/clicker-heroes/index.html'},
+  {n:'Planet Clicker',g:'clicker',e:'🌍',c:'#0d3050',url:'https://www.onlinegames.io/games/2021/html5/planet-clicker/index.html'},
+  {n:'Idle Miner',g:'clicker',e:'⛏️',c:'#122c48',url:'https://www.onlinegames.io/games/2021/html5/idle-miner-tycoon/index.html'},
+  {n:'Uno Online',g:'card',e:'🎴',c:'#0a2845',url:'https://www.onlinegames.io/games/2021/html5/uno-online/index.html'},
+  {n:'Solitaire',g:'card',e:'🃏',c:'#0d2d50',url:'https://www.onlinegames.io/games/2021/html5/solitaire/index.html'},
+  {n:'Spider Solitaire',g:'card',e:'🕷️',c:'#0f2e55',url:'https://www.onlinegames.io/games/2021/html5/spider-solitaire/index.html'},
+  {n:'Freecell',g:'card',e:'♠️',c:'#102c4a',url:'https://www.onlinegames.io/games/2021/html5/freecell/index.html'},
+];
+
+let gamesLoaded=false,allGames=[...GAMES],gamesFilter='all';
+
+function loadGames(){
+  gamesLoaded=true;
+  const genres=['all',...new Set(allGames.map(g=>g.g))];
+  const labels={all:'All',action:'Action',io:'IO',puzzle:'Puzzle',racing:'Racing',adventure:'Adventure',sports:'Sports',shooter:'Shooter',casual:'Casual',strategy:'Strategy',clicker:'Clicker',card:'Card'};
+  document.getElementById('games-filter').innerHTML=genres.map(g=>'<div class="genre-pill '+(g==='all'?'active':'')+'" data-genre="'+g+'" onclick="filterByGenre(\''+g+'\')">'+( labels[g]||g)+'</div>').join('');
+  renderGames(allGames);
+}
+
+function filterByGenre(g){
+  gamesFilter=g;
+  document.querySelectorAll('.genre-pill').forEach(p=>p.classList.toggle('active',p.dataset.genre===g));
+  const filtered=g==='all'?allGames:allGames.filter(gm=>gm.g===g);
+  const q=document.getElementById('games-search-input').value.trim().toLowerCase();
+  renderGames(q?filtered.filter(gm=>gm.n.toLowerCase().includes(q)):filtered);
+}
+
+function filterGames(){
+  const q=document.getElementById('games-search-input').value.trim().toLowerCase();
+  const by=gamesFilter==='all'?allGames:allGames.filter(gm=>gm.g===gamesFilter);
+  renderGames(q?by.filter(gm=>gm.n.toLowerCase().includes(q)):by);
+}
+
+function renderGames(list){
+  if(!list.length){document.getElementById('games-grid').innerHTML='<div class="empty-state"><span class="big">🎮</span>No games found</div>';return;}
+  document.getElementById('games-grid').innerHTML=list.map(g=>'<div class="game-card" onclick="openGame(\''+encodeURIComponent(g.url)+'\',\''+encodeURIComponent(g.n)+'\')"><div class="game-thumb"><div class="game-thumb-bg" style="background:'+g.c+'"></div><div class="game-thumb-emoji">'+g.e+'</div></div><div class="game-info"><h4>'+g.n+'</h4><div class="game-genre-tag">'+g.g+'</div></div><div class="game-play-btn">PLAY</div></div>').join('');
+}
+
+function openGame(urlEnc,nameEnc){
+  document.getElementById('game-title').textContent=decodeURIComponent(nameEnc);
+  document.getElementById('game-iframe').src=decodeURIComponent(urlEnc);
+  document.getElementById('game-overlay').classList.add('open');
+}
+
+function closeGame(){
+  document.getElementById('game-overlay').classList.remove('open');
+  document.getElementById('game-iframe').src='about:blank';
+}
+
+const msgs=['PRIVATE • SECURE • UNBLOCKED','100+ GAMES READY','PROXY ACTIVE','ZERO TRACKING'];
+let si=0;
+setInterval(()=>{si=(si+1)%msgs.length;const el=document.getElementById('stxt');el.style.opacity=0;setTimeout(()=>{el.textContent=msgs[si];el.style.opacity='';},300);},5000);
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeEmbed();closeGame();}});
+</script>
+</body>
+</html>`;
+
+// ══════════════════════════════════════════════
+// AD BLOCK LIST
+// ══════════════════════════════════════════════
+const AD_DOMAINS = [
+  'doubleclick.net','googlesyndication.com','googleadservices.com',
+  'adnxs.com','adsrvr.org','advertising.com','adroll.com',
+  'outbrain.com','taboola.com','revcontent.com','mgid.com',
+  'popcash.net','popads.net','adsterra.com','propellerads.com',
+  'trafficjunky.net','juicyads.com','exoclick.com','plugrush.com',
+  'hilltopads.net','cpmstar.com','clickadu.com','adcash.com',
+  'tsyndicate.com','contentabc.com','zlinkd.com',
+  'adf.ly','linkbucks.com','ouo.io','shorte.st',
+];
+
+function isAdDomain(url) {
+  try {
+    const host = new URL(url).hostname.toLowerCase();
+    return AD_DOMAINS.some(d => host === d || host.endsWith('.' + d));
+  } catch { return false; }
+}
+
+// ══════════════════════════════════════════════
+// URL REWRITING HELPERS
+// ══════════════════════════════════════════════
+function rewriteCSS(css, base, origin) {
+  return css.replace(/url\(['"]?(https?:\/\/[^'"\)]+)['"]?\)/gi,
+    (m, u) => `url(/proxy?url=${encodeURIComponent(u)})`
+  ).replace(/url\(['"]?(\/\/[^'"\)]+)['"]?\)/gi,
+    (m, u) => `url(/proxy?url=${encodeURIComponent('https:' + u)})`
+  ).replace(/url\(['"]?(\/[^'"\)]+)['"]?\)/gi,
+    (m, u) => `url(/proxy?url=${encodeURIComponent(new URL(u, base).href)})`
+  );
+}
+
+function rewriteHTML(html, base, origin) {
+  // Strip anti-embedding headers in HTML meta tags
+  html = html.replace(/<meta[^>]+http-equiv=["']?x-frame-options["']?[^>]*>/gi, '');
+  html = html.replace(/<meta[^>]+content-security-policy[^>]*>/gi, '');
+
+  // Rewrite absolute URLs in href/src/action
+  html = html.replace(/(href|src|action|data-src)=(["'])(https?:\/\/[^"'>\s]+)(["'])/gi,
+    (m, attr, q1, url, q2) => {
+      if (isAdDomain(url)) return `${attr}=${q1}about:blank${q2}`;
+      return `${attr}=${q1}/proxy?url=${encodeURIComponent(url)}${q2}`;
+    }
+  );
+
+  // Rewrite protocol-relative URLs
+  html = html.replace(/(href|src|action)=(["'])(\/\/[^"'>\s]+)(["'])/gi,
+    (m, attr, q1, url, q2) => `${attr}=${q1}/proxy?url=${encodeURIComponent('https:' + url)}${q2}`
+  );
+
+  // Rewrite root-relative URLs
+  html = html.replace(/(href|src|action)=(["'])(\/[^"'>\s][^"']*)(["'])/gi,
+    (m, attr, q1, url, q2) => {
+      try {
+        const abs = new URL(url, base).href;
+        return `${attr}=${q1}/proxy?url=${encodeURIComponent(abs)}${q2}`;
+      } catch { return m; }
+    }
+  );
+
+  // Strip target="_blank" and target="_top" to keep navigation in iframe
+  html = html.replace(/target=["'](_blank|_top|_parent)["']/gi, 'target="_self"');
+
+  // Rewrite inline style url()
+  html = html.replace(/style=["']([^"']*url\([^)]+\)[^"']*)["']/gi, (m, style) => {
+    try {
+      const rewritten = rewriteCSS(style, base, origin);
+      return `style="${rewritten}"`;
+    } catch { return m; }
+  });
+
+  // Inject navigation interceptor + ad blocker script
+  const inject = `
+<script>
+(function(){
+  var PROXY = '/proxy?url=';
+  var AD_DOMAINS = ${JSON.stringify(AD_DOMAINS)};
+
+  function isAd(u){
+    try{var h=new URL(u).hostname.toLowerCase();return AD_DOMAINS.some(function(d){return h===d||h.endsWith('.'+d);});}catch(e){return false;}
+  }
+
+  // Block window.open popups
+  window.open = function(u){ if(u&&!isAd(u))window.location.href=PROXY+encodeURIComponent(u.startsWith('http')?u:'https://'+u); return null; };
+
+  // Intercept all link clicks
+  document.addEventListener('click', function(e){
+    var a = e.target.closest('a');
+    if(a && a.href && a.href.startsWith('http') && !a.href.includes('/proxy?url=')){
+      if(isAd(a.href)){e.preventDefault();return;}
+      e.preventDefault();
+      window.location.href = PROXY + encodeURIComponent(a.href);
+    }
+  }, true);
+
+  // Intercept form submissions
+  document.addEventListener('submit', function(e){
+    var f = e.target;
+    if(f && f.action && f.action.startsWith('http') && !f.action.includes('/proxy?url=')){
+      e.preventDefault();
+      var data = new FormData(f);
+      var params = new URLSearchParams(data).toString();
+      var sep = f.action.includes('?') ? '&' : '?';
+      window.location.href = PROXY + encodeURIComponent(f.action + (f.method.toLowerCase()==='get'?sep+params:''));
+    }
+  }, true);
+
+  // Block ad iframes from loading
+  var origCreate = document.createElement.bind(document);
+  document.createElement = function(tag){
+    var el = origCreate(tag);
+    if(tag && tag.toLowerCase()==='iframe'){
+      Object.defineProperty(el,'src',{
+        set:function(v){
+          if(v&&!isAd(v)){
+            Object.getOwnPropertyDescriptor(HTMLIFrameElement.prototype,'src').set.call(this,v);
+          }
+        },
+        get:function(){
+          return Object.getOwnPropertyDescriptor(HTMLIFrameElement.prototype,'src').get.call(this);
+        }
+      });
+    }
+    return el;
+  };
+})();
+<\/script>`;
+
+  // Inject before </head> or at start of body
+  if (html.includes('</head>')) {
+    html = html.replace('</head>', inject + '</head>');
+  } else if (html.includes('<body')) {
+    html = html.replace(/<body[^>]*>/, m => m + inject);
+  } else {
+    html = inject + html;
+  }
+
+  return html;
+}
+
+// ══════════════════════════════════════════════
+// MAIN WORKER
+// ══════════════════════════════════════════════
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
 
+    // ── Serve main HTML ──
+    if (url.pathname === '/' || url.pathname === '/index.html') {
+      return new Response(HTML, {
+        headers: {
+          'Content-Type': 'text/html; charset=utf-8',
+          'X-Frame-Options': 'SAMEORIGIN',
+        }
+      });
+    }
+
+    // ── Proxy handler ──
     if (url.pathname === '/proxy') {
       const target = url.searchParams.get('url');
-      if (!target) return new Response('No URL', { status: 400 });
+      if (!target) return new Response('No URL provided', { status: 400 });
+
       let targetUrl;
       try { targetUrl = new URL(decodeURIComponent(target)); }
       catch { return new Response('Invalid URL', { status: 400 }); }
-      if (!['http:', 'https:'].includes(targetUrl.protocol)) return new Response('Not allowed', { status: 403 });
+
+      if (!['http:', 'https:'].includes(targetUrl.protocol)) {
+        return new Response('Protocol not allowed', { status: 403 });
+      }
+
+      // Block ads at proxy level
+      if (isAdDomain(targetUrl.href)) {
+        return new Response('', { status: 204 });
+      }
+
       try {
-        const reqHeaders = new Headers(request.headers);
-        reqHeaders.delete('host');
-        reqHeaders.set('Referer', targetUrl.origin);
+        // Build clean request headers
+        const reqHeaders = new Headers();
+        reqHeaders.set('User-Agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
+        reqHeaders.set('Accept', request.headers.get('Accept') || 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8');
+        reqHeaders.set('Accept-Language', 'en-US,en;q=0.9');
+        reqHeaders.set('Accept-Encoding', 'gzip, deflate, br');
+        reqHeaders.set('Referer', targetUrl.origin + '/');
         reqHeaders.set('Origin', targetUrl.origin);
-        const response = await fetch(targetUrl.toString(), {
+
+        // Forward cookies if any
+        const cookie = request.headers.get('cookie');
+        if (cookie) reqHeaders.set('cookie', cookie);
+
+        const fetchOptions = {
           method: request.method,
           headers: reqHeaders,
-          body: ['GET','HEAD'].includes(request.method) ? undefined : request.body,
           redirect: 'follow',
-        });
-        const resHeaders = new Headers(response.headers);
-        resHeaders.delete('x-frame-options');
-        resHeaders.delete('content-security-policy');
-        resHeaders.delete('content-security-policy-report-only');
-        resHeaders.delete('cross-origin-embedder-policy');
-        resHeaders.delete('cross-origin-opener-policy');
-        resHeaders.delete('cross-origin-resource-policy');
+        };
+
+        if (!['GET', 'HEAD'].includes(request.method)) {
+          fetchOptions.body = request.body;
+        }
+
+        const response = await fetch(targetUrl.toString(), fetchOptions);
+
+        // Build response headers — strip blocking headers
+        const resHeaders = new Headers();
+        for (const [key, val] of response.headers.entries()) {
+          const k = key.toLowerCase();
+          if ([
+            'x-frame-options',
+            'content-security-policy',
+            'content-security-policy-report-only',
+            'cross-origin-embedder-policy',
+            'cross-origin-opener-policy',
+            'cross-origin-resource-policy',
+            'x-content-type-options',
+          ].includes(k)) continue;
+          resHeaders.set(key, val);
+        }
+
         resHeaders.set('Access-Control-Allow-Origin', '*');
-        const contentType = resHeaders.get('content-type') || '';
+        resHeaders.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, DELETE');
+        resHeaders.set('Access-Control-Allow-Headers', '*');
+
+        // Forward set-cookie
+        const setCookie = response.headers.get('set-cookie');
+        if (setCookie) resHeaders.set('set-cookie', setCookie);
+
+        const contentType = (response.headers.get('content-type') || '').toLowerCase();
+        const base = targetUrl.href;
+        const origin = url.origin;
+
+        // ── Rewrite HTML ──
         if (contentType.includes('text/html')) {
           let body = await response.text();
-          const base = targetUrl.origin;
-          const proxyBase = url.origin + '/proxy?url=';
-          body = body.replace(/(href|src|action)="(https?:\/\/[^"]+)"/gi, (m,attr,link) => `${attr}="${proxyBase}${encodeURIComponent(link)}"`);
-          body = body.replace(/(href|src|action)="(\/[^"]*?)"/gi, (m,attr,path) => `${attr}="${proxyBase}${encodeURIComponent(base+path)}"`);
-          const inject = `<meta charset="utf-8"><base href="${targetUrl.toString()}"><script>document.addEventListener('click',function(e){const a=e.target.closest('a');if(a&&a.href&&!a.href.startsWith('javascript')&&!a.href.startsWith('#')){e.preventDefault();window.location.href='${url.origin}/proxy?url='+encodeURIComponent(a.href);}},true);<\/script>`;
-          body = body.replace('<head>', '<head>' + inject);
-          resHeaders.set('content-type', 'text/html; charset=utf-8');
+          body = rewriteHTML(body, base, origin);
+          resHeaders.set('Content-Type', 'text/html; charset=utf-8');
+          resHeaders.delete('content-encoding');
           return new Response(body, { status: response.status, headers: resHeaders });
         }
+
+        // ── Rewrite CSS ──
         if (contentType.includes('text/css')) {
           let body = await response.text();
-          body = body.replace(/url\(['"]?(https?:\/\/[^'")\s]+)['"]?\)/gi, (m,link) => `url(${url.origin}/proxy?url=${encodeURIComponent(link)})`);
+          body = rewriteCSS(body, base, origin);
+          resHeaders.set('Content-Type', 'text/css; charset=utf-8');
+          resHeaders.delete('content-encoding');
           return new Response(body, { status: response.status, headers: resHeaders });
         }
+
+        // ── Rewrite JS — replace absolute URLs in fetch/XHR calls ──
+        if (contentType.includes('javascript') || contentType.includes('ecmascript')) {
+          let body = await response.text();
+          // Rewrite fetch() calls
+          body = body.replace(/fetch\(["'](https?:\/\/[^"']+)["']/g,
+            (m, u) => `fetch("/proxy?url=${encodeURIComponent(u)}"`
+          );
+          // Rewrite XMLHttpRequest.open calls
+          body = body.replace(/(\.open\(["'][A-Z]+["'],\s*["'])(https?:\/\/[^"']+)(["'])/g,
+            (m, pre, u, post) => `${pre}/proxy?url=${encodeURIComponent(u)}${post}`
+          );
+          resHeaders.delete('content-encoding');
+          return new Response(body, { status: response.status, headers: resHeaders });
+        }
+
+        // ── Pass through everything else (images, fonts, etc.) ──
         return new Response(response.body, { status: response.status, headers: resHeaders });
-      } catch(err) { return new Response('Proxy error: '+err.message, { status: 500 }); }
+
+      } catch (err) {
+        return new Response(`
+          <html><body style="background:#010d1a;color:#a5f3fc;font-family:sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;flex-direction:column;gap:16px;">
+            <div style="font-size:3rem">🌊</div>
+            <div style="font-size:1.2rem;font-weight:bold;">DingleV5 Proxy</div>
+            <div style="color:rgba(165,243,252,0.6);font-size:.9rem;">Could not load: ${targetUrl.hostname}</div>
+            <div style="color:rgba(165,243,252,0.4);font-size:.8rem;">${err.message}</div>
+          </body></html>
+        `, { status: 502, headers: { 'Content-Type': 'text/html' } });
+      }
     }
 
-    return new Response(HTML, { headers: { 'Content-Type': 'text/html; charset=utf-8' } });
+    // ── OPTIONS preflight ──
+    if (request.method === 'OPTIONS') {
+      return new Response(null, {
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+          'Access-Control-Allow-Headers': '*',
+        }
+      });
+    }
+
+    return new Response('Not found', { status: 404 });
   }
-}
+};
