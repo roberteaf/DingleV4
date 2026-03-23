@@ -502,10 +502,7 @@ function makeTree(x,z){
   g.position.set(x,y,z);g.rotation.y=Math.random()*Math.PI*2;g.scale.setScalar(rnd(.88,1.12));
   scene.add(g);trees.push({g,hp:rndI(4,10),hasLoot:true,x,z,chopAnim:0,shakeDir:1});
 }
-for(let i=0;i<900;i++){
-  const x=rnd(-HALF+5,HALF-5),z=rnd(-HALF+5,HALF-5);
-  if(Math.sqrt(x*x+z*z)<18)continue;makeTree(x,z);
-}
+// Trees generated async in initWorld()
 
 setLoad(42,'PLACING ROCKS...');
 
@@ -520,8 +517,7 @@ function makeRock(x,z){
   const ore=Math.random()<.12?'iron':Math.random()<.06?'gold':Math.random()<.18?'coal':null;
   rocks.push({m,hp:rndI(2,5),hasLoot:true,x,z,ore});
 }
-for(let i=0;i<280;i++)makeRock(rnd(-HALF+4,HALF-4),rnd(-HALF+4,HALF-4));
-for(let i=0;i<35;i++){const cx=rnd(-HALF+10,HALF-10),cz=rnd(-HALF+10,HALF-10);for(let j=0;j<rndI(3,6);j++)makeRock(cx+rnd(-5,5),cz+rnd(-5,5));}
+// Rocks generated async in initWorld()
 
 setLoad(55,'SPAWNING LOOT...');
 
@@ -575,13 +571,7 @@ function makeWSpawn(key,x,z){
   const pl=new THREE.PointLight(rcol,.8,5.5);pl.position.set(x,y+1.2,z);scene.add(pl);
   wSpawns.push({key,rar,wm,base,pl,x,z,y,alive:true,t:Math.random()*Math.PI*2});
 }
-const WKEYS=Object.keys(WDEFS).filter(k=>k!=='fists');
-for(let i=0;i<60;i++){
-  const k=WKEYS[i%WKEYS.length];
-  const x=rnd(-HALF+20,HALF-20),z=rnd(-HALF+20,HALF-20);
-  if(Math.sqrt(x*x+z*z)<22)continue;
-  makeWSpawn(k,x,z);
-}
+// Weapon spawns generated async in initWorld()
 
 // ═══════════════ RESOURCES ═══════════════
 const RDEFS={
@@ -601,8 +591,7 @@ function makeRes(type,x,z){
   m.position.set(x,y+.4,z);m.castShadow=true;scene.add(m);
   res_pickups.push({m,type,x,z,alive:true,t:Math.random()*Math.PI*2});
 }
-const RSCATTER={berry:35,mushroom:32,fiber:42,feather:25,bone:18,herb:32,flint:28,leather:12,cloth:15,rope:14,arrow:35,bolt:18,bandage:20,medkit:12,iron:10,gold:8};
-Object.entries(RSCATTER).forEach(([tp,cnt])=>{for(let i=0;i<cnt;i++){const x=rnd(-HALF+5,HALF-5),z=rnd(-HALF+5,HALF-5);makeRes(tp,x,z);}});
+// Resources scattered async in initWorld()
 
 setLoad(68,'SPAWNING ENEMIES...');
 
@@ -662,10 +651,7 @@ function makeEnemy(x,z,fi){
     state:'wander',wdir:new THREE.Vector3(rnd(-1,1),0,rnd(-1,1)).normalize(),
     wt:rnd(0,3),atkT:rnd(0,.9),limbt:0,hitFlashT:0,deathT:0});
 }
-for(let i=0;i<30;i++){
-  let x=rnd(-HALF+15,HALF-15),z=rnd(-HALF+15,HALF-15);
-  if(Math.abs(x)<25&&Math.abs(z)<25)x+=30;makeEnemy(x,z);
-}
+// Enemies spawned async in initWorld()
 
 setLoad(80,'SETTING UP PLAYER...');
 
@@ -1423,11 +1409,80 @@ function startGame(mode){
 }
 
 // ═══════════════ LOADING DONE ═══════════════
-setLoad(95,'FINALIZING...');
-setTimeout(()=>{setLoad(100,'READY!');setTimeout(()=>{
-  document.getElementById('loading').style.display='none';
-  document.getElementById('menu').style.display='flex';
-},300);},200);
+// ═══════════════ ASYNC WORLD GEN ═══════════════
+async function delay(ms){ return new Promise(r=>setTimeout(r,ms)); }
+
+async function initWorld(){
+  try{
+    setLoad(8,'GENERATING TERRAIN...');
+    await delay(30);
+
+    // terrain already built above synchronously (it's fast enough)
+    // Trees - batch to avoid hang
+    setLoad(28,'GROWING FOREST...');
+    await delay(20);
+    const treeCount=Math.min(400, isTouch?200:400); // fewer on mobile
+    for(let i=0;i<treeCount;i++){
+      const x=rnd(-HALF+5,HALF-5),z=rnd(-HALF+5,HALF-5);
+      if(Math.sqrt(x*x+z*z)<18)continue;
+      makeTree(x,z);
+      if(i%80===0){ setLoad(28+i/treeCount*12,'GROWING FOREST...'); await delay(5); }
+    }
+
+    setLoad(42,'PLACING ROCKS...');
+    await delay(20);
+    const rockCount=isTouch?120:280;
+    for(let i=0;i<rockCount;i++){
+      makeRock(rnd(-HALF+4,HALF-4),rnd(-HALF+4,HALF-4));
+      if(i%60===0) await delay(2);
+    }
+    for(let i=0;i<20;i++){const cx=rnd(-HALF+10,HALF-10),cz=rnd(-HALF+10,HALF-10);for(let j=0;j<rndI(2,4);j++)makeRock(cx+rnd(-4,4),cz+rnd(-4,4));}
+
+    setLoad(55,'SCATTERING LOOT...');
+    await delay(20);
+    // Weapon spawns
+    const WKEYS=Object.keys(WDEFS).filter(k=>k!=='fists');
+    const spawnCount=isTouch?30:60;
+    for(let i=0;i<spawnCount;i++){
+      const k=WKEYS[i%WKEYS.length];
+      const x=rnd(-HALF+20,HALF-20),z=rnd(-HALF+20,HALF-20);
+      if(Math.sqrt(x*x+z*z)<22)continue;
+      makeWSpawn(k,x,z);
+      if(i%15===0) await delay(2);
+    }
+    // Resources
+    const RSCATTER={berry:35,mushroom:32,fiber:42,feather:25,bone:18,herb:32,flint:28,leather:12,cloth:15,rope:14,arrow:35,bolt:18,bandage:20,medkit:12,iron:10,gold:8};
+    for(const[tp,cnt]of Object.entries(RSCATTER)){
+      for(let i=0;i<(isTouch?Math.ceil(cnt/2):cnt);i++){const x=rnd(-HALF+5,HALF-5),z=rnd(-HALF+5,HALF-5);makeRes(tp,x,z);}
+      await delay(1);
+    }
+
+    setLoad(68,'SPAWNING ENEMIES...');
+    await delay(20);
+    const enemyCount=isTouch?16:30;
+    for(let i=0;i<enemyCount;i++){
+      let x=rnd(-HALF+15,HALF-15),z=rnd(-HALF+15,HALF-15);
+      if(Math.abs(x)<25&&Math.abs(z)<25)x+=30;
+      makeEnemy(x,z);
+      if(i%8===0) await delay(2);
+    }
+
+    setLoad(90,'FINALIZING...');
+    await delay(30);
+    setLoad(100,'READY!');
+    await delay(200);
+    document.getElementById('loading').style.display='none';
+    document.getElementById('menu').style.display='flex';
+
+  } catch(err){
+    console.error('World gen error:',err);
+    // Show menu anyway
+    document.getElementById('loading').style.display='none';
+    document.getElementById('menu').style.display='flex';
+  }
+}
+
+initWorld();
 </script>
 <!-- TOUCH UI -->
 <div id="touch-ui">
