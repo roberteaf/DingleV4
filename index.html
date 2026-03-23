@@ -240,10 +240,9 @@ canvas{display:block;position:fixed;inset:0}
 </head>
 <body>
 
-<div id="loading">
-  <h1>TEST</h1>
+<div id="loading" style="display:none">
   <div id="lbar-wrap"><div id="lbar"></div></div>
-  <div id="ltxt">LOADING...</div>
+  <div id="ltxt">LOADING . . .</div>
 </div>
 
 <div id="menu">
@@ -1273,47 +1272,61 @@ function startMp(mode){const name=document.getElementById('mp-name').value.trim(
 function startGame(mode){
   if(!pName||pName==='Player'){const spn=document.getElementById('sp-name');pName=(spn&&spn.value.trim())||'Survivor';}
   document.getElementById('menu').style.display='none';
-  document.getElementById('hud').style.display='block';
-  if(isTouch){document.getElementById('tui').style.display='block';document.getElementById('hints').style.display='none';}
-  camera.position.set(0,getY(0,0)+PH+1,0);
-  if(mode==='host')connectWS('localhost');
-  else if(mode==='join')connectWS(document.getElementById('mpip').value.trim()||'localhost');
-  document.getElementById('badge').textContent=mode==='sp'?`SP·${pName}`:`MP·${pName}`;
-  buildHB();updStats();
-  showMsg(`Welcome, ${pName}! Search for weapons. Survive the night.`);
-  if(!isTouch)renderer.domElement.requestPointerLock();
-  requestAnimationFrame(t=>{lastT=t;requestAnimationFrame(loop);});
+  // Show loading screen with animated dots while world generates
+  const ld=document.getElementById('loading');
+  ld.style.display='flex';
+  setLoad(0,'LOADING . . .');
+  // Animate dots
+  let dots=0;
+  const dotInt=setInterval(()=>{dots=(dots+1)%4;document.getElementById('ltxt').textContent='LOADING '+'.'.repeat(dots+1);},400);
+  initWorld(()=>{
+    clearInterval(dotInt);
+    document.getElementById('hud').style.display='block';
+    if(isTouch){document.getElementById('tui').style.display='block';document.getElementById('hints').style.display='none';}
+    camera.position.set(0,getY(0,0)+PH+1,0);
+    if(mode==='host')connectWS('localhost');
+    else if(mode==='join')connectWS(document.getElementById('mpip').value.trim()||'localhost');
+    document.getElementById('badge').textContent=mode==='sp'?`SP·${pName}`:`MP·${pName}`;
+    buildHB();updStats();
+    showMsg(`Welcome, ${pName}! Search for weapons. Survive the night.`);
+    if(!isTouch)renderer.domElement.requestPointerLock();
+    requestAnimationFrame(t=>{lastT=t;requestAnimationFrame(loop);});
+  });
 }
 
-// ── ASYNC WORLD GEN (after renderer is set up) ────────────
-async function initWorld(){
+// ── ASYNC WORLD GEN — runs AFTER play is clicked ────────────
+async function initWorld(onDone){
+  const ld=document.getElementById('loading');
+  ld.style.display='flex';
   try{
-    setLoad(10,'BUILDING TERRAIN...');await delay(20);
-    // Pre-generate chunks around spawn (0,0) so player has ground immediately
-    for(let dx=-2;dx<=2;dx++){for(let dz=-2;dz<=2;dz++){makeChunk(dx,dz);} await delay(8);}
+    setLoad(5,'BUILDING TERRAIN...');await delay(10);
+    for(let dx=-2;dx<=2;dx++){for(let dz=-2;dz<=2;dz++){makeChunk(dx,dz);}await delay(5);}
     lastChunkX=0;lastChunkZ=0;
-    setLoad(30,'GROWING FOREST...');await delay(20);
-    const tc=isTouch?60:120;
-    for(let i=0;i<tc;i++){const x=rnd(-HALF+5,HALF-5),z=rnd(-HALF+5,HALF-5);if(Math.sqrt(x*x+z*z)<18)continue;makeTree(x,z);if(i%20===0)await delay(4);}
-    setLoad(48,'PLACING ROCKS...');await delay(16);
-    const rc=isTouch?50:100;for(let i=0;i<rc;i++){makeRock(rnd(-HALF+4,HALF-4),rnd(-HALF+4,HALF-4));if(i%25===0)await delay(3);}
-    setLoad(62,'SCATTERING LOOT...');await delay(16);
-    const wk=Object.keys(WD).filter(k=>k!=='fists'),sc=isTouch?18:36;
-    for(let i=0;i<sc;i++){const x=rnd(-HALF+20,HALF-20),z=rnd(-HALF+20,HALF-20);if(Math.sqrt(x*x+z*z)<22)continue;makeWSpawn(wk[i%wk.length],x,z);if(i%8===0)await delay(3);}
-    const RS={berry:16,mushroom:14,fiber:18,feather:10,bone:8,herb:14,flint:12,leather:6,cloth:8,rope:6,arrow:16,bolt:8,bandage:10,medkit:5,iron:6,gold:4};
-    for(const[tp,cnt]of Object.entries(RS)){for(let i=0;i<(isTouch?Math.ceil(cnt/2):cnt);i++){const x=rnd(-HALF+5,HALF-5),z=rnd(-HALF+5,HALF-5);makeRes(tp,x,z);}await delay(1);}
-    setLoad(80,'SPAWNING ENEMIES...');await delay(16);
-    const ec=isTouch?8:16;for(let i=0;i<ec;i++){let x=rnd(-HALF+15,HALF-15),z=rnd(-HALF+15,HALF-15);if(Math.abs(x)<24&&Math.abs(z)<24)x+=28;makeEnemy(x,z);if(i%4===0)await delay(3);}
-    setLoad(100,'READY!');await delay(120);
-    document.getElementById('loading').style.display='none';
-    document.getElementById('menu').style.display='flex';
+    setLoad(30,'GROWING FOREST...');await delay(10);
+    const tc=isTouch?50:100;
+    for(let i=0;i<tc;i++){const x=rnd(-HALF+5,HALF-5),z=rnd(-HALF+5,HALF-5);if(Math.sqrt(x*x+z*z)<18)continue;makeTree(x,z);if(i%25===0)await delay(3);}
+    setLoad(52,'PLACING ROCKS...');await delay(8);
+    const rc=isTouch?40:80;for(let i=0;i<rc;i++){makeRock(rnd(-HALF+4,HALF-4),rnd(-HALF+4,HALF-4));if(i%20===0)await delay(2);}
+    setLoad(65,'SCATTERING LOOT...');await delay(8);
+    const wk=Object.keys(WD).filter(k=>k!=='fists'),sc=isTouch?14:28;
+    for(let i=0;i<sc;i++){const x=rnd(-HALF+20,HALF-20),z=rnd(-HALF+20,HALF-20);if(Math.sqrt(x*x+z*z)<22)continue;makeWSpawn(wk[i%wk.length],x,z);if(i%7===0)await delay(2);}
+    const RS={berry:12,mushroom:10,fiber:14,feather:8,bone:6,herb:10,flint:10,leather:5,cloth:6,rope:5,arrow:12,bolt:6,bandage:8,medkit:4,iron:5,gold:3};
+    for(const[tp,cnt]of Object.entries(RS)){for(let i=0;i<(isTouch?Math.ceil(cnt/2):cnt);i++){makeRes(tp,rnd(-HALF+5,HALF-5),rnd(-HALF+5,HALF-5));}await delay(1);}
+    setLoad(82,'SPAWNING ENEMIES...');await delay(8);
+    const ec=isTouch?8:14;for(let i=0;i<ec;i++){let x=rnd(-HALF+15,HALF-15),z=rnd(-HALF+15,HALF-15);if(Math.abs(x)<24&&Math.abs(z)<24)x+=28;makeEnemy(x,z);if(i%4===0)await delay(2);}
+    setLoad(100,'READY!');await delay(80);
+    ld.style.display='none';
+    onDone();
   }catch(err){
     console.error('Init error:',err);
-    document.getElementById('loading').style.display='none';
-    document.getElementById('menu').style.display='flex';
+    ld.style.display='none';
+    onDone();
   }
 }
-initWorld();
+
+// Show menu instantly on page load — no waiting
+document.getElementById('loading').style.display='none';
+document.getElementById('menu').style.display='flex';
 </script>
 </body>
 </html>
