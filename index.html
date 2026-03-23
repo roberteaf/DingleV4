@@ -16,11 +16,98 @@ canvas{display:block;position:fixed;inset:0}
 #lbar{height:100%;width:0%;background:#3dff6e;transition:width .1s;border-radius:2px}
 #ltxt{color:rgba(255,255,255,.3);font-size:11px;letter-spacing:.2em}
 
-#menu{position:fixed;inset:0;background:radial-gradient(ellipse at 50% 40%,#040f04,#010401);display:none;flex-direction:column;align-items:center;justify-content:center;z-index:100}
-#menu h1{font-size:clamp(36px,6vw,80px);font-weight:200;letter-spacing:.25em;color:#fff;text-shadow:0 0 60px rgba(61,255,110,.5);margin-bottom:6px}
-#menu .sub{color:rgba(61,255,110,.4);letter-spacing:.35em;font-size:11px;margin-bottom:48px}
-.mb{width:260px;padding:14px;margin:5px;background:rgba(0,0,0,.45);border:1px solid rgba(61,255,110,.2);color:#3dff6e;letter-spacing:.12em;font-size:13px;cursor:pointer;font-family:inherit;transition:all .18s}
-.mb:hover,.mb:active{background:rgba(61,255,110,.1);border-color:rgba(61,255,110,.5);color:#fff}
+/* ── MENU SYSTEM ─────────────────────────────────────── */
+#menu{position:fixed;inset:0;z-index:100;display:none;overflow:hidden}
+
+/* Animated background */
+#menu-bg{position:absolute;inset:0;background:radial-gradient(ellipse at 30% 60%,#041a04 0%,#010801 50%,#000 100%);overflow:hidden}
+.bg-tree{position:absolute;bottom:0;background:linear-gradient(to top,#0a1a08,#061206);border-radius:4px 4px 0 0;opacity:.6}
+#menu-fog{position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.8) 0%,transparent 40%);pointer-events:none}
+#menu-vignette{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 50%,transparent 30%,rgba(0,0,0,.7) 100%);pointer-events:none}
+
+/* Animated particles */
+.mparticle{position:absolute;border-radius:50%;pointer-events:none;animation:mpa linear infinite}
+@keyframes mpa{from{transform:translateY(100vh) scale(0);opacity:0}10%{opacity:1}90%{opacity:.5}to{transform:translateY(-100px) scale(1.5);opacity:0}}
+
+/* Main menu content */
+#menu-content{position:relative;z-index:2;width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center}
+
+/* Logo */
+#menu-logo{text-align:center;margin-bottom:48px;animation:logoIn .8s cubic-bezier(.16,1,.3,1) both}
+@keyframes logoIn{from{opacity:0;transform:translateY(-30px)}to{opacity:1;transform:none}}
+#menu-logo h1{font-size:clamp(44px,8vw,96px);font-weight:100;letter-spacing:.3em;color:#fff;text-shadow:0 0 80px rgba(61,255,110,.4),0 0 160px rgba(61,255,110,.15);margin-bottom:6px;line-height:1}
+#menu-logo .v{font-size:12px;letter-spacing:.5em;color:rgba(61,255,110,.4);text-transform:uppercase}
+
+/* Menu screens */
+.mscreen{display:none;flex-direction:column;align-items:center;width:100%;max-width:480px}
+.mscreen.active{display:flex;animation:screenIn .25s ease both}
+@keyframes screenIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+
+/* Buttons */
+.mmbtn{
+  width:320px;padding:16px 0;margin:5px;
+  background:linear-gradient(135deg,rgba(0,0,0,.6),rgba(0,20,0,.6));
+  border:1px solid rgba(61,255,110,.2);color:rgba(255,255,255,.85);
+  letter-spacing:.18em;font-size:13px;cursor:pointer;font-family:inherit;
+  font-weight:400;transition:all .2s;position:relative;overflow:hidden;
+  clip-path:polygon(12px 0%,100% 0%,calc(100% - 12px) 100%,0% 100%);
+}
+.mmbtn::before{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(61,255,110,.08),transparent);transform:translateX(-100%);transition:transform .4s;}
+.mmbtn:hover{background:linear-gradient(135deg,rgba(0,30,0,.7),rgba(0,50,0,.7));border-color:rgba(61,255,110,.5);color:#fff;transform:translateX(4px);box-shadow:0 0 30px rgba(61,255,110,.1),-4px 0 0 rgba(61,255,110,.4);}
+.mmbtn:hover::before{transform:translateX(100%);}
+.mmbtn:active{transform:translateX(2px) scale(.98)}
+.mmbtn.danger{border-color:rgba(255,50,50,.2)}.mmbtn.danger:hover{border-color:rgba(255,50,50,.5);box-shadow:0 0 30px rgba(255,50,50,.1);-webkit-border-image:none;}
+.mmbtn .btn-ico{position:absolute;left:20px;top:50%;transform:translateY(-50%);font-size:16px;opacity:.7}
+.mmbtn .btn-sub{display:block;font-size:9px;color:rgba(255,255,255,.3);letter-spacing:.15em;margin-top:2px}
+
+/* Back button */
+.mback{display:flex;align-items:center;gap:8px;color:rgba(255,255,255,.4);font-size:11px;letter-spacing:.2em;cursor:pointer;margin-bottom:20px;transition:color .15s;align-self:flex-start;margin-left:60px}
+.mback:hover{color:rgba(255,255,255,.7)}
+
+/* Section title */
+.mtitle{font-size:11px;letter-spacing:.4em;color:rgba(61,255,110,.5);margin-bottom:22px;text-transform:uppercase;text-align:center;border-bottom:1px solid rgba(61,255,110,.1);padding-bottom:10px;width:320px}
+
+/* MP panel */
+.mp-tabs{display:flex;gap:4px;margin-bottom:16px;width:320px}
+.mp-tab{flex:1;padding:10px;background:rgba(0,0,0,.4);border:1px solid rgba(255,255,255,.08);color:rgba(255,255,255,.4);cursor:pointer;font-family:inherit;font-size:11px;letter-spacing:.12em;transition:all .15s;text-align:center}
+.mp-tab.on{background:rgba(61,255,110,.08);border-color:rgba(61,255,110,.25);color:#3dff6e}
+.mp-panel{display:none;flex-direction:column;align-items:center;width:320px}
+.mp-panel.on{display:flex}
+.mp-input{width:100%;padding:12px 14px;background:rgba(0,0,0,.5);border:1px solid rgba(255,255,255,.1);color:#fff;font-family:inherit;font-size:13px;letter-spacing:.06em;outline:none;margin-bottom:8px;transition:border-color .15s}
+.mp-input:focus{border-color:rgba(61,255,110,.4)}
+.mp-input::placeholder{color:rgba(255,255,255,.25)}
+.mp-info{font-size:10px;color:rgba(255,255,255,.3);letter-spacing:.1em;text-align:center;margin:6px 0 12px;line-height:1.6}
+
+/* Settings */
+#settings-panel{width:320px}
+.sgroup{margin-bottom:18px}
+.sgroup-title{font-size:9px;letter-spacing:.3em;color:rgba(61,255,110,.4);margin-bottom:10px;text-transform:uppercase}
+.srow{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.04)}
+.srow:last-child{border-bottom:none}
+.slabel{font-size:12px;color:rgba(255,255,255,.7);letter-spacing:.08em}
+.ssub{font-size:9px;color:rgba(255,255,255,.3);letter-spacing:.06em;margin-top:1px}
+
+/* Toggle */
+.stoggle{width:40px;height:20px;background:rgba(255,255,255,.1);border-radius:10px;position:relative;cursor:pointer;transition:background .2s;flex-shrink:0}
+.stoggle.on{background:rgba(61,255,110,.4)}
+.stoggle::after{content:'';position:absolute;width:16px;height:16px;background:#fff;border-radius:50%;top:2px;left:2px;transition:transform .2s;box-shadow:0 1px 4px rgba(0,0,0,.4)}
+.stoggle.on::after{transform:translateX(20px)}
+
+/* Slider */
+.sslider{-webkit-appearance:none;appearance:none;width:120px;height:3px;background:rgba(255,255,255,.1);border-radius:2px;outline:none;cursor:pointer}
+.sslider::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:#3dff6e;cursor:pointer;box-shadow:0 0 8px rgba(61,255,110,.5)}
+.sslider-val{font-size:10px;color:rgba(61,255,110,.8);width:32px;text-align:right;letter-spacing:.05em}
+
+/* Select */
+.sselect{background:rgba(0,0,0,.5);border:1px solid rgba(255,255,255,.12);color:rgba(255,255,255,.8);font-family:inherit;font-size:11px;padding:5px 10px;cursor:pointer;outline:none;letter-spacing:.06em}
+.sselect option{background:#0a1a0a}
+
+/* Name input row */
+.mname-row{display:flex;gap:8px;margin-bottom:16px;width:320px;align-items:center}
+.mname-row label{font-size:10px;color:rgba(255,255,255,.4);letter-spacing:.12em;white-space:nowrap}
+
+/* Version */
+#menu-version{position:absolute;bottom:16px;left:50%;transform:translateX(-50%);font-size:9px;color:rgba(255,255,255,.15);letter-spacing:.2em}
 
 #hud{position:fixed;inset:0;z-index:10;display:none;pointer-events:none}
 
@@ -160,14 +247,221 @@ canvas{display:block;position:fixed;inset:0}
 </div>
 
 <div id="menu">
-  <h1>TEST</h1>
-  <div class="sub">SURVIVE · EXPLORE · FIGHT</div>
-  <button class="mb" onclick="startGame('sp')">SINGLEPLAYER</button>
-  <button class="mb" onclick="startGame('host')">HOST MULTIPLAYER</button>
-  <div style="display:flex;gap:6px;margin:4px">
-    <input id="mpip" placeholder="Server IP..." style="flex:1;padding:12px;background:rgba(0,0,0,.5);border:1px solid rgba(61,255,110,.18);color:#3dff6e;font-family:inherit;font-size:12px;outline:none" value="localhost">
-    <button class="mb" style="width:auto;padding:12px 16px;margin:0" onclick="startGame('join')">JOIN</button>
+  <div id="menu-bg" id="mbg"></div>
+  <div id="menu-fog"></div>
+  <div id="menu-vignette"></div>
+  <div id="menu-content">
+    <div id="menu-logo">
+      <h1>TEST</h1>
+      <div class="v">survival · exploration · combat</div>
+    </div>
+
+    <!-- MAIN SCREEN -->
+    <div class="mscreen active" id="scr-main">
+      <button class="mmbtn" onclick="showScr('scr-sp')"><span class="btn-ico">▶</span>SINGLEPLAYER<span class="btn-sub">play alone — your world</span></button>
+      <button class="mmbtn" onclick="showScr('scr-mp')"><span class="btn-ico">⚡</span>MULTIPLAYER<span class="btn-sub">host or join a server</span></button>
+      <button class="mmbtn" onclick="showScr('scr-set')"><span class="btn-ico">⚙</span>SETTINGS<span class="btn-sub">graphics, audio, controls</span></button>
+      <button class="mmbtn" onclick="showScr('scr-cred')"><span class="btn-ico">ℹ</span>ABOUT<span class="btn-sub">credits & version info</span></button>
+    </div>
+
+    <!-- SP SCREEN -->
+    <div class="mscreen" id="scr-sp">
+      <div class="mback" onclick="showScr('scr-main')">← BACK</div>
+      <div class="mtitle">SINGLEPLAYER</div>
+      <div class="mname-row">
+        <label>YOUR NAME</label>
+        <input class="mp-input" id="sp-name" placeholder="Survivor" maxlength="20" style="margin:0;flex:1">
+      </div>
+      <button class="mmbtn" onclick="startGame('sp')"><span class="btn-ico">▶</span>START NEW GAME<span class="btn-sub">fresh world, no saves yet</span></button>
+      <button class="mmbtn" onclick="showScr('scr-diff')"><span class="btn-ico">⚠</span>DIFFICULTY<span class="btn-sub">currently: <span id="diff-lbl">Normal</span></span></button>
+    </div>
+
+    <!-- DIFFICULTY SCREEN -->
+    <div class="mscreen" id="scr-diff">
+      <div class="mback" onclick="showScr('scr-sp')">← BACK</div>
+      <div class="mtitle">DIFFICULTY</div>
+      <button class="mmbtn" onclick="setDiff('peaceful',this)"><span class="btn-ico">🕊</span>PEACEFUL<span class="btn-sub">no enemies, pure exploration</span></button>
+      <button class="mmbtn" onclick="setDiff('easy',this)"><span class="btn-ico">🌿</span>EASY<span class="btn-sub">fewer enemies, slower hunger</span></button>
+      <button class="mmbtn" onclick="setDiff('normal',this)" id="diff-normal"><span class="btn-ico">⚔</span>NORMAL<span class="btn-sub">balanced experience</span></button>
+      <button class="mmbtn" onclick="setDiff('hard',this)"><span class="btn-ico">💀</span>HARD<span class="btn-sub">more enemies, faster decay</span></button>
+      <button class="mmbtn danger" onclick="setDiff('nightmare',this)"><span class="btn-ico">🔥</span>NIGHTMARE<span class="btn-sub">permadeath · brutal</span></button>
+    </div>
+
+    <!-- MP SCREEN -->
+    <div class="mscreen" id="scr-mp">
+      <div class="mback" onclick="showScr('scr-main')">← BACK</div>
+      <div class="mtitle">MULTIPLAYER</div>
+      <div class="mname-row">
+        <label>YOUR NAME</label>
+        <input class="mp-input" id="mp-name" placeholder="Survivor" maxlength="20" style="margin:0;flex:1">
+      </div>
+      <div class="mp-tabs">
+        <div class="mp-tab on" onclick="setMpTab('host',this)">HOST</div>
+        <div class="mp-tab" onclick="setMpTab('join',this)">JOIN</div>
+      </div>
+      <div class="mp-panel on" id="mp-host">
+        <div class="mp-info">Start a server with <b style="color:#3dff6e">server.js</b><br>then click Host to connect.</div>
+        <button class="mmbtn" onclick="startMp('host')"><span class="btn-ico">⚑</span>HOST SERVER<span class="btn-sub">others connect to your IP</span></button>
+      </div>
+      <div class="mp-panel" id="mp-join">
+        <input class="mp-input" id="mpip" placeholder="Server IP (e.g. 192.168.1.5)" value="localhost">
+        <div class="mp-info">Enter the host's local IP address<br>both must be on the same network</div>
+        <button class="mmbtn" onclick="startMp('join')"><span class="btn-ico">→</span>CONNECT<span class="btn-sub">join existing server</span></button>
+      </div>
+    </div>
+
+    <!-- SETTINGS SCREEN -->
+    <div class="mscreen" id="scr-set">
+      <div class="mback" onclick="showScr('scr-main')">← BACK</div>
+      <div class="mtitle">SETTINGS</div>
+      <div id="settings-panel">
+
+        <!-- GRAPHICS -->
+        <div class="sgroup">
+          <div class="sgroup-title">Graphics</div>
+          <div class="srow">
+            <div><div class="slabel">Quality</div><div class="ssub">Overall render quality</div></div>
+            <select class="sselect" id="s-quality" onchange="applySetting('quality',this.value)">
+              <option value="low">Low</option>
+              <option value="medium" selected>Medium</option>
+              <option value="high">High</option>
+              <option value="ultra">Ultra</option>
+            </select>
+          </div>
+          <div class="srow">
+            <div><div class="slabel">Shadows</div><div class="ssub">Cast & receive shadows</div></div>
+            <div class="stoggle" id="s-shadows" onclick="toggleSet(this,'shadows')"></div>
+          </div>
+          <div class="srow">
+            <div><div class="slabel">Antialiasing</div><div class="ssub">Smooth jagged edges</div></div>
+            <div class="stoggle on" id="s-aa" onclick="toggleSet(this,'aa')"></div>
+          </div>
+          <div class="srow">
+            <div><div class="slabel">Fog</div><div class="ssub">Distance fog effect</div></div>
+            <div class="stoggle on" id="s-fog" onclick="toggleSet(this,'fog')"></div>
+          </div>
+          <div class="srow">
+            <div><div class="slabel">View Distance</div><div class="ssub">Far clip plane</div></div>
+            <div style="display:flex;align-items:center;gap:8px">
+              <input type="range" class="sslider" id="s-view" min="200" max="1000" value="600" step="100" oninput="applySetting('view',this.value)">
+              <span class="sslider-val" id="s-view-val">600</span>
+            </div>
+          </div>
+          <div class="srow">
+            <div><div class="slabel">Render Scale</div><div class="ssub">Pixel ratio multiplier</div></div>
+            <select class="sselect" id="s-scale" onchange="applySetting('scale',this.value)">
+              <option value="0.5">0.5× (fastest)</option>
+              <option value="0.75">0.75×</option>
+              <option value="1.0" selected>1.0× (default)</option>
+              <option value="1.5">1.5×</option>
+              <option value="2.0">2.0× (best)</option>
+            </select>
+          </div>
+          <div class="srow">
+            <div><div class="slabel">Chunk Radius</div><div class="ssub">Terrain load distance</div></div>
+            <select class="sselect" id="s-chunks" onchange="applySetting('chunks',this.value)">
+              <option value="1">1 (very fast)</option>
+              <option value="2" selected>2 (balanced)</option>
+              <option value="3">3 (detailed)</option>
+              <option value="4">4 (slow)</option>
+            </select>
+          </div>
+          <div class="srow">
+            <div><div class="slabel">Tree Count</div><div class="ssub">World foliage density</div></div>
+            <select class="sselect" id="s-trees" onchange="applySetting('trees',this.value)">
+              <option value="40">Low (40)</option>
+              <option value="80" selected>Medium (80)</option>
+              <option value="160">High (160)</option>
+              <option value="320">Ultra (320)</option>
+            </select>
+          </div>
+          <div class="srow">
+            <div><div class="slabel">FPS Cap</div><div class="ssub">Max frames per second</div></div>
+            <select class="sselect" id="s-fps" onchange="applySetting('fps',this.value)">
+              <option value="30">30 FPS</option>
+              <option value="60" selected>60 FPS</option>
+              <option value="120">120 FPS</option>
+              <option value="999">Unlimited</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- GAMEPLAY -->
+        <div class="sgroup">
+          <div class="sgroup-title">Gameplay</div>
+          <div class="srow">
+            <div><div class="slabel">Mouse Sensitivity</div><div class="ssub">Look speed</div></div>
+            <div style="display:flex;align-items:center;gap:8px">
+              <input type="range" class="sslider" id="s-sens" min="1" max="10" value="5" step="1" oninput="applySetting('sens',this.value)">
+              <span class="sslider-val" id="s-sens-val">5</span>
+            </div>
+          </div>
+          <div class="srow">
+            <div><div class="slabel">FOV</div><div class="ssub">Field of view</div></div>
+            <div style="display:flex;align-items:center;gap:8px">
+              <input type="range" class="sslider" id="s-fov" min="60" max="110" value="72" step="2" oninput="applySetting('fov',this.value)">
+              <span class="sslider-val" id="s-fov-val">72</span>
+            </div>
+          </div>
+          <div class="srow">
+            <div><div class="slabel">Invert Y</div><div class="ssub">Flip vertical look</div></div>
+            <div class="stoggle" id="s-invy" onclick="toggleSet(this,'invy')"></div>
+          </div>
+          <div class="srow">
+            <div><div class="slabel">Damage Numbers</div><div class="ssub">Show floating damage</div></div>
+            <div class="stoggle on" id="s-dmgnum" onclick="toggleSet(this,'dmgnum')"></div>
+          </div>
+          <div class="srow">
+            <div><div class="slabel">Screen Shake</div><div class="ssub">Shake on hit</div></div>
+            <div class="stoggle on" id="s-shake" onclick="toggleSet(this,'shake')"></div>
+          </div>
+          <div class="srow">
+            <div><div class="slabel">Enemy HP Bars</div><div class="ssub">Show health above enemies</div></div>
+            <div class="stoggle on" id="s-hpbars" onclick="toggleSet(this,'hpbars')"></div>
+          </div>
+          <div class="srow">
+            <div><div class="slabel">Sprint Toggle</div><div class="ssub">Hold vs toggle sprint</div></div>
+            <div class="stoggle" id="s-sprint" onclick="toggleSet(this,'sprint')"></div>
+          </div>
+        </div>
+
+        <!-- AUDIO -->
+        <div class="sgroup">
+          <div class="sgroup-title">Audio</div>
+          <div class="srow">
+            <div><div class="slabel">Master Volume</div></div>
+            <div style="display:flex;align-items:center;gap:8px">
+              <input type="range" class="sslider" id="s-vol" min="0" max="100" value="80" oninput="applySetting('vol',this.value)">
+              <span class="sslider-val" id="s-vol-val">80%</span>
+            </div>
+          </div>
+          <div class="srow">
+            <div><div class="slabel">Ambient Sound</div><div class="ssub">Wind, birds, nature</div></div>
+            <div class="stoggle on" id="s-amb" onclick="toggleSet(this,'amb')"></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ABOUT SCREEN -->
+    <div class="mscreen" id="scr-cred">
+      <div class="mback" onclick="showScr('scr-main')">← BACK</div>
+      <div class="mtitle">ABOUT</div>
+      <div style="text-align:center;color:rgba(255,255,255,.45);font-size:12px;line-height:2.2;letter-spacing:.08em;width:320px">
+        <div style="font-size:28px;color:#3dff6e;font-weight:200;letter-spacing:.3em;margin-bottom:12px">TEST</div>
+        <div style="color:rgba(61,255,110,.4);margin-bottom:16px">Version 1.0.0 — Three.js Edition</div>
+        <div>Built with Three.js r128</div>
+        <div>Procedural chunk terrain</div>
+        <div>WebSocket multiplayer</div>
+        <div>20 weapons · Skill tree</div>
+        <div>Touch &amp; keyboard support</div>
+        <div style="margin-top:18px;color:rgba(255,255,255,.2);font-size:10px">Open source — made for fun</div>
+      </div>
+    </div>
+
   </div>
+  <div id="menu-version">TEST v1.0 · THREE.JS</div>
 </div>
 
 <div id="hud">
@@ -536,7 +830,7 @@ let ws2=null,pName='Player';
 let ctab='sv',prevPhase='';
 let lastT=0,msgTO=null;
 const otherP={};const projs=[];const keys2={};
-const PH=1.75,MFR=1/120;
+const PH=1.75,MFR=1/60;
 const UP=new THREE.Vector3(0,1,0);
 const cDir=new THREE.Vector3(),rDir=new THREE.Vector3(),mDir=new THREE.Vector3();
 
@@ -927,7 +1221,7 @@ document.getElementById('hb').addEventListener('touchstart',e=>{const el=e.targe
 // ── GAME LOOP ─────────────────────────────────────────────
 function loop(now){
   requestAnimationFrame(loop);
-  const el=Math.min((now-lastT)/1000,.05);if(el<MFR)return;
+  const el=Math.min((now-lastT)/1000,.05);if(el<(typeof minFrame!=='undefined'?minFrame:MFR))return;
   lastT=now;const dt=el;
   updDeath(dt);
   if(alive){
@@ -939,18 +1233,54 @@ function loop(now){
   renderer.render(scene,useTp?tpCam:camera);
 }
 
+// ── SETTINGS & MENU JS ────────────────────────────────────
+const CFG={quality:'medium',shadows:false,aa:true,fog:true,view:600,scale:1.0,chunks:2,trees:80,fps:60,sens:5,fov:72,invy:false,dmgnum:true,shake:true,hpbars:true,sprint:false,vol:80,amb:true};
+let difficulty='normal';
+
+function applySetting(key,val){
+  CFG[key]=isNaN(val)?val:parseFloat(val);
+  const vEl=document.getElementById(`s-${key}-val`);
+  if(vEl)vEl.textContent=key==='view'?val+'u':key==='vol'?val+'%':val;
+  if(key==='view'){camera.far=parseFloat(val);tpCam.far=parseFloat(val);camera.updateProjectionMatrix();tpCam.updateProjectionMatrix();}
+  if(key==='scale')renderer.setPixelRatio(Math.min(devicePixelRatio,parseFloat(val)));
+  if(key==='fog')scene.fog=val===true||val==='true'?new THREE.FogExp2(0x7ab8e8,.005):null;
+  if(key==='fov'){camera.fov=parseFloat(val);tpCam.fov=parseFloat(val);camera.updateProjectionMatrix();tpCam.updateProjectionMatrix();}
+  if(key==='fps')minFrame=1/parseInt(val);
+  if(key==='shadows')renderer.shadowMap.enabled=val===true||val==='true';
+}
+function toggleSet(el,key){el.classList.toggle('on');applySetting(key,el.classList.contains('on'));}
+
+function setDiff(d,btn){
+  difficulty=d;
+  document.getElementById('diff-lbl').textContent=d.charAt(0).toUpperCase()+d.slice(1);
+  document.querySelectorAll('#scr-diff .mmbtn').forEach(b=>b.style.borderColor='');
+  btn.style.borderColor='rgba(61,255,110,.6)';
+  setTimeout(()=>showScr('scr-sp'),300);
+}
+function showScr(id){document.querySelectorAll('.mscreen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');}
+function setMpTab(tab,btn){document.querySelectorAll('.mp-tab').forEach(t=>t.classList.remove('on'));btn.classList.add('on');document.querySelectorAll('.mp-panel').forEach(p=>p.classList.remove('on'));document.getElementById('mp-'+tab).classList.add('on');}
+
+function buildMenuBg(){
+  const bg=document.getElementById('menu-bg');
+  for(let i=0;i<18;i++){const t=document.createElement('div');t.className='bg-tree';const w=20+Math.random()*60,h=80+Math.random()*220;t.style.cssText=`left:${Math.random()*100}%;width:${w}px;height:${h}px;opacity:${.2+Math.random()*.4}`;bg.appendChild(t);}
+  for(let i=0;i<20;i++){const p=document.createElement('div');p.className='mparticle';const sz=2+Math.random()*4;p.style.cssText=`left:${Math.random()*100}%;width:${sz}px;height:${sz}px;background:rgba(61,255,110,${.1+Math.random()*.3});animation-duration:${8+Math.random()*12}s;animation-delay:${Math.random()*8}s`;bg.appendChild(p);}
+}
+buildMenuBg();
+
+function startMp(mode){const name=document.getElementById('mp-name').value.trim()||'Survivor';pName=name;startGame(mode);}
+
 // ── START ─────────────────────────────────────────────────
 function startGame(mode){
-  const name=prompt('Your name:','Survivor')||'Survivor';pName=name;
+  if(!pName||pName==='Player'){const spn=document.getElementById('sp-name');pName=(spn&&spn.value.trim())||'Survivor';}
   document.getElementById('menu').style.display='none';
   document.getElementById('hud').style.display='block';
   if(isTouch){document.getElementById('tui').style.display='block';document.getElementById('hints').style.display='none';}
   camera.position.set(0,getY(0,0)+PH+1,0);
   if(mode==='host')connectWS('localhost');
   else if(mode==='join')connectWS(document.getElementById('mpip').value.trim()||'localhost');
-  document.getElementById('badge').textContent=mode==='sp'?`SP·${name}`:`MP·${name}`;
+  document.getElementById('badge').textContent=mode==='sp'?`SP·${pName}`:`MP·${pName}`;
   buildHB();updStats();
-  showMsg(`Welcome, ${name}! Find weapons. Survive the night.`);
+  showMsg(`Welcome, ${pName}! Search for weapons. Survive the night.`);
   if(!isTouch)renderer.domElement.requestPointerLock();
   requestAnimationFrame(t=>{lastT=t;requestAnimationFrame(loop);});
 }
