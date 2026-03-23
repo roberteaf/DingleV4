@@ -289,31 +289,77 @@ function getY(x,z){
   return Math.max(-2,a+b+c-flat-22);
 }
 
-// Build terrain synchronously but with simple noise (fast)
-const TSEGS=isTouch?40:60;
-const tGeo=new THREE.PlaneGeometry(WORLD,WORLD,TSEGS,TSEGS);
-tGeo.rotateX(-Math.PI/2);
-const tp2=tGeo.attributes.position;
-const tvc=new Float32Array(tp2.count*3);
-for(let i=0;i<tp2.count;i++){
-  const x=tp2.getX(i),z=tp2.getZ(i),y=getY(x,z);
-  tp2.setY(i,y);
-  let r,g,b;
-  if(y<0){r=.7;g=.62;b=.38;}
-  else if(y<12){r=.16;g=.52;b=.13;}
-  else if(y<28){r=.12;g=.42;b=.10;}
-  else if(y<44){r=.38;g=.28;b=.19;}
-  else{r=.90;g=.90;b=.94;}
-  tvc[i*3]=r;tvc[i*3+1]=g;tvc[i*3+2]=b;
-}
-tGeo.computeVertexNormals();
-tGeo.setAttribute('color',new THREE.BufferAttribute(tvc,3));
-const terrain=new THREE.Mesh(tGeo,new THREE.MeshLambertMaterial({vertexColors:true}));
-terrain.receiveShadow=true;
-scene.add(terrain);
+// ── CHUNK TERRAIN SYSTEM ─────────────────────────────────
+const CHUNK_SIZE = 80;   // size of each chunk in world units
+const CHUNK_SEGS = isTouch ? 12 : 20; // segments per chunk
+const CHUNK_RADIUS = isTouch ? 2 : 3; // chunks loaded around player
+const loadedChunks = new Map(); // "cx,cz" -> THREE.Mesh
 
-// Bounds
-['x','z'].forEach(ax=>{for(const s of[-1,1]){const b=new THREE.Mesh(new THREE.BoxGeometry(ax==='x'?4:WORLD+8,80,ax==='z'?4:WORLD+8),new THREE.MeshBasicMaterial({visible:false}));b.position[ax]=s*HALF;b.position.y=20;scene.add(b);}});
+function makeChunk(cx, cz) {
+  const key = `${cx},${cz}`;
+  if (loadedChunks.has(key)) return;
+
+  const geo = new THREE.PlaneGeometry(CHUNK_SIZE, CHUNK_SIZE, CHUNK_SEGS, CHUNK_SEGS);
+  geo.rotateX(-Math.PI / 2);
+  const pos = geo.attributes.position;
+  const cols = new Float32Array(pos.count * 3);
+  const ox = cx * CHUNK_SIZE, oz = cz * CHUNK_SIZE;
+
+  for (let i = 0; i < pos.count; i++) {
+    const wx = pos.getX(i) + ox;
+    const wz = pos.getZ(i) + oz;
+    const y = getY(wx, wz);
+    pos.setY(i, y);
+    let r, g, b;
+    if      (y < 0)  { r=.70; g=.62; b=.38; }
+    else if (y < 12) { r=.16; g=.52; b=.13; }
+    else if (y < 28) { r=.12; g=.42; b=.10; }
+    else if (y < 44) { r=.38; g=.28; b=.19; }
+    else             { r=.90; g=.90; b=.94; }
+    cols[i*3]=r; cols[i*3+1]=g; cols[i*3+2]=b;
+  }
+  geo.computeVertexNormals();
+  geo.setAttribute('color', new THREE.BufferAttribute(cols, 3));
+
+  const mesh = new THREE.Mesh(geo, new THREE.MeshLambertMaterial({ vertexColors: true }));
+  mesh.position.set(ox, 0, oz);
+  mesh.receiveShadow = !isTouch;
+  scene.add(mesh);
+  loadedChunks.set(key, mesh);
+}
+
+function removeChunk(key) {
+  const mesh = loadedChunks.get(key);
+  if (mesh) { scene.remove(mesh); mesh.geometry.dispose(); loadedChunks.delete(key); }
+}
+
+let lastChunkX = null, lastChunkZ = null;
+function updateChunks(px, pz) {
+  const cx = Math.round(px / CHUNK_SIZE);
+  const cz = Math.round(pz / CHUNK_SIZE);
+  if (cx === lastChunkX && cz === lastChunkZ) return;
+  lastChunkX = cx; lastChunkZ = cz;
+
+  // Load nearby chunks
+  for (let dx = -CHUNK_RADIUS; dx <= CHUNK_RADIUS; dx++) {
+    for (let dz = -CHUNK_RADIUS; dz <= CHUNK_RADIUS; dz++) {
+      makeChunk(cx + dx, cz + dz);
+    }
+  }
+
+  // Unload far chunks
+  for (const [key] of loadedChunks) {
+    const [kcx, kcz] = key.split(',').map(Number);
+    if (Math.abs(kcx - cx) > CHUNK_RADIUS + 1 || Math.abs(kcz - cz) > CHUNK_RADIUS + 1) {
+      removeChunk(key);
+    }
+  }
+}
+
+// Dummy terrain ref so getY still works (chunks handle actual mesh)
+let terrain = null;
+
+// Boundaries handled by player position clamp
 
 // ── SKY ───────────────────────────────────────────────────
 const skyMat=new THREE.MeshBasicMaterial({color:0x7ab8e8,side:THREE.BackSide});
@@ -887,6 +933,7 @@ function loop(now){
   if(alive){
     updPlayer(dt);updEnemies(dt);updSurvival(dt);updDay(dt);
     updAnims(now);updProjs(dt);updSpawn(dt);updInt();
+    updateChunks(camera.position.x, camera.position.z);
     netST+=dt;if(netST>=.06){netST=0;sendNet();}
   }
   renderer.render(scene,useTp?tpCam:camera);
@@ -912,6 +959,9 @@ function startGame(mode){
 async function initWorld(){
   try{
     setLoad(10,'BUILDING TERRAIN...');await delay(20);
+    // Pre-generate chunks around spawn (0,0) so player has ground immediately
+    for(let dx=-2;dx<=2;dx++){for(let dz=-2;dz<=2;dz++){makeChunk(dx,dz);} await delay(8);}
+    lastChunkX=0;lastChunkZ=0;
     setLoad(30,'GROWING FOREST...');await delay(20);
     const tc=isTouch?60:120;
     for(let i=0;i<tc;i++){const x=rnd(-HALF+5,HALF-5),z=rnd(-HALF+5,HALF-5);if(Math.sqrt(x*x+z*z)<18)continue;makeTree(x,z);if(i%20===0)await delay(4);}
