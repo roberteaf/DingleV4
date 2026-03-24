@@ -1,16 +1,20 @@
-// DingleProxy Background Engine
 self.addEventListener('install', (event) => {
     self.skipWaiting();
+});
+
+self.addEventListener('activate', (event) => {
+    event.waitUntil(clients.claim()); // Force the proxy to start working IMMEDIATELY
 });
 
 self.addEventListener('fetch', (event) => {
     const url = new URL(event.request.url);
 
-    // Intercept requests starting with /service/
-    if (url.pathname.startsWith('/service/')) {
-        const targetUrl = decodeURIComponent(url.pathname.replace('/service/', ''));
+    /* Detection for /service/ regardless of the GitHub folder name */
+    if (url.pathname.includes('/service/')) {
+        const parts = url.pathname.split('/service/');
+        const targetUrl = decodeURIComponent(parts[1]);
 
-        // Use a CORS engine to bypass school blocks
+        /* AllOrigins Engine */
         const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(targetUrl)}`;
 
         event.respondWith(
