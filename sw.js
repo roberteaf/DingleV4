@@ -9,10 +9,16 @@ self.addEventListener('fetch', e => {
         e.respondWith(
             fetch(proxyUrl)
                 .then(r => r.text())
-                .then(html => new Response(html, {
-                    headers: { 'Content-Type': 'text/html; charset=utf-8' }
-                }))
-                .catch(() => new Response('<h1 style="color:red">Failed to load</h1>', {
+                .then(html => {
+                    // inject base tag so relative URLs resolve correctly
+                    const base = '<base href="' + target + '">';
+                    const fixed = html.replace(/<head>/i, '<head>' + base)
+                                      .replace(/^<!DOCTYPE[^>]*>/i, '$&<head>' + base + '</head>') || base + html;
+                    return new Response(fixed, {
+                        headers: { 'Content-Type': 'text/html; charset=utf-8' }
+                    });
+                })
+                .catch(() => new Response('<body style="background:#000;color:red;font-family:monospace;padding:20px"><h2>Failed to load</h2><p>Site may have blocked the proxy.</p></body>', {
                     status: 502,
                     headers: { 'Content-Type': 'text/html' }
                 }))
