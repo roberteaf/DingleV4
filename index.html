@@ -2,61 +2,35 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
-    <title>DingHubV4 | Dashboard</title>
+    <title>DingHubV4 | Portal</title>
     <style>
         body {
-            background-color: #000;
+            background: #000;
             color: #b3ff00;
-            font-family: 'Courier New', Courier, monospace;
-            margin: 0;
+            font-family: sans-serif;
             display: flex;
-            flex-direction: column;
             align-items: center;
             justify-content: center;
             height: 100vh;
+            margin: 0;
             text-align: center;
         }
-        .status-box {
+        .box {
             border: 1px solid #333;
-            padding: 20px;
-            border-radius: 10px;
+            padding: 40px;
+            border-radius: 20px;
             background: #0a0a0a;
+            box-shadow: 0 0 30px rgba(179, 255, 0, 0.1);
         }
-        h1 { font-size: 20px; margin-bottom: 5px; }
-        p { color: #666; font-size: 12px; }
-        .green { color: #b3ff00; font-weight: bold; }
+        h1 { font-size: 24px; letter-spacing: 2px; margin: 0; }
+        .status { color: #666; font-size: 12px; margin-top: 10px; text-transform: uppercase; }
+        .dot { height: 8px; width: 8px; background: #b3ff00; border-radius: 50%; display: inline-block; margin-right: 5px; }
     </style>
-
-    <script src="uv/uv.bundle.js" defer></script>
-    <script src="uv/uv.config.js" defer></script>
-    <script src="uv/uv.handler.js" defer></script>
 </head>
 <body>
-
-    <div class="status-box">
-        <h1>DINGHUB<span>V4</span></h1>
-        <p>SERVER STATUS: <span class="green">ONLINE</span></p>
-        <p style="margin-top:20px; font-style:italic;">Waiting for Bookmarklet Command...</p>
+    <div class="box">
+        <h1>DINGHUBV4</h1>
+        <div class="status"><span class="dot"></span> Server Online</div>
     </div>
-
-    <script>
-        /* This script registers your Service Worker (sw.js).
-           This is the "Engine" that actually unblocks the sites.
-        */
-        async function registerSW() {
-            if ('serviceWorker' in navigator) {
-                try {
-                    await navigator.serviceWorker.register('./sw.js', {
-                        scope: '/Dinglev/'
-                    });
-                    console.log("DingHub SW Registered Successfully");
-                } catch (err) {
-                    console.error("SW Registration Failed:", err);
-                }
-            }
-        }
-        registerSW();
-    </script>
 </body>
 </html>
