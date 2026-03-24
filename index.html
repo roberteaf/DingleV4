@@ -1,29 +1,147 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>DingleV4 | Engine</title>
-    <style>
-        body{background:#000;color:#b3ff00;font-family:monospace;display:flex;align-items:center;justify-content:center;height:100vh;margin:0}
-        .card{border:1px solid #222;padding:25px;border-radius:12px;text-align:center}
-        #status{color:#555;font-size:10px;margin-top:10px}
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Google Drive</title> <style>
+        :root {
+            --deep-blue: #020b1a;
+            --aqua: #00f2ff;
+            --foam: #e0ffff;
+        }
+
+        body, html { 
+            margin: 0; padding: 0; width: 100%; height: 100%; 
+            background: var(--deep-blue); font-family: 'Segoe UI', sans-serif;
+            overflow: hidden; color: var(--foam);
+        }
+
+        /* Animated Ocean Background */
+        .ocean {
+            position: absolute; width: 100%; height: 100%;
+            background: linear-gradient(180deg, #051937 0%, #000c1d 100%);
+            z-index: -1;
+        }
+
+        .bubble {
+            position: absolute; bottom: -50px; background: rgba(255,255,255,0.1);
+            border-radius: 50%; animation: rise 10s infinite ease-in;
+        }
+
+        @keyframes rise {
+            0% { transform: translateY(0) scale(1); opacity: 0; }
+            50% { opacity: 0.3; }
+            100% { transform: translateY(-100vh) scale(1.5); opacity: 0; }
+        }
+
+        /* UI Elements */
+        #container {
+            display: flex; flex-direction: column; width: 100%; height: 100%;
+        }
+
+        header {
+            height: 100px; display: flex; flex-direction: column;
+            justify-content: center; align-items: center;
+            background: rgba(0,0,0,0.4); border-bottom: 1px solid var(--aqua);
+            backdrop-filter: blur(10px);
+        }
+
+        h1 { 
+            margin: 0; font-size: 1.2rem; color: var(--aqua); 
+            text-transform: uppercase; letter-spacing: 4px; 
+        }
+
+        .search-box {
+            display: flex; width: 90%; max-width: 500px; margin-top: 10px;
+            background: rgba(255,255,255,0.05); border-radius: 25px;
+            border: 1px solid rgba(0, 242, 255, 0.3); padding: 5px;
+        }
+
+        input {
+            flex: 1; background: transparent; border: none; padding: 10px 15px;
+            color: #fff; outline: none; font-size: 16px;
+        }
+
+        button {
+            background: var(--aqua); color: #000; border: none;
+            padding: 0 20px; border-radius: 20px; font-weight: bold; cursor: pointer;
+        }
+
+        /* The Main Viewport */
+        #viewport {
+            flex: 1; width: 100%; border: none; background: #fff;
+        }
+
+        /* Invisible Stealth Triggers */
+        .trigger {
+            position: fixed; bottom: 0; width: 120px; height: 120px;
+            z-index: 10000; background: transparent;
+        }
+        #kill { left: 0; } /* Bottom Left: Instant Close */
+        #hide { right: 0; } /* Bottom Right: Toggle UI */
+
     </style>
 </head>
 <body>
-    <div class="card">
-        <h2 style="letter-spacing:5px">DINGLE V4</h2>
-        <div id="status">ENGINE STARTING...</div>
+
+    <div class="ocean" id="ocean-bg"></div>
+
+    <div id="container">
+        <header id="header-ui">
+            <h1>Abyssal Proxy</h1>
+            <form class="search-box" id="proxyForm">
+                <input type="text" id="target" placeholder="Enter URL or Search terms...">
+                <button type="submit">DIVE</button>
+            </form>
+        </header>
+        <iframe id="viewport" src="https://duckduckgo.com/lite/"></iframe>
     </div>
+
+    <div id="kill" class="trigger"></div>
+    <div id="hide" class="trigger"></div>
+
     <script>
-        if('serviceWorker' in navigator){
-            navigator.serviceWorker.register('./sw.js',{scope:'./'})
-                .then(()=>navigator.serviceWorker.ready)
-                .then(()=>{
-                    document.getElementById('status').innerText='ENGINE ONLINE';
-                    document.getElementById('status').style.color='#b3ff00';
-                    if(window.parent!==window)window.parent.postMessage('sw-ready','*');
-                });
+        // 1. Generate Bubbles
+        const bg = document.getElementById('ocean-bg');
+        for(let i=0; i<20; i++) {
+            let b = document.createElement('div');
+            b.className = 'bubble';
+            let size = Math.random() * 30 + 10 + 'px';
+            b.style.width = size; b.style.height = size;
+            b.style.left = Math.random() * 100 + '%';
+            b.style.animationDelay = Math.random() * 10 + 's';
+            bg.appendChild(b);
         }
+
+        // 2. The Proxy Logic (School iPad Bypass)
+        const form = document.getElementById('proxyForm');
+        const view = document.getElementById('viewport');
+        const inp = document.getElementById('target');
+
+        form.onsubmit = (e) => {
+            e.preventDefault();
+            let val = inp.value.trim();
+            if(!val) return;
+
+            // Decide if it's a URL or a search
+            let url = (val.indexOf('.') > -1 && val.indexOf(' ') === -1) 
+                ? (val.indexOf('http') === 0 ? val : 'https://' + val) 
+                : 'https://duckduckgo.com/lite/?q=' + encodeURIComponent(val);
+
+            // Use the most stable 2026 CORS relay to bypass Jamf
+            // This forces the "Source Code" to render as a real page
+            view.src = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(url);
+        };
+
+        // 3. Stealth Triggers
+        document.getElementById('kill').onclick = () => {
+            window.location.href = "https://google.com"; // Panic button
+        };
+
+        document.getElementById('hide').onclick = () => {
+            const head = document.getElementById('header-ui');
+            head.style.display = (head.style.display === 'none') ? 'flex' : 'none';
+        };
     </script>
 </body>
 </html>
