@@ -4,25 +4,24 @@
     <meta charset="UTF-8">
     <title>DingleV4 | Engine</title>
     <style>
-        body { background: #000; color: #b3ff00; font-family: monospace; display: flex;
-               align-items: center; justify-content: center; height: 100vh; margin: 0; }
-        .card { border: 1px solid #222; padding: 25px; border-radius: 12px; text-align: center; }
-        #status { color: #555; font-size: 10px; margin-top: 10px; }
+        body{background:#000;color:#b3ff00;font-family:monospace;display:flex;align-items:center;justify-content:center;height:100vh;margin:0}
+        .card{border:1px solid #222;padding:25px;border-radius:12px;text-align:center}
+        #status{color:#555;font-size:10px;margin-top:10px}
     </style>
 </head>
 <body>
     <div class="card">
-        <h2 style="letter-spacing:5px;">DINGLE V4</h2>
+        <h2 style="letter-spacing:5px">DINGLE V4</h2>
         <div id="status">ENGINE STARTING...</div>
     </div>
     <script>
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('./sw.js', { scope: './' })
-                .then(() => navigator.serviceWorker.ready)
-                .then(() => {
-                    document.getElementById('status').innerText = 'ENGINE ONLINE';
-                    document.getElementById('status').style.color = '#b3ff00';
-                    if (window.parent !== window) window.parent.postMessage('sw-ready', '*');
+        if('serviceWorker' in navigator){
+            navigator.serviceWorker.register('./sw.js',{scope:'./'})
+                .then(()=>navigator.serviceWorker.ready)
+                .then(()=>{
+                    document.getElementById('status').innerText='ENGINE ONLINE';
+                    document.getElementById('status').style.color='#b3ff00';
+                    if(window.parent!==window)window.parent.postMessage('sw-ready','*');
                 });
         }
     </script>
