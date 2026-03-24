@@ -1,36 +1,21 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <meta charset="utf-8">
-    <title>DingHubV4 | Portal</title>
+    <meta charset="UTF-8">
+    <title>DingHubV4 | System</title>
     <style>
-        body {
-            background: #000;
-            color: #b3ff00;
-            font-family: sans-serif;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            margin: 0;
-            text-align: center;
-        }
-        .box {
-            border: 1px solid #333;
-            padding: 40px;
-            border-radius: 20px;
-            background: #0a0a0a;
-            box-shadow: 0 0 30px rgba(179, 255, 0, 0.1);
-        }
-        h1 { font-size: 24px; letter-spacing: 2px; margin: 0; }
-        .status { color: #666; font-size: 12px; margin-top: 10px; text-transform: uppercase; }
-        .dot { height: 8px; width: 8px; background: #b3ff00; border-radius: 50%; display: inline-block; margin-right: 5px; }
+        body { background: #000; color: #b3ff00; font-family: monospace; display: flex; 
+               align-items: center; justify-content: center; height: 100vh; margin: 0; }
+        .status { border: 1px solid #333; padding: 20px; border-radius: 8px; text-align: center; }
+        .blink { animation: blinker 1.5s linear infinite; }
+        @keyframes blinker { 50% { opacity: 0; } }
     </style>
 </head>
 <body>
-    <div class="box">
-        <h1>DINGHUBV4</h1>
-        <div class="status"><span class="dot"></span> Server Online</div>
+    <div class="status">
+        <h2 style="margin:0">DINGHUBV4</h2>
+        <p style="color:#555; font-size:12px;">STATUS: <span style="color:#b3ff00">READY</span></p>
+        <div class="blink" style="font-size:10px;">[ SYSTEM ENCRYPTED ]</div>
     </div>
 </body>
 </html>
