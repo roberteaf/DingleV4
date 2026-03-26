@@ -60,6 +60,10 @@ async def join_bots(game_code, base_name, bot_count):
         await browser.close()
     return joined
 
+@app.route('/', methods=['GET'])
+def index():
+    return jsonify({'status': 'running', 'message': 'Blooket Bot Backend is active'})
+
 @app.route('/ping', methods=['GET'])
 def ping():
     return jsonify({'status': 'ok'})
