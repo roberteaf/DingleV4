@@ -8,7 +8,8 @@ from flask_cors import CORS
 from playwright.async_api import async_playwright
 
 app = Flask(__name__)
-CORS(app)
+# Allow CORS for all domains on all routes
+CORS(app, resources={r"/*": {"origins": "*"}})
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -60,16 +61,28 @@ async def join_bots(game_code, base_name, bot_count):
         await browser.close()
     return joined
 
+@app.after_request
+def after_request(response):
+    response.headers.add('Access-Control-Allow-Origin', '*')
+    response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
+    response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
+    return response
+
 @app.route('/', methods=['GET'])
 def index():
     return jsonify({'status': 'running', 'message': 'Blooket Bot Backend'})
 
-@app.route('/ping', methods=['GET'])
+@app.route('/ping', methods=['GET', 'OPTIONS'])
 def ping():
+    if request.method == 'OPTIONS':
+        return '', 200
     return jsonify({'status': 'ok'})
 
-@app.route('/join', methods=['POST'])
+@app.route('/join', methods=['POST', 'OPTIONS'])
 def join():
+    if request.method == 'OPTIONS':
+        return '', 200
+
     data = request.json
     game_code = data.get('game_code')
     base_name = data.get('base_name')
@@ -97,5 +110,5 @@ def join():
         loop.close()
 
 if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 8080))  # Railway gives PORT=8080
+    port = int(os.environ.get('PORT', 8080))
     app.run(host='0.0.0.0', port=port)
