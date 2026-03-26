@@ -2,7 +2,6 @@ import asyncio
 import logging
 import os
 import random
-import sys
 from pathlib import Path
 from flask import Flask, request, jsonify
 from flask_cors import CORS
@@ -63,7 +62,7 @@ async def join_bots(game_code, base_name, bot_count):
 
 @app.route('/', methods=['GET'])
 def index():
-    return jsonify({'status': 'running', 'message': 'Blooket Bot Backend is active'})
+    return jsonify({'status': 'running', 'message': 'Blooket Bot Backend'})
 
 @app.route('/ping', methods=['GET'])
 def ping():
@@ -98,6 +97,5 @@ def join():
         loop.close()
 
 if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 5000))
-    # Run with production server? But we'll keep as is for simplicity.
+    port = int(os.environ.get('PORT', 8080))  # Railway gives PORT=8080
     app.run(host='0.0.0.0', port=port)
