@@ -8,8 +8,8 @@ from flask_cors import CORS
 from playwright.async_api import async_playwright
 
 app = Flask(__name__)
-# Allow CORS for all domains on all routes
-CORS(app, resources={r"/*": {"origins": "*"}})
+# Enable CORS for all origins on all routes
+CORS(app, origins='*', methods=['GET', 'POST', 'OPTIONS'], allow_headers=['Content-Type', 'Authorization'])
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -61,16 +61,9 @@ async def join_bots(game_code, base_name, bot_count):
         await browser.close()
     return joined
 
-@app.after_request
-def after_request(response):
-    response.headers.add('Access-Control-Allow-Origin', '*')
-    response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
-    response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
-    return response
-
 @app.route('/', methods=['GET'])
 def index():
-    return jsonify({'status': 'running', 'message': 'Blooket Bot Backend'})
+    return jsonify({'status': 'running'})
 
 @app.route('/ping', methods=['GET', 'OPTIONS'])
 def ping():
