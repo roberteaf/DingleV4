@@ -2,6 +2,7 @@ import asyncio
 import logging
 import os
 import random
+import sys
 from pathlib import Path
 from flask import Flask, request, jsonify
 from flask_cors import CORS
@@ -98,4 +99,5 @@ def join():
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
+    # Run with production server? But we'll keep as is for simplicity.
     app.run(host='0.0.0.0', port=port)
