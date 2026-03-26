@@ -1,5 +1,6 @@
 import asyncio
 import logging
+import os
 import random
 from pathlib import Path
 from flask import Flask, request, jsonify
@@ -38,7 +39,6 @@ async def join_bots(game_code, base_name, bot_count):
             try:
                 logger.info(f"Joining {nick}")
                 await page.goto("https://play.blooket.com")
-                # Wait for game code input
                 await page.wait_for_selector("input[placeholder*='Game Code']", timeout=60000)
                 await page.fill("input[placeholder*='Game Code']", game_code)
                 await page.click("button:has-text('Next')")
@@ -46,7 +46,6 @@ async def join_bots(game_code, base_name, bot_count):
                 await page.fill("input[placeholder*='Nickname']", nick)
                 await page.click("button:has-text('Join')")
                 await asyncio.sleep(3)
-                # Check if joined
                 error = await page.query_selector("text=Game code invalid")
                 if error:
                     logger.error(f"Invalid code for {nick}")
@@ -60,6 +59,10 @@ async def join_bots(game_code, base_name, bot_count):
                 await asyncio.sleep(random.uniform(0.8, 2.5))
         await browser.close()
     return joined
+
+@app.route('/ping', methods=['GET'])
+def ping():
+    return jsonify({'status': 'ok'})
 
 @app.route('/join', methods=['POST'])
 def join():
@@ -90,4 +93,5 @@ def join():
         loop.close()
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000)
+    port = int(os.environ.get('PORT', 5000))
+    app.run(host='0.0.0.0', port=port)
